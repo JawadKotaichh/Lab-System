@@ -29,7 +29,6 @@ class Lab_test_result(BaseModel):
                 "_id":               "607c191e810c19729de860ea",
                 "lab_test_type_id": "607c191e810c19729de860eb",
                 "visit_id":         "607c191e810c19729de860ec",
-                "patient_id":       "607c191e810c19729de860ed",
                 "result":           "Positive"
             }
         },
