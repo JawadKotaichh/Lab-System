@@ -30,7 +30,7 @@ class Lab_test_type(BaseModel):
         json_schema_extra={
              "example": {
                 "_id":         "607c191e810c19729de860ee",
-                "nssf_id":     1001,
+                "nssf_id":     8000,
                 "name":        "FBS",
                 "unit":        "mg/dL",
                 "price":       10,
