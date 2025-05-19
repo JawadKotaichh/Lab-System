@@ -191,7 +191,7 @@ async def update_a_visit_of_a_patient(visit_id:str,patient_id:str,new_visit:upda
         raise HTTPException(status_code=404, detail="Patient {patient_id} not found")
     
     new_visit = {
-        k: v for k, v in new_visit.model_dump(by_alias=True).items() if v is not None
+        k: v for k, v in new_visit.model_dump(by_alias=True).items() if v is not None and k!="_id"
     }
 
     if len(new_visit)>=1:

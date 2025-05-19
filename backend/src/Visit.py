@@ -43,7 +43,7 @@ class update_visit(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "patient_id": "2143e3rrghg",
+                "patient_id": "682b24bc66676a3a442db2f5",
                 "Date": "1995-05-16",        
             }
         },
