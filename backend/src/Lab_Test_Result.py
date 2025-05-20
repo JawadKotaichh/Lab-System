@@ -26,8 +26,7 @@ class Lab_test_result(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "_id":               "607c191e810c19729de860ea",
-                "lab_test_type_id": "607c191e810c19729de860eb",
+                "lab_test_type_id": "682b2fb189e933f09cbcb489",
                 "visit_id":         "607c191e810c19729de860ec",
                 "result":           "Positive"
             }
@@ -43,7 +42,7 @@ class update_Lab_test_result(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "lab_test_type_id": "607c191e810c19729de860eb",
+                "lab_test_type_id": "682b2fb189e933f09cbcb489",
                 "result":           "Negative"
             }
         },
