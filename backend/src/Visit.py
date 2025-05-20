@@ -10,6 +10,7 @@ from typing_extensions import Annotated
 from fastapi.staticfiles import StaticFiles
 from bson import ObjectId
 import motor.motor_asyncio
+from datetime import datetime
 from pymongo import ReturnDocument
 
 from Lab_Test_Result import Lab_test_result,update_Lab_test_result
@@ -20,7 +21,7 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 class Visit(BaseModel):
     id: PyObjectId = Field(None, alias="_id")
     patient_id: PyObjectId
-    Date: str=Field(...)
+    date: datetime=Field(...)
 
     model_config = ConfigDict(
         populate_by_name= True,
@@ -28,15 +29,15 @@ class Visit(BaseModel):
         json_schema_extra={
             "example": {
                 "patient_id": "6829e34cf35023046f4b5c00",
-                "Date": "1995-05-16",        
+                "date": datetime(1995,1,15),        
             }
         },
     )
 
 class update_visit(BaseModel):
     id: PyObjectId = Field(None, alias="_id")
-    patient_id: Optional[PyObjectId] = Field(None, alias="_id")
-    Date: str=Field(...)
+    patient_id: Optional[PyObjectId]
+    date: datetime=Field(...)
 
     model_config = ConfigDict(
         populate_by_name= True,
@@ -44,7 +45,7 @@ class update_visit(BaseModel):
         json_schema_extra={
             "example": {
                 "patient_id": "682b24bc66676a3a442db2f5",
-                "Date": "1995-05-16",        
+                "date": datetime(1995,1,1),        
             }
         },
     )
