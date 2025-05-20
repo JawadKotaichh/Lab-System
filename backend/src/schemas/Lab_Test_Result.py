@@ -16,37 +16,42 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class Lab_test_result(BaseModel):
-    id: PyObjectId = Field(default=None, alias="_id") 
-    lab_test_type_id: PyObjectId = Field(..., description="Which test type this result refers to")
+    id: PyObjectId = Field(default=None, alias="_id")
+    lab_test_type_id: PyObjectId = Field(
+        ..., description="Which test type this result refers to"
+    )
     visit_id: PyObjectId = Field(..., description="Which visit this result belongs to")
-    result:str=Field(...)
+    result: str = Field(...)
 
     model_config = ConfigDict(
-        populate_by_name= True,
+        populate_by_name=True,
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
                 "lab_test_type_id": "682b2fb189e933f09cbcb489",
-                "visit_id":         "607c191e810c19729de860ec",
-                "result":           "Positive"
+                "visit_id": "607c191e810c19729de860ec",
+                "result": "Positive",
             }
         },
     )
 
-class update_Lab_test_result(BaseModel):
+
+class update_lab_test_result_model(BaseModel):
     lab_test_type_id: Optional[PyObjectId] = None
-    result:           Optional[str]        = None
+    result: Optional[str] = None
 
     model_config = ConfigDict(
-        populate_by_name= True,
+        populate_by_name=True,
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
                 "lab_test_type_id": "682b2fb189e933f09cbcb489",
-                "result":           "Negative"
+                "result": "Negative",
             }
         },
     )
+
+
 class list_lab_test_result(BaseModel):
     test_results: list[Lab_test_result] = Field(...)
     model_config = ConfigDict(populate_by_name=True)
