@@ -16,7 +16,6 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class Lab_test_type(BaseModel):
-    id:           PyObjectId = Field(default=None, alias="_id") 
     nssf_id:      int=Field(...)
     name:         str=Field(...)
     unit:         str=Field(...)
@@ -29,7 +28,6 @@ class Lab_test_type(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
              "example": {
-                "_id":         "607c191e810c19729de860ee",
                 "nssf_id":     8000,
                 "name":        "FBS",
                 "unit":        "mg/dL",
@@ -53,7 +51,12 @@ class update_Lab_test_type(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "price": 12
+                "nssf_id":     9002,
+                "name":        "FBS",
+                "unit":        "mg/dL",
+                "price":       10,
+                "lower_bound": "70",
+                "upper_bound": "110"
             }
         },
     )
