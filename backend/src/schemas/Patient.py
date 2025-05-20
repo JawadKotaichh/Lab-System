@@ -13,34 +13,35 @@ import motor.motor_asyncio
 from pymongo import ReturnDocument
 
 
-
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class Patient(BaseModel):
-    id: PyObjectId = Field(default=None, alias="_id") 
-    name:str=Field(...)
-    gender:str=Field(...)
-    DOB:str=Field(...)
-    phone_number: int=Field(...)
+    id: PyObjectId = Field(default=None, alias="_id")
+    name: str = Field(...)
+    gender: str = Field(...)
+    DOB: str = Field(...)
+    phone_number: int = Field(...)
 
     model_config = ConfigDict(
-        populate_by_name= True,
+        populate_by_name=True,
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
                 "name": "Jawad Kotaich",
                 "gender": "Male",
-                "DOB": "1995-05-16",        
-                "phone_number": "12345678",   
+                "DOB": "1995-05-16",
+                "phone_number": "12345678",
             }
         },
     )
+
 
 class update_patient_model(BaseModel):
     """
     A set of optional updates to be made to a document in the database.
     """
+
     id: PyObjectId = Field(None, alias="_id")
     name: Optional[str] = None
     gender: Optional[str] = None
@@ -48,20 +49,22 @@ class update_patient_model(BaseModel):
     phone_number: Optional[int] = None
 
     model_config = ConfigDict(
-        populate_by_name= True,
+        populate_by_name=True,
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
                 "name": "Jawad Kotaich",
                 "gender": "Male",
-                "DOB": "1995-05-16",        
-                "phone_number": "12345678",   
+                "DOB": "1995-05-16",
+                "phone_number": "12345678",
             }
         },
     )
+
 
 class list_patient_collection(BaseModel):
     """
     A container holding a list of `Patient` instances.
     """
+
     patients: List[Patient]

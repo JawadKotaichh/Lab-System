@@ -1,16 +1,12 @@
 # USE Beani
-import asyncio
-from typing import Optional
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
-from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
 from datetime import datetime
 from pydantic import Field
 
 # TODO: take the database name from env variables
 
-from beanie import Document, Indexed, init_beanie
+from beanie import Document
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
