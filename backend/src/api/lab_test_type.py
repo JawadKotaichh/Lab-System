@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
 from src.models import lab_test_type as DBLab_test_type
-from src.models import Patient as DBPatient
 from src.schemas.Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
@@ -35,7 +34,7 @@ async def create_lab_test_type(data: Lab_test_type):
 
 
 @router.get("/{lab_test_type_id}", response_model=DBLab_test_type)
-async def get_Lab_test_type(lab_test_type_id: str):
+async def get_lab_test_type(lab_test_type_id: str):
     if not ObjectId.is_valid(lab_test_type_id):
         raise HTTPException(400, "Invalid lab_test_type ID")
     Lab_test_type = await DBLab_test_type.get(ObjectId(lab_test_type_id))
@@ -84,7 +83,7 @@ async def updatelLab_test_type(
 async def delete_patient(lab_test_type_id: str):
     if not ObjectId.is_valid(lab_test_type_id):
         raise HTTPException(400, "Invalid lab_test_type ID")
-    lab_test_type_to_be_deleted = await DBPatient.get(ObjectId(lab_test_type_id))
+    lab_test_type_to_be_deleted = await DBLab_test_type.get(ObjectId(lab_test_type_id))
     if not lab_test_type_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

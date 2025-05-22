@@ -54,195 +54,195 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 # Patient Functions
 
 
-# @app.post(
-#     "/patients/",
-#     response_description="Add new patient",
-#     response_model=Patient,
-#     status_code=status.HTTP_201_CREATED,
-#     response_model_by_alias=False,
-# )
-# async def create_patient(patient: Patient = Body(...)):
-#     new_patient = await patient_collection.insert_one(
-#         patient.model_dump(by_alias=True, exclude=["id"])
-#     )
-#     created_patient = await patient_collection.find_one(
-#         {"_id": new_patient.inserted_id}
-#     )
-#     return created_patient
+@app.post(
+    "/patients/",
+    response_description="Add new patient",
+    response_model=Patient,
+    status_code=status.HTTP_201_CREATED,
+    response_model_by_alias=False,
+)
+async def create_patient(patient: Patient = Body(...)):
+    new_patient = await patient_collection.insert_one(
+        patient.model_dump(by_alias=True, exclude=["id"])
+    )
+    created_patient = await patient_collection.find_one(
+        {"_id": new_patient.inserted_id}
+    )
+    return created_patient
 
 
-# @app.get(
-#     "/patients/",
-#     response_description="List of all patients",
-#     response_model=list_patient_collection,
-#     response_model_by_alias=False,
-# )
-# async def get_patients():
-#     return list_patient_collection(
-#         patients=await patient_collection.find().to_list(1000)
-#     )
+@app.get(
+    "/patients/",
+    response_description="List of all patients",
+    response_model=list_patient_collection,
+    response_model_by_alias=False,
+)
+async def get_patients():
+    return list_patient_collection(
+        patients=await patient_collection.find().to_list(1000)
+    )
 
 
-# @app.get(
-#     "/patients/{pat_id}",
-#     response_description="Get a single patient",
-#     response_model=Patient,
-#     response_model_by_alias=False,
-# )
-# async def get_patient(pat_id: str):
-#     patient = await patient_collection.find_one({"_id": ObjectId(pat_id)})
-#     if not patient:
-#         raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
-#     return patient
+@app.get(
+    "/patients/{pat_id}",
+    response_description="Get a single patient",
+    response_model=Patient,
+    response_model_by_alias=False,
+)
+async def get_patient(pat_id: str):
+    patient = await patient_collection.find_one({"_id": ObjectId(pat_id)})
+    if not patient:
+        raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
+    return patient
 
 
-# @app.put(
-#     "/patients/{pat_id}",
-#     response_description="Update a patient",
-#     response_model=Patient,
-#     response_model_by_alias=False,
-# )
-# async def update_patient(pat_id: str, patient: update_patient_model = Body(...)):
-#     patient = {
-#         k: v for k, v in patient.model_dump(by_alias=True).items() if v is not None
-#     }
+@app.put(
+    "/patients/{pat_id}",
+    response_description="Update a patient",
+    response_model=Patient,
+    response_model_by_alias=False,
+)
+async def update_patient(pat_id: str, patient: update_patient_model = Body(...)):
+    patient = {
+        k: v for k, v in patient.model_dump(by_alias=True).items() if v is not None
+    }
 
-#     if len(patient) >= 1:
-#         update_result = await patient_collection.find_one_and_update(
-#             {"_id": ObjectId(pat_id)},
-#             {"$set": patient},
-#             return_document=ReturnDocument.AFTER,
-#         )
-#         if update_result is not None:
-#             return update_result
-#         else:
-#             raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
+    if len(patient) >= 1:
+        update_result = await patient_collection.find_one_and_update(
+            {"_id": ObjectId(pat_id)},
+            {"$set": patient},
+            return_document=ReturnDocument.AFTER,
+        )
+        if update_result is not None:
+            return update_result
+        else:
+            raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
 
-#     if (
-#         existing_patient := await patient_collection.find_one({"_id": pat_id})
-#     ) is not None:
-#         return existing_patient
+    if (
+        existing_patient := await patient_collection.find_one({"_id": pat_id})
+    ) is not None:
+        return existing_patient
 
-#     raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
+    raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
 
 
-# @app.delete("/patients/{pat_id}", response_description="Delete a patient")
-# async def delete_patient(pat_id: str):
-#     delete_result = await patient_collection.delete_one({"_id": ObjectId(pat_id)})
-#     if delete_result.deleted_count == 1:
-#         return Response(status_code=status.HTTP_204_NO_CONTENT)
-#     raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
+@app.delete("/patients/{pat_id}", response_description="Delete a patient")
+async def delete_patient(pat_id: str):
+    delete_result = await patient_collection.delete_one({"_id": ObjectId(pat_id)})
+    if delete_result.deleted_count == 1:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    raise HTTPException(status_code=404, detail=f"Patient {pat_id} not found")
 
 
 # Visit Functions
 
 
-# @app.post(
-#     "/visits/",
-#     response_description="Create a new visit for a patient",
-#     response_model=PyObjectId,
-#     status_code=status.HTTP_201_CREATED,
-#     response_model_by_alias=False,
-# )
-# async def create_visit_for_a_patient(visit: Visit = Body(...)):
-#     # TODO: make sure the patient exists
-#     db_visit = DBVisit(patient_id=visit.patient_id, date=visit.date)
-#     new_visit = await db_visit.insert()
-#     if not new_visit:
-#         patient_id = db_visit.patient_id
-#         raise HTTPException(status_code=404, detail=f"Patient {patient_id} not found")
-#     return new_visit.id
+@app.post(
+    "/visits/",
+    response_description="Create a new visit for a patient",
+    response_model=PyObjectId,
+    status_code=status.HTTP_201_CREATED,
+    response_model_by_alias=False,
+)
+async def create_visit_for_a_patient(visit: Visit = Body(...)):
+    # TODO: make sure the patient exists
+    db_visit = DBVisit(patient_id=visit.patient_id, date=visit.date)
+    new_visit = await db_visit.insert()
+    if not new_visit:
+        patient_id = db_visit.patient_id
+        raise HTTPException(status_code=404, detail=f"Patient {patient_id} not found")
+    return new_visit.id
 
 
-# @app.get(
-#     "/visits/",
-#     response_description="List of all visits of a patient",
-#     response_model=list_all_visits,
-#     response_model_by_alias=False,
-# )
-# async def list_all_visits_for_a_patient(patient_id: str):
-#     patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
-#     if not patient:
-#         raise HTTPException(status_code=404, detail="Patient {patient_id} not found")
+@app.get(
+    "/visits/",
+    response_description="List of all visits of a patient",
+    response_model=list_all_visits,
+    response_model_by_alias=False,
+)
+async def list_all_visits_for_a_patient(patient_id: str):
+    patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient {patient_id} not found")
 
-#     docs = await visits_collection.find({"patient_id": ObjectId(patient_id)}).to_list(
-#         length=1000
-#     )
+    docs = await visits_collection.find({"patient_id": ObjectId(patient_id)}).to_list(
+        length=1000
+    )
 
-#     return list_all_visits(all_visits=docs)
-
-
-# @app.get(
-#     "/visits/{visit_id}",
-#     response_description="Get a single visit of a patient",
-#     response_model=Visit,
-#     response_model_by_alias=False,
-# )
-# async def show_visit_for_a_patient(visit_id: str, patient_id: str):
-#     patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
-#     if not patient:
-#         raise HTTPException(status_code=404, detail="Patient {patient_id} not found")
-
-#     doc = await visits_collection.find_one(
-#         {"patient_id": ObjectId(patient_id), "_id": ObjectId(visit_id)}
-#     )
-#     if not doc:
-#         raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
-#     return doc
+    return list_all_visits(all_visits=docs)
 
 
-# @app.put(
-#     "/visits/{visit_id}",
-#     response_description="Update a visit for a patient",
-#     response_model=Visit,
-#     response_model_by_alias=False,
-# )
-# async def update_a_visit_of_a_patient(
-#     visit_id: str, patient_id: str, new_visit: update_visit = Body(...)
-# ):
-#     patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
-#     if not patient:
-#         raise HTTPException(status_code=404, detail="Patient {patient_id} not found")
+@app.get(
+    "/visits/{visit_id}",
+    response_description="Get a single visit of a patient",
+    response_model=Visit,
+    response_model_by_alias=False,
+)
+async def show_visit_for_a_patient(visit_id: str, patient_id: str):
+    patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient {patient_id} not found")
 
-#     new_visit = {
-#         k: v
-#         for k, v in new_visit.model_dump(by_alias=True).items()
-#         if v is not None and k != "_id"
-#     }
-
-#     if len(new_visit) >= 1:
-#         update_result = await visits_collection.find_one_and_update(
-#             {"_id": ObjectId(visit_id)},
-#             {"$set": new_visit},
-#             return_document=ReturnDocument.AFTER,
-#         )
-#         if update_result is not None:
-#             return update_result
-#         else:
-#             raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
-
-#     if (
-#         existing_visit := await visits_collection.find_one({"_id": visit_id})
-#     ) is not None:
-#         return existing_visit
-
-#     raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
+    doc = await visits_collection.find_one(
+        {"patient_id": ObjectId(patient_id), "_id": ObjectId(visit_id)}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
+    return doc
 
 
-# @app.delete("/visits/{visit_id}", response_description="Delete a visit for a patient")
-# async def delete_visit(visit_id: str, patient_id: str):
-#     patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
-#     if not patient:
-#         return Response(status_code=status.HTTP_204_NO_CONTENT)
+@app.put(
+    "/visits/{visit_id}",
+    response_description="Update a visit for a patient",
+    response_model=Visit,
+    response_model_by_alias=False,
+)
+async def update_a_visit_of_a_patient(
+    visit_id: str, patient_id: str, new_visit: update_visit = Body(...)
+):
+    patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient {patient_id} not found")
 
-#     delete_result_visit = await visits_collection.delete_one(
-#         {"_id": ObjectId(visit_id)}
-#     )
+    new_visit = {
+        k: v
+        for k, v in new_visit.model_dump(by_alias=True).items()
+        if v is not None and k != "_id"
+    }
 
-#     if delete_result_visit.deleted_count == 1:
-#         return Response(status_code=status.HTTP_204_NO_CONTENT)
+    if len(new_visit) >= 1:
+        update_result = await visits_collection.find_one_and_update(
+            {"_id": ObjectId(visit_id)},
+            {"$set": new_visit},
+            return_document=ReturnDocument.AFTER,
+        )
+        if update_result is not None:
+            return update_result
+        else:
+            raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
 
-#     raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
+    if (
+        existing_visit := await visits_collection.find_one({"_id": visit_id})
+    ) is not None:
+        return existing_visit
+
+    raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
+
+
+@app.delete("/visits/{visit_id}", response_description="Delete a visit for a patient")
+async def delete_visit(visit_id: str, patient_id: str):
+    patient = await patient_collection.find_one({"_id": ObjectId(patient_id)})
+    if not patient:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    delete_result_visit = await visits_collection.delete_one(
+        {"_id": ObjectId(visit_id)}
+    )
+
+    if delete_result_visit.deleted_count == 1:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    raise HTTPException(status_code=404, detail=f"Visit {visit_id} not found")
 
 
 # Lab Test Type

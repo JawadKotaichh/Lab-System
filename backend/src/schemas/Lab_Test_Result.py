@@ -38,6 +38,7 @@ class Lab_test_result(BaseModel):
 
 class update_lab_test_result_model(BaseModel):
     lab_test_type_id: Optional[PyObjectId] = None
+    visit_id: Optional[PyObjectId] = None
     result: Optional[str] = None
 
     model_config = ConfigDict(
