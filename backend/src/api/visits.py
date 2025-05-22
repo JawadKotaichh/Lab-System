@@ -59,8 +59,10 @@ async def update_visit(visit_id: str, update_data: update_visit_model):
     if existing_visit is None:
         raise HTTPException(404, f"Visit {visit_id} not found")
 
-    existing_visit.patient_id = update_data.patient_id
-    existing_visit.date = update_data.date
+    if update_data.patient_id is not None:
+        existing_visit.patient_id = update_data.patient_id
+    if update_data.date is not None:
+        existing_visit.date = update_data.date
 
     await existing_visit.replace()
 
