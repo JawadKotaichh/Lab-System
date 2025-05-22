@@ -1,23 +1,14 @@
-import os
 from typing import Optional, List
-from datetime import date as _date
-from fastapi import FastAPI, Body, HTTPException, status
-from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, Field, EmailStr
+from pydantic import ConfigDict, BaseModel, Field
 from pydantic.functional_validators import BeforeValidator
-from fastapi.middleware.cors import CORSMiddleware
 from typing_extensions import Annotated
-from fastapi.staticfiles import StaticFiles
-from bson import ObjectId
-import motor.motor_asyncio
-from pymongo import ReturnDocument
 
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class Patient(BaseModel):
-    id: PyObjectId = Field(default=None, alias="_id")
+    id: PyObjectId = Field(...)
     name: str = Field(...)
     gender: str = Field(...)
     DOB: str = Field(...)
@@ -42,7 +33,7 @@ class update_patient_model(BaseModel):
     A set of optional updates to be made to a document in the database.
     """
 
-    id: PyObjectId = Field(None, alias="_id")
+    id: PyObjectId = Field(...)
     name: Optional[str] = None
     gender: Optional[str] = None
     DOB: Optional[str] = None

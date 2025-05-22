@@ -52,10 +52,14 @@ async def update_patient(patient_id: str, update_data: update_patient_model):
     if existing_patient is None:
         raise HTTPException(404, f"Patient {patient_id} not found")
 
-    existing_patient.name = update_data.name
-    existing_patient.DOB = update_data.DOB
-    existing_patient.gender = update_data.gender
-    existing_patient.phone_number = update_data.phone_number
+    if update_data.name is not None:
+        existing_patient.name = update_data.name
+    if update_data.DOB is not None:
+        existing_patient.DOB = update_data.DOB
+    if update_data.gender is not None:
+        existing_patient.gender = update_data.gender
+    if update_data.phone_number is not None:
+        existing_patient.phone_number = update_data.phone_number
 
     await existing_patient.replace()
 
