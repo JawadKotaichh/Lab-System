@@ -1,13 +1,8 @@
 import os
-from typing import Optional, List
-from datetime import date as _date
 from fastapi import FastAPI, Body, HTTPException, status
 from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, Field
 from pydantic.functional_validators import BeforeValidator
-from fastapi.middleware.cors import CORSMiddleware
 from typing_extensions import Annotated
-from fastapi.staticfiles import StaticFiles
 from bson import ObjectId
 import motor.motor_asyncio
 from pymongo import ReturnDocument
@@ -15,24 +10,20 @@ import uvicorn
 import sys
 import asyncio
 
-import uvicorn.config
 from db import init_db
 from models import Visit as DBVisit
 
-from Patient import update_patient_model, Patient, list_patient_collection
-from Visit import Visit, update_visit, list_all_visits
-from Lab_Test_Result import (
+from schema_Patient import update_patient_model, Patient, list_patient_collection
+from schema_Visit import Visit, update_visit, list_all_visits
+from schema_Lab_Test_Result import (
     Lab_test_result,
     update_Lab_test_result,
     list_lab_test_result,
 )
-from Lab_Test_Type import Lab_test_type, update_Lab_test_type, list_Lab_test_type
+from schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type, list_Lab_test_type
 
 
-# TODO: add pagination parameters for the list all functions
 # TODO: add filters to the database
-# TODO: use Beanie
-# TODO: how to define a Fast API app with api in different files
 
 app = FastAPI(title="Laboratory System", summary="Laboratory System for labs")
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://127.0.0.1:27017")
@@ -474,6 +465,53 @@ async def delete_result_for_patient_in_a_visit(
     if delete_result.deleted_count == 1:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     raise HTTPException(status_code=404, detail=f"Test {lab_test_result_id} not found")
+
+
+async def main(argv=sys.argv[1:]):
+    try:
+        await init_db()
+        config = uvicorn.Config(
+            app, host="localhost", port=8000, loop="asyncio", reload=True
+        )
+        server = uvicorn.Server(config)
+        await server.serve()
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+# .............................................................................................
+
+from fastapi import FastAPI
+import uvicorn
+import sys
+import asyncio
+import os
+
+from src.api import (
+    patients,
+    visits,
+    lab_test_results,
+    DBVisit,
+)
+from src.db import init_db
+
+app = FastAPI(title="Laboratory System", summary="Laboratory System for labs")
+DEBUG = os.environ.get("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://127.0.0.1:27017")
+MONGODB_DB = os.getenv("MONGODB_DB_NAME", "lab_system")
+
+
+app = FastAPI(title="Lab System API")
+
+# startup / shutdown events to init DB connection
+app.add_event_handler("startup", connect_db)
+app.add_event_handler("shutdown", close_db)
+
+app.include_router(patients.router)
+app.include_router(visits.router)
+app.include_router(lab_test_results.router)
 
 
 async def main(argv=sys.argv[1:]):

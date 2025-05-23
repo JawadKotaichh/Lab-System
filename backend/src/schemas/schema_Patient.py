@@ -1,17 +1,13 @@
-from typing import Optional, List
+from typing import Optional
 from pydantic import ConfigDict, BaseModel, Field
-from pydantic.functional_validators import BeforeValidator
-from typing_extensions import Annotated
+from datetime import datetime
 
-
-PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class Patient(BaseModel):
-    id: PyObjectId = Field(...)
     name: str = Field(...)
     gender: str = Field(...)
-    DOB: str = Field(...)
+    DOB: datetime = Field(...)
     phone_number: int = Field(...)
 
     model_config = ConfigDict(
@@ -21,8 +17,8 @@ class Patient(BaseModel):
             "example": {
                 "name": "Jawad Kotaich",
                 "gender": "Male",
-                "DOB": "1995-05-16",
-                "phone_number": "12345678",
+                "DOB": "1995-01-15T00:00:00",
+                "phone_number": 12345678,
             }
         },
     )
@@ -33,10 +29,9 @@ class update_patient_model(BaseModel):
     A set of optional updates to be made to a document in the database.
     """
 
-    id: PyObjectId = Field(...)
     name: Optional[str] = None
     gender: Optional[str] = None
-    DOB: Optional[str] = None
+    DOB: Optional[datetime] = None
     phone_number: Optional[int] = None
 
     model_config = ConfigDict(
@@ -46,16 +41,8 @@ class update_patient_model(BaseModel):
             "example": {
                 "name": "Jawad Kotaich",
                 "gender": "Male",
-                "DOB": "1995-05-16",
+                "DOB": datetime(1995, 1, 15),
                 "phone_number": "12345678",
             }
         },
     )
-
-
-class list_patient_collection(BaseModel):
-    """
-    A container holding a list of `Patient` instances.
-    """
-
-    patients: List[Patient]
