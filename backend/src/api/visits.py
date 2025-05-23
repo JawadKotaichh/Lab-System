@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, status
-from typing import List
 from src.models import Visit as DBVisit
 from src.models import Patient as DBPatient
-from src.schemas.Visit import Visit, update_visit_model
+from src.schemas.schema_Visit import Visit, update_visit_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
 from fastapi.responses import Response
+from fastapi_pagination import Page
+from fastapi_pagination.ext.beanie import apaginate
 
 router = APIRouter(prefix="/patients/{patient_id}/visits", tags=["visits"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
@@ -45,18 +46,24 @@ async def get_visit(visit_id: str):
     return Visit
 
 
-@router.get("/", response_model=List[DBVisit])
+@router.get("/", response_model=Page[DBVisit])
 async def get_all_visits():
-    return await DBVisit.find_all().to_list()
+    all_items =  DBVisit.find()
+    return  await apaginate(all_items)
 
 
 @router.put("/{visit_id}", response_model=DBVisit)
 async def update_visit(visit_id: str, update_data: update_visit_model):
     if not ObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
+    if not ObjectId.is_valid(update_data.patient_id):
+        raise HTTPException(400, "Invalid Visit ID")
 
     existing_visit = await DBVisit.find_one(DBVisit.id == ObjectId(visit_id))
     if existing_visit is None:
+        raise HTTPException(404, f"Visit {visit_id} not found")
+    patient = await DBPatient.get(ObjectId(update_data.patient_id))
+    if patient is None:
         raise HTTPException(404, f"Visit {visit_id} not found")
 
     if update_data.patient_id is not None:
@@ -70,10 +77,10 @@ async def update_visit(visit_id: str, update_data: update_visit_model):
 
 
 @router.delete("/{visit_id}")
-async def delete_patient(visit_id: str):
+async def delete_visit(visit_id: str):
     if not ObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
-    visit_to_be_deleted = await DBPatient.get(ObjectId(visit_id))
+    visit_to_be_deleted = await DBVisit.get(ObjectId(visit_id))
     if not visit_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

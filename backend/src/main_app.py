@@ -1,15 +1,22 @@
-from fastapi import FastAPI
 import uvicorn
-import sys
 import asyncio
-import os
-
+import sys
+from fastapi import FastAPI
 from src.db import init_db
+from src.api.patients import router as patients_router
+from src.api.visits import router as visits_router
+from src.api.lab_test_results import router as lab_test_results_router
+from src.api.lab_test_type import router as lab_test_type_router
+from fastapi_pagination import add_pagination
 
-app = FastAPI(title="Laboratory System", summary="Laboratory System for labs")
-DEBUG = os.environ.get("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://127.0.0.1:27017")
-MONGODB_DB = os.getenv("MONGODB_DB_NAME", "lab_system")
+app = FastAPI(title="Lab System API")
+add_pagination(app)
+
+app.include_router(patients_router)
+app.include_router(visits_router)
+app.include_router(lab_test_type_router)
+app.include_router(lab_test_results_router)
+
 
 
 async def main(argv=sys.argv[1:]):

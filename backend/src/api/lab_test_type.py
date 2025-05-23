@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, status
-from typing import List
 from src.models import lab_test_type as DBLab_test_type
-from src.schemas.Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
+from src.schemas.schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
 from fastapi.responses import Response
+from fastapi_pagination import Page
+from fastapi_pagination.ext.beanie import apaginate
 
 router = APIRouter(
     prefix="/lab_test_type",
@@ -43,13 +44,15 @@ async def get_lab_test_type(lab_test_type_id: str):
     return Lab_test_type
 
 
-@router.get("/", response_model=List[DBLab_test_type])
+@router.get("/", response_model=Page[DBLab_test_type])
 async def get_all_lab_test_type():
-    return await DBLab_test_type.find_all().to_list()
+    all_items =  DBLab_test_type.find()
+    return await apaginate(all_items)
+
 
 
 @router.put("/{lab_test_type_id}", response_model=DBLab_test_type)
-async def updatelLab_test_type(
+async def update_lab_test_type(
     lab_test_type_id: str, update_data: update_Lab_test_type_model
 ):
     if not ObjectId.is_valid(lab_test_type_id):
@@ -80,7 +83,7 @@ async def updatelLab_test_type(
 
 
 @router.delete("/{lab_test_type_id}")
-async def delete_patient(lab_test_type_id: str):
+async def delete_lab_test_type(lab_test_type_id: str):
     if not ObjectId.is_valid(lab_test_type_id):
         raise HTTPException(400, "Invalid lab_test_type ID")
     lab_test_type_to_be_deleted = await DBLab_test_type.get(ObjectId(lab_test_type_id))

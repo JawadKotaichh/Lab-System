@@ -1,18 +1,6 @@
-import os
-from typing import Optional, List
-from datetime import date as _date
-from fastapi import FastAPI, Body, HTTPException, status
-from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, Field, EmailStr
-from pydantic.functional_validators import BeforeValidator
-from fastapi.middleware.cors import CORSMiddleware
-from typing_extensions import Annotated
-from fastapi.staticfiles import StaticFiles
-from bson import ObjectId
-import motor.motor_asyncio
-from pymongo import ReturnDocument
+from typing import Optional
+from pydantic import ConfigDict, BaseModel, Field
 
-PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class Lab_test_type(BaseModel):
@@ -63,6 +51,3 @@ class update_Lab_test_type_model(BaseModel):
     )
 
 
-class list_Lab_test_type(BaseModel):
-    list_all_tests: list[Lab_test_type] = Field(...)
-    model_config = ConfigDict(populate_by_name=True)
