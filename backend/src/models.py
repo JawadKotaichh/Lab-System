@@ -1,18 +1,13 @@
-# USE Beani
-from pydantic.functional_validators import BeforeValidator
-from typing_extensions import Annotated
 from datetime import datetime
 from pydantic import Field
 
 # TODO: take the database name from env variables
 
-from beanie import Document
-
-PyObjectId = Annotated[str, BeforeValidator(str)]
+from beanie import Document,PydanticObjectId
 
 
 class Visit(Document):
-    patient_id: PyObjectId = Field(...)
+    patient_id: PydanticObjectId = Field(...)
     date: datetime = Field(...)
 
     class Settings:
@@ -42,8 +37,8 @@ class lab_test_type(Document):
 
 
 class lab_test_result(Document):
-    lab_test_type_id: PyObjectId = Field(...)
-    visit_id: PyObjectId = Field(...)
+    lab_test_type_id: PydanticObjectId = Field(...)
+    visit_id: PydanticObjectId = Field(...)
     result: str = Field(...)
 
     class Settings:

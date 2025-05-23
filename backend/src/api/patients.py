@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, status
-from typing import List
 from src.models import Patient as DBPatient
-from src.schemas.Patient import Patient, update_patient_model
+from src.schemas.schema_Patient import Patient, update_patient_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
 from fastapi.responses import Response
+from fastapi_pagination import Page
+from fastapi_pagination.ext.beanie import apaginate
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
@@ -25,7 +26,7 @@ async def create_patient(data: Patient):
     if not new_patient:
         raise HTTPException(status_code=404, detail="Patient was not created")
 
-    return new_patient.id
+    return new_patient
 
 
 @router.get("/{patient_id}", response_model=DBPatient)
@@ -38,9 +39,10 @@ async def get_patient(patient_id: str):
     return patient
 
 
-@router.get("/", response_model=List[DBPatient])
+@router.get("/", response_model=Page[DBPatient])
 async def get_all_patients():
-    return await DBPatient.find_all().to_list()
+    all_items = DBPatient.find()
+    return await apaginate(all_items)
 
 
 @router.put("/{patient_id}", response_model=DBPatient)
