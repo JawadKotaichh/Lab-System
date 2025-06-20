@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
-from src.models import lab_test_type as DBLab_test_type
-from src.models import lab_test_type_class as DBLab_test_type_class
-from src.schemas.schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
+from ..models import lab_test_type as DBLab_test_type
+from ..models import lab_test_type_class as DBLab_test_type_class
+from ..schemas.schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
@@ -16,6 +16,14 @@ router = APIRouter(
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
+@router.get("/page",response_model=list[Lab_test_type])
+async def get_Lab_test_type_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    all_Lab_test_type_paginated = DBLab_test_type.find().skip(offset).limit(page_size)
+    Lab_test_type_list = []
+    async for test_type in all_Lab_test_type_paginated:
+        Lab_test_type_list.append(test_type)
+    return Lab_test_type_list
 
 @router.get("/all")
 async def getAllTestTypes():

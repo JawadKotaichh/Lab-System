@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
-from src.models import lab_test_result as DBLab_test_result
-from src.models import Patient as DBPatient
-from src.models import Visit as DBVisit
-from src.models import lab_test_type as DBLab_test_type
-from src.schemas.schema_Lab_Test_Result import Lab_test_result, update_lab_test_result_model
+from ..models import lab_test_result as DBLab_test_result
+from ..models import Patient as DBPatient
+from ..models import Visit as DBVisit
+from ..models import lab_test_type as DBLab_test_type
+from ..schemas.schema_Lab_Test_Result import Lab_test_result, update_lab_test_result_model
 from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -14,6 +14,14 @@ router = APIRouter(
     tags=["lab_tests_results"],
 )
 
+@router.get("/page",response_model=list[Lab_test_result])
+async def get_lab_test_results_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    all_lab_test_results_paginated = DBLab_test_result.find().skip(offset).limit(page_size)
+    lab_test_results_list = []
+    async for lab_test_results in all_lab_test_results_paginated:
+        lab_test_results_list.append(lab_test_results)
+    return lab_test_results_list
 
 @router.post(
     "/",
@@ -95,15 +103,16 @@ async def get_list_of_lab_test(patient_id: str , visit_id: str):
     async for item in all_items:
         d={}
         lab_test = await DBLab_test_type.find_one(DBLab_test_type.id==ObjectId(item.lab_test_type_id))
-        d["lab_test_type_id"] = str(item.lab_test_type_id)
-        d["lab_test_type_class_id"] = str(lab_test.lab_test_type_class_id)
-        d["lab_test_name"] = lab_test.name
-        d["result"] = item.result
-        d["unit"] = lab_test.unit
-        d["price"] = lab_test.price
-        d["upper_bound"] = lab_test.upper_bound
-        d["lower_bound"] = lab_test.lower_bound
-        d["lab_test_result_id"] = str(item.id)
+        if lab_test is not None:
+            d["lab_test_type_id"] = str(item.lab_test_type_id)
+            d["lab_test_type_class_id"] = str(lab_test.lab_test_type_class_id)
+            d["lab_test_name"] = lab_test.name
+            d["result"] = item.result
+            d["unit"] = lab_test.unit
+            d["price"] = lab_test.price
+            d["upper_bound"] = lab_test.upper_bound
+            d["lower_bound"] = lab_test.lower_bound
+            d["lab_test_result_id"] = str(item.id)
         output.append(d)
     return output
 
