@@ -83,3 +83,14 @@ export interface labTestClassParams {
 export type LabTestTypeParams = {
   lab_test_type_id:string;
 };
+export type paginatedPatientInfo={
+  "total_pages":number;
+  "patients":patientInfo[];
+};
+export interface PaginationParams{
+  currentPage:number;
+  totalPages:number;
+  pageSize:number;
+  setPageSize:React.Dispatch<React.SetStateAction<number>>;
+  setCurrentPage:React.Dispatch<React.SetStateAction<number>>;
+};
