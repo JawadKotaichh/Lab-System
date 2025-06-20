@@ -12,6 +12,21 @@ router = APIRouter(prefix="/patients", tags=["patients"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
+@router.get("/all")
+async def getAllPatients():
+    all_patients = DBPatient.find()
+    output = []
+    async for patient in all_patients:
+        d = {}
+        d["patient_id"] = str(patient.id)
+        d["patient_name"] = patient.name
+        d["gender"] = patient.gender
+        d["DOB"] = patient.DOB
+        d["phone_number"] = patient.phone_number
+        d["insurance_company_id"]=patient.insurance_company_id
+        output.append(d)
+    return output
+
 @router.post(
     "/",
     response_model=DBPatient,
@@ -20,7 +35,7 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 )
 async def create_patient(data: Patient):
     db_patient = DBPatient(
-        name=data.name, gender=data.gender, DOB=data.DOB, phone_number=data.phone_number
+        name=data.name, gender=data.gender, DOB=data.DOB, phone_number=data.phone_number,insurance_company_id=data.insurance_company_id
     )
     new_patient = await db_patient.insert()
     if not new_patient:
@@ -29,14 +44,24 @@ async def create_patient(data: Patient):
     return new_patient
 
 
-@router.get("/{patient_id}", response_model=DBPatient)
+@router.get("/{patient_id}")
 async def get_patient(patient_id: str):
+    
     if not ObjectId.is_valid(patient_id):
         raise HTTPException(400, "Invalid patient ID")
     patient = await DBPatient.get(ObjectId(patient_id))
+    
     if not patient:
         raise HTTPException(404, f"Patient {patient_id} not found")
-    return patient
+    output = {}
+    output["patient_id"] = str(patient.id)
+    output["patient_name"] = patient.name
+    output["gender"] = patient.gender
+    output["DOB"] = patient.DOB
+    output["phone_number"] = patient.phone_number
+    output["insurance_company_id"]=patient.insurance_company_id
+
+    return output
 
 
 @router.get("/", response_model=Page[DBPatient])
@@ -49,7 +74,7 @@ async def get_all_patients():
 async def update_patient(patient_id: str, update_data: update_patient_model):
     if not ObjectId.is_valid(patient_id):
         raise HTTPException(400, "Invalid patient ID")
-
+    
     existing_patient = await DBPatient.find_one(DBPatient.id == ObjectId(patient_id))
     if existing_patient is None:
         raise HTTPException(404, f"Patient {patient_id} not found")
@@ -62,6 +87,10 @@ async def update_patient(patient_id: str, update_data: update_patient_model):
         existing_patient.gender = update_data.gender
     if update_data.phone_number is not None:
         existing_patient.phone_number = update_data.phone_number
+    if update_data.insurance_company_id is not None:
+        if not ObjectId.is_valid(update_data.insurance_company_id):
+            raise HTTPException(400, "Invalid insurance_company ID")
+        existing_patient.insurance_company_id = update_data.insurance_company_id
 
     await existing_patient.replace()
 

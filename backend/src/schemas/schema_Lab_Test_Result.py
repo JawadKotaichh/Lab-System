@@ -5,10 +5,7 @@ from beanie import PydanticObjectId
 
 
 class Lab_test_result(BaseModel):
-    lab_test_type_id: PydanticObjectId = Field(
-        ..., description="Which test type this result refers to"
-    )
-    visit_id: PydanticObjectId = Field(...)
+    lab_test_type_id: PydanticObjectId = Field(..., description="Which test type this result refers to")    
     result: str = Field(...)
 
     model_config = ConfigDict(
@@ -18,7 +15,7 @@ class Lab_test_result(BaseModel):
             "example": {
                 "lab_test_type_id": "682b2fb189e933f09cbcb489",
                 "visit_id": "607c191e810c19729de860ec",
-                "result": "Positive",
+                "result": "",
             }
         },
     )
