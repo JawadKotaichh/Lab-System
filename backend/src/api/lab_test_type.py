@@ -34,12 +34,13 @@ async def get_Lab_test_type_with_page_size(page_number:int,page_size:int):
         d["lower_bound"] = lab_test.lower_bound
         output.append(d)
 
-    total_pages= ceil(total_number_of_lab_test_type / page_size)
-    return {
+    total_pages = ceil(total_number_of_lab_test_type / page_size)
+    result= {
         "TotalNumberOfTests":total_number_of_lab_test_type,
         "total_pages":total_pages,
         "lab_tests":output
     }
+    return result
 
 
 @router.get("/all")
