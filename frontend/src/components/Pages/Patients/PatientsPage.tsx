@@ -15,11 +15,14 @@ const PatientPage: React.FC = () => {
     const [totalPages, setTotalPages] = useState<number>(1); 
     const [pageSize, setPageSize] = useState<number>(10); 
     const navigate = useNavigate();
+    const [totalNumberOfPatients,setTotalNumberOfPatients]=useState<number>(0);
 
     
     return(
         <div className="p-8 bg-white">
             <ShowPatientList
+            totalNumberOfPatients={totalNumberOfPatients}
+            setTotalNumberOfPatients={setTotalNumberOfPatients}
             allPatients={allPatients}
             searchInput={searchInput}
             setSearchInput={setSearchInput}
@@ -45,14 +48,6 @@ const PatientPage: React.FC = () => {
                     Create New Patient
                 </button>
             </div>
-{/* 
-            <div className="p-8 mb-2">
-                <input
-                className="mt-4 p-2 h-fit w-fit rounded-sm text-center bg-blue-400 hover:bg-green-600"
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                placeholder="Page pageSize"
-                />
-            </div> */}
         </div>
     );
 }
