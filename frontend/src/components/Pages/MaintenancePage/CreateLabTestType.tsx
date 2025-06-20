@@ -11,7 +11,7 @@ const CreateLabTestTypePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [createdLabTestType, setCreatedLabTestType] = useState<CreateLabTestType>({
     nssf_id: "",
-    lab_test_type_class_id : "", 
+    lab_test_type_category_id : "", 
     name: "",
     unit: "",
     price: 0,
@@ -37,7 +37,7 @@ const CreateLabTestTypePage: React.FC = () => {
   if(!loading){console.log(error);}
   
   const handleSaveAll = async (data: CreateLabTestType) => {
-    if( data.nssf_id=="" || data.lab_test_type_class_id=="" || data.name=="" || data.unit=="" || data.lower_bound=="" || data.upper_bound=="" || data.price == 0){
+    if( data.nssf_id=="" || data.lab_test_type_category_id=="" || data.name=="" || data.unit=="" || data.lower_bound=="" || data.upper_bound=="" || data.price == 0){
       setState("Please insert all the reuqired fields!");
       return;
     }
@@ -105,18 +105,18 @@ const CreateLabTestTypePage: React.FC = () => {
           </label>
           <select
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={createdLabTestType.lab_test_type_class_id}
+            value={createdLabTestType.lab_test_type_category_id}
             onChange={e =>
               setCreatedLabTestType(prev => ({
                 ...prev!,
-                lab_test_type_class_id: e.target.value
+                lab_test_type_category_id: e.target.value
               }))
             }
           >
             <option value="" disabled>— Select lab test class —</option>
             {allTestsClasess.map(lbc => (
-              <option key={lbc.lab_test_type_class_id} value={lbc.lab_test_type_class_id}>
-                {lbc.lab_test_type_class_name}
+              <option key={lbc.lab_test_type_category_id} value={lbc.lab_test_type_category_id}>
+                {lbc.lab_test_type_category_name}
               </option>
             ))}
           </select>
