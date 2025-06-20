@@ -1,4 +1,4 @@
-import type {insuranceCompanyParams, labTestClassParams, LabTestResult, paginatedPatientInfo, patientInfo} from "./types.js";
+import type {insuranceCompanyParams, labTestClassParams, LabTestResult, paginatedlabTest, paginatedPatientInfo, patientInfo} from "./types.js";
 import api from "../api.js";
 import type { labTest } from "./types.js";
 
@@ -55,6 +55,13 @@ const fetchPatientsPaginated = async (page_number:number,page_size:number):
         return response.data;
 };
 
+const fetchLabTestTypePaginated = async (page_number:number,page_size:number):
+    Promise<paginatedlabTest> => {
+        const url = `/lab_test_type/page/${page_size}/${page_number}`;
+        const response = await api.get(url);
+        return response.data;
+};
+
 
 export {fetchLabTestResults};
 export {fetchAllLabTest};
@@ -63,3 +70,4 @@ export {fetchPatient};
 export {fetchAllInsuranceCompanies};
 export {fetchAllLabTestTypeClasses};
 export {fetchPatientsPaginated};
+export {fetchLabTestTypePaginated};

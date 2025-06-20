@@ -1,15 +1,15 @@
 import type { PaginationParams } from "./types";
 
-const Pagination = ({ currentPage, totalPages, setCurrentPage,pageSize,setPageSize }:PaginationParams) => {
+const Pagination = ({ currentPage, totalPages, setCurrentPage,pageSize,setPageSize,TotalNumberOfPaginatedItems }:PaginationParams) => {
         const handlePageSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const newSize = Number(e.target.value);
-                if (newSize > 0) {
+                if (newSize > 0 &&  newSize <= TotalNumberOfPaginatedItems) {
                     setPageSize(newSize);
                     setCurrentPage(1);
                 }
         };
         return (
-            <div className="mt-5 flex gap-4 items-center ">
+            <div className="bottom-0 right-0 ml-2 mt-5 mb-5 flex gap-4 items-center">
                 <button
                     className="border rounded-sm w-20 px-2 py-1 hover:bg-green-500"
                     disabled={currentPage === 1}
