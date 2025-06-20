@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from src.models import lab_test_type as DBLab_test_type
+from src.models import lab_test_type_class as DBLab_test_type_class
 from src.schemas.schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
@@ -15,6 +16,24 @@ router = APIRouter(
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
+
+@router.get("/all")
+async def getAllTestTypes():
+    all_items = DBLab_test_type.find()
+    output=[]
+    async for lab_test in all_items:
+        d={}
+        d["lab_test_id"] = str(lab_test.id)
+        d["lab_test_type_class_id"]=str(lab_test.lab_test_type_class_id)
+        d["lab_test_name"] = lab_test.name
+        d["nssf_id"] = lab_test.nssf_id
+        d["unit"] = lab_test.unit
+        d["price"] = lab_test.price
+        d["upper_bound"] = lab_test.upper_bound
+        d["lower_bound"] = lab_test.lower_bound
+        output.append(d)
+    return output
+
 @router.post(
     "/",
     response_model=DBLab_test_type,
@@ -22,8 +41,11 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
     summary="Create a new lab test type",
 )
 async def create_lab_test_type(data: Lab_test_type):
+    if DBLab_test_type_class.find_one(DBLab_test_type_class.id == ObjectId(data.lab_test_type_class_id)) is None:
+        raise HTTPException(400, "Invalid lab_test_type_class ID")
     db_Lab_test_type = DBLab_test_type(
         nssf_id=data.nssf_id,
+        lab_test_type_class_id=data.lab_test_type_class_id,
         name=data.name,
         unit=data.unit,
         price=data.price,
@@ -44,10 +66,12 @@ async def get_lab_test_type(lab_test_type_id: str):
     return Lab_test_type
 
 
+
 @router.get("/", response_model=Page[DBLab_test_type])
 async def get_all_lab_test_type():
     all_items =  DBLab_test_type.find()
     return await apaginate(all_items)
+
 
 
 
@@ -76,6 +100,8 @@ async def update_lab_test_type(
         existing_Lab_test_type.lower_bound = update_data.lower_bound
     if update_data.upper_bound is not None:
         existing_Lab_test_type.upper_bound = update_data.upper_bound
+    if update_data.lab_test_type_class_id is not None:
+        existing_Lab_test_type.lab_test_type_class_id = update_data.lab_test_type_class_id
 
     await existing_Lab_test_type.replace()
 

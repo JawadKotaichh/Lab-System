@@ -1,15 +1,17 @@
 from typing import Optional
 from pydantic import ConfigDict, BaseModel, Field
+from typing import Union
 
 
 
 class Lab_test_type(BaseModel):
-    nssf_id: int = Field(...)
+    nssf_id: str = Field(...)
+    lab_test_type_class_id : str = Field(...)
     name: str = Field(...)
     unit: str = Field(...)
     price: int = Field(...)
-    lower_bound: str = Field(...)
-    upper_bound: str = Field(...)
+    lower_bound: Union[str, float] = Field(...)
+    upper_bound:  Union[str, float] = Field(...)
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -17,6 +19,7 @@ class Lab_test_type(BaseModel):
         json_schema_extra={
             "example": {
                 "nssf_id": 8000,
+                "lab_test_type_class_id":"",
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,
@@ -28,7 +31,8 @@ class Lab_test_type(BaseModel):
 
 
 class update_Lab_test_type_model(BaseModel):
-    nssf_id: Optional[int] = None
+    nssf_id: Optional[str] = None
+    lab_test_type_class_id:Optional[str]=None
     name: Optional[str] = None
     unit: Optional[str] = None
     price: Optional[int] = None
@@ -41,6 +45,7 @@ class update_Lab_test_type_model(BaseModel):
         json_schema_extra={
             "example": {
                 "nssf_id": 9002,
+                "lab_test_type_class_id":"",
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,

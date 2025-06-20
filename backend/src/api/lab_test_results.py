@@ -69,6 +69,45 @@ async def create_lab_test_result(patient_id: str, visit_id: str, data: Lab_test_
     new_lab_test_result = await db_lab_test_result.insert()
     return new_lab_test_result
 
+@router.put("/{lab_test_result_id}")
+async def set_result(patient_id:str,visit_id:str,lab_test_result_id:str,result:str):
+    if not ObjectId.is_valid(lab_test_result_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid lab_test_result ID",
+        )
+    update_result = await DBLab_test_result.find_one(
+        DBLab_test_result.id == ObjectId(lab_test_result_id)
+    ).update({"$set": {"result": result}})
+    
+    if update_result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lab test result not found or already up to date",
+        )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/all")
+async def get_list_of_lab_test(patient_id: str , visit_id: str):
+    all_items = DBLab_test_result.find(DBLab_test_result.visit_id == ObjectId(visit_id))
+    output=[]
+    async for item in all_items:
+        d={}
+        lab_test = await DBLab_test_type.find_one(DBLab_test_type.id==ObjectId(item.lab_test_type_id))
+        d["lab_test_type_id"] = str(item.lab_test_type_id)
+        d["lab_test_type_class_id"] = str(lab_test.lab_test_type_class_id)
+        d["lab_test_name"] = lab_test.name
+        d["result"] = item.result
+        d["unit"] = lab_test.unit
+        d["price"] = lab_test.price
+        d["upper_bound"] = lab_test.upper_bound
+        d["lower_bound"] = lab_test.lower_bound
+        d["lab_test_result_id"] = str(item.id)
+        output.append(d)
+    return output
+
+
 
 @router.get("/{lab_test_result_id}", response_model=DBLab_test_result)
 async def get_lab_test_result(patient_id:str,visit_id:str,lab_test_result_id: str):
@@ -108,6 +147,7 @@ async def get_all_lab_test_results(patient_id: str , visit_id: str):
     return await apaginate(all_items)
 
 
+
 @router.put("/{lab_test_result_id}", response_model=DBLab_test_result)
 async def update_lab_test_result(
     lab_test_result_id: str, update_data: update_lab_test_result_model
@@ -136,9 +176,14 @@ async def update_lab_test_result(
 
 
 @router.delete("/{lab_test_result_id}")
-async def delete_lab_test_result(lab_test_result_id: str):
+async def delete_lab_test_result(patient_id: str,visit_id: str,lab_test_result_id: str):
+    if not ObjectId.is_valid(patient_id):
+        raise HTTPException(400, f"Invalid patient ID {patient_id}")
+    if not ObjectId.is_valid(visit_id):
+        raise HTTPException(400, "Invalid visit ID")
     if not ObjectId.is_valid(lab_test_result_id):
         raise HTTPException(400, "Invalid lab_test_result ID")
+    
     lab_test_result_to_be_deleted = await DBLab_test_result.get(
         ObjectId(lab_test_result_id)
     )
