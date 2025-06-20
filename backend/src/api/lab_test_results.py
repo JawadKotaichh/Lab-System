@@ -7,66 +7,23 @@ from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
-from math import ceil
 
 router = APIRouter(
-    prefix="/lab_tests_results",
+    prefix="/visits/{visit_id}/lab_tests_results",
     tags=["lab_tests_results"],
 )
 
-@router.get("/completed/{visit_id}")
-async def get_number_of_completed_results( visit_id: str):
-    all_items = DBLab_test_result.find(DBLab_test_result.visit_id == ObjectId(visit_id))
-    countOfCompletedResults = 0
-    totalNumberOfTests = 0
-    totalPrice = 0
-    async for item in all_items:
-        totalNumberOfTests+=1
-        lab_test = await DBLab_test_type.find_one(DBLab_test_type.id==ObjectId(item.lab_test_type_id))
-        if lab_test is not None:
-            totalPrice += lab_test.price
-        if item.result!="":
-            countOfCompletedResults+=1
-    output ={
-        "visit_id":visit_id,
-        "countOfCompletedResults":countOfCompletedResults,
-        "totalNumberOfTests":totalNumberOfTests,
-        "totalPrice":totalPrice
-    }
-    return output
-
-
-
-@router.get("/page/{page_size}/{page_number}")
+@router.get("/page",response_model=list[Lab_test_result])
 async def get_lab_test_results_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
-    total_number_of_lab_test_results = await DBLab_test_type.find_all().count()
-    all_patient_paginated = DBLab_test_result.find().skip(offset).limit(page_size)
-    output = []
-    async for test_result in all_patient_paginated:
-        d={}
-        lab_test = await DBLab_test_type.find_one(DBLab_test_type.id==ObjectId(test_result.lab_test_type_id))
-        if lab_test is not None:
-            d["lab_test_type_id"] = str(test_result.lab_test_type_id)
-            d["lab_test_type_category_id"] = str(lab_test.lab_test_type_category_id)
-            d["lab_test_name"] = lab_test.name
-            d["result"] = test_result.result
-            d["unit"] = lab_test.unit
-            d["price"] = lab_test.price
-            d["upper_bound"] = lab_test.upper_bound
-            d["lower_bound"] = lab_test.lower_bound
-            d["lab_test_result_id"] = str(test_result.id)
-            output.append(d)
-    total_pages = ceil(total_number_of_lab_test_results / page_size)
-    paginated_result= {
-        "TotalNumberOfTests":total_number_of_lab_test_results,
-        "total_pages":total_pages,
-        "lab_tests":output
-    }
-    return paginated_result
+    all_lab_test_results_paginated = DBLab_test_result.find().skip(offset).limit(page_size)
+    lab_test_results_list = []
+    async for lab_test_results in all_lab_test_results_paginated:
+        lab_test_results_list.append(lab_test_results)
+    return lab_test_results_list
 
 @router.post(
-    "/{visit_id}",
+    "/",
     response_model=DBLab_test_result,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new lab test result for a patient in a visit",
@@ -111,7 +68,7 @@ async def create_lab_test_result( visit_id: str, data: Lab_test_result):
     return new_lab_test_result
 
 @router.put("/{lab_test_result_id}")
-async def set_result(lab_test_result_id:str,result:str):
+async def set_result(visit_id:str,lab_test_result_id:str,result:str):
     if not ObjectId.is_valid(lab_test_result_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -122,7 +79,7 @@ async def set_result(lab_test_result_id:str,result:str):
     ).update({"$set": {"result": result}})
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.get("/all/{visit_id}")
+@router.get("/all")
 async def get_list_of_lab_test( visit_id: str):
     all_items = DBLab_test_result.find(DBLab_test_result.visit_id == ObjectId(visit_id))
     output=[]
@@ -145,9 +102,20 @@ async def get_list_of_lab_test( visit_id: str):
 
 
 @router.get("/{lab_test_result_id}", response_model=DBLab_test_result)
-async def get_lab_test_result(lab_test_result_id: str):
+async def get_lab_test_result(visit_id:str,lab_test_result_id: str):
     if not ObjectId.is_valid(lab_test_result_id):
         raise HTTPException(400, "Invalid lab_test_result ID")
+    if not ObjectId.is_valid(visit_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid visit_id ID",
+        )
+    visit = await DBVisit.get(ObjectId(visit_id))
+    if not visit:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Visit {visit_id} not found",
+        )
     lab_test_result = await DBLab_test_result.get(ObjectId(lab_test_result_id))
     if not lab_test_result:
         raise HTTPException(404, f"lab_test_result {lab_test_result_id} not found")
@@ -189,7 +157,9 @@ async def update_lab_test_result(
 
 
 @router.delete("/{lab_test_result_id}")
-async def delete_lab_test_result(lab_test_result_id: str):
+async def delete_lab_test_result(visit_id: str,lab_test_result_id: str):
+    if not ObjectId.is_valid(visit_id):
+        raise HTTPException(400, "Invalid visit ID")
     if not ObjectId.is_valid(lab_test_result_id):
         raise HTTPException(400, "Invalid lab_test_result ID")
     
