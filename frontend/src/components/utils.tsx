@@ -14,7 +14,7 @@ import type { labTest } from "./types.js";
 const fetchLabTestResults = async (
   visit_id: string
 ): Promise<LabTestResult[]> => {
-  const url = `/visits/${visit_id}/lab_tests_results/all`;
+  const url = `/lab_tests_results/all/${visit_id}`;
   const response = await api.get(url);
   return response.data;
 };
@@ -82,7 +82,7 @@ const fetchAllVisits = async (): Promise<VisitsInfo[]> => {
 const fetchNumberOfCompletedResultsAndTotal = async (
   visit_id: string
 ): Promise<CompletedResultsInfo> => {
-  const url = `/visits/${visit_id}/lab_tests_results/completed`;
+  const url = `/lab_tests_results/completed/${visit_id}`;
   const response = await api.get(url);
   return response.data;
 };
