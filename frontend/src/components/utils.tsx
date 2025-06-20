@@ -1,11 +1,11 @@
-import type {insuranceCompanyParams, labTestClassParams, LabTestResult, paginatedlabTest, paginatedPatientInfo, patientInfo} from "./types.js";
+import type {insuranceCompanyParams, labTestCategoryParams, LabTestResult, paginatedlabTest, paginatedPatientInfo, patientInfo, VisitsInfo} from "./types.js";
 import api from "../api.js";
 import type { labTest } from "./types.js";
 
 
-const fetchLabTestResults = async (patient_id:string,visit_id:string):
+const fetchLabTestResults = async (visit_id:string):
     Promise<LabTestResult[]> =>{
-    const url = `/patients/${patient_id}/visits/${visit_id}/lab_tests_results/all`;
+    const url = `/visits/${visit_id}/lab_tests_results/all`;
     const response = await api.get(url);
     return response.data;
 };  
@@ -41,9 +41,9 @@ export const createVisit = (patientId: string) => {
   );
 };
 
-const fetchAllLabTestTypeClasses = async ():
-    Promise<labTestClassParams[]> => {
-        const url = "/lab_test_type_class/all";
+const fetchAllLabTestTypeCategories = async ():
+    Promise<labTestCategoryParams[]> => {
+        const url = "/lab_test_type_category/all";
         const response = await api.get(url);
         return response.data;
 };
@@ -61,6 +61,13 @@ const fetchLabTestTypePaginated = async (page_number:number,page_size:number):
         const response = await api.get(url);
         return response.data;
 };
+const fetchAllVisits = async ():
+    Promise<VisitsInfo[]> =>{
+        const url = `/visits/all`;
+        const response = await api.get(url);
+        return response.data;
+};
+
 
 
 export {fetchLabTestResults};
@@ -68,6 +75,7 @@ export {fetchAllLabTest};
 export {fetchAllPatients};
 export {fetchPatient};
 export {fetchAllInsuranceCompanies};
-export {fetchAllLabTestTypeClasses};
+export {fetchAllLabTestTypeCategories};
 export {fetchPatientsPaginated};
 export {fetchLabTestTypePaginated};
+export {fetchAllVisits};

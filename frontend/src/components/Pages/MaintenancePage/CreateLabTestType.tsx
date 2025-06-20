@@ -1,9 +1,9 @@
 import {  useEffect, useState } from "react";
-import { type CreateLabTestType, type labTestClassParams,} from "../../types";
+import { type CreateLabTestType, type labTestCategoryParams,} from "../../types";
 import api from "../../../api";
 import {Activity, TestTube, IdCard, Type, DollarSign } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import { fetchAllLabTestTypeClasses } from "../../utils";
+import { fetchAllLabTestTypeCategories } from "../../utils";
 
 const CreateLabTestTypePage: React.FC = () => {
   const [error, setError] = useState<string>();
@@ -19,11 +19,11 @@ const CreateLabTestTypePage: React.FC = () => {
     upper_bound: "",
   });
   const navigate = useNavigate();
-  const [allTestsClasess,setAllTestsClasses] = useState<labTestClassParams[]>([]);
+  const [allTestsClasess,setAllTestsClasses] = useState<labTestCategoryParams[]>([]);
 
   useEffect(()=>{
     setLoading(true);
-    fetchAllLabTestTypeClasses()
+    fetchAllLabTestTypeCategories()
     .then((data)=>{
       setAllTestsClasses(data);
       setLoading(false);

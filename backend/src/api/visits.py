@@ -18,6 +18,19 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 all_visits_router = APIRouter(prefix="/visits", tags=["all_visits"])
 
+
+@all_visits_router.get("/all")
+async def getAllVisits():
+    all_items = DBVisit.find()
+    output=[]
+    async for visit in all_items:
+        d={}
+        d["visit_id"] = str(visit.id)
+        d["date"] = str(visit.date)[:10]
+        d["patient_id"] = str(visit.patient_id)
+        output.append(d)
+    return output
+
 @router.get("/page",response_model=list[Visit])
 async def get_visits_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size

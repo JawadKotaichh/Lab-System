@@ -1,33 +1,32 @@
 import EditVistHead from "./EditVisitHead.js";
-import type {labTestClassParams, LabTestResult } from "../../types.js";
+import type {labTestCategoryParams, LabTestResult } from "../../types.js";
 import api from "../../../api.js";
 import { useEffect, useMemo, useState } from "react";
-import { fetchAllLabTestTypeClasses } from "../../utils.js";
+import { fetchAllLabTestTypeCategories } from "../../utils.js";
 
 
 interface ShowResultsListParams  {
     results:LabTestResult[];
     setResults:React.Dispatch<React.SetStateAction<LabTestResult[]>>;
-    patient_id : string;
     visit_id: string;
     setError:React.Dispatch<React.SetStateAction<string>>;
 }
 
-const ShowResultsList : React.FC<ShowResultsListParams> = ({results,setResults,patient_id,visit_id,setError}:ShowResultsListParams) =>{
-    const [labTestTypeClases, setLabTestTypeClases] = useState<labTestClassParams[]>([]);
+const ShowResultsList : React.FC<ShowResultsListParams> = ({results,setResults,visit_id,setError}:ShowResultsListParams) =>{
+    const [labTestTypeCategories, setLabTestTypeCategories] = useState<labTestCategoryParams[]>([]);
 
     useEffect(() => {
-        fetchAllLabTestTypeClasses()
-        .then(setLabTestTypeClases)
+        fetchAllLabTestTypeCategories()
+        .then(setLabTestTypeCategories)
         .catch((err) => setError(err.message || "Failed to load companies"));
     }, [setError]);
 
     const classById = useMemo(() => {
-        return labTestTypeClases.reduce<Record<string, string>>((map, c) => {
+        return labTestTypeCategories.reduce<Record<string, string>>((map, c) => {
         map[c.lab_test_type_category_id] = c.lab_test_type_category_name;
         return map;
         }, {});
-    }, [labTestTypeClases]);
+    }, [labTestTypeCategories]);
 
     const handleChange = async(lab_test_result_id:string,newResult:string) => {
         setResults(prev =>
@@ -37,7 +36,7 @@ const ShowResultsList : React.FC<ShowResultsListParams> = ({results,setResults,p
     
 
     const handleDelete = async(lab_test_result_id:string)=>{
-        const url = `/patients/${patient_id}/visits/${visit_id}/lab_tests_results/${lab_test_result_id}`;
+        const url = `visits/${visit_id}/lab_tests_results/${lab_test_result_id}`;
         try{
             await api.delete(url);
             setResults((prev) => prev.filter((r) => r.lab_test_result_id !== lab_test_result_id));

@@ -16,15 +16,15 @@ async def get_lab_test_type_category_with_page_size(page_number:int,page_size:in
     offset = (page_number - 1) * page_size
     lab_test_type_category_paginated = DBlab_test_type_category.find().skip(offset).limit(page_size)
     lab_test_type_category_paginated_list = []
-    async for test_type_class in lab_test_type_category_paginated:
-        lab_test_type_category_paginated_list.append(test_type_class)
+    async for test_type_category in lab_test_type_category_paginated:
+        lab_test_type_category_paginated_list.append(test_type_category)
     return lab_test_type_category_paginated_list
 
 @router.get("/all")
-async def getAllInsuranceCompany():
-    all_lab_test_type_categoryes = DBlab_test_type_category.find()
+async def getAllTestTypeCategories():
+    all_lab_test_type_categories = await DBlab_test_type_category.find().to_list()
     output = []
-    async for category in all_lab_test_type_categoryes:
+    for category in all_lab_test_type_categories:
         d = {}
         d["lab_test_type_category_id"] = str(category.id)
         d["lab_test_type_category_name"] = category.lab_test_type_category_name

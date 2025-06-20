@@ -22,11 +22,10 @@ const navItems: NavItem[] = [
   { to: '/visits', label: 'Visits', end: true },
   { to: '/patients', label: 'Patients' },
   { to : '/maintenance', label : 'Maintenance'},
-  { to : '/edit-visit', label : 'Edit Visit'},
 ];
 
 const App: React.FC = () => {
-  const isOnEdit = !!useMatch('/edit-result/patients/:patient_id/:visit_id');
+  const isOnEdit = !!useMatch('/visits/:visit_id');
   const activeClass = 'px-3 py-2 rounded-md text-white bg-gradient-to-r from-blue-400 to-emerald-400 transition';
   const inactiveClass = 'px-3 py-2 rounded-md text-gray-700 hover:text-white hover:bg-gradient-to-r from-blue-400 to-emerald-400 transition';
 
@@ -63,7 +62,7 @@ const App: React.FC = () => {
     <main>
       <Routes>
         <Route path="/visits" element={<Visits />} />
-        <Route path="/edit-visit/patients/:patient_id/:visit_id" element={<EditVisitPage />}/>
+        <Route path="/visits/:visit_id" element={<EditVisitPage />}/>
         <Route path="/patients" element={<PatientPage/>}/>
         <Route path="/patients/edit-patient/:patient_id" element={<EditPatientPage/>}/>
         <Route path="/patients/create-patient" element={<CreatePatientPage/>}/>

@@ -1,7 +1,8 @@
 
 const AddResultHead: React.FC = () =>(
- <thead className="bg-gray-100 border-b border-black sticky top-0 z-10">        <tr> 
-            <th className="border px-4 py-2">Class</th>                   
+    <thead className="bg-gray-100 border-b border-black sticky top-0 z-10">        
+        <tr> 
+            <th className="border px-4 py-2">Category</th>                   
             <th className="border px-4 py-2">NSSF ID</th>
             <th className="border px-4 py-2">Test</th>
             <th className="border px-4 py-2">Unit</th>

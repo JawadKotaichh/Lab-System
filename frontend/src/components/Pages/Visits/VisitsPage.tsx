@@ -1,109 +1,128 @@
 import { useNavigate } from 'react-router-dom';
-import DateRangePicker from './DataRangePicker';
-import React, { useCallback, useEffect, useState } from 'react';
-import api from '../../../api';
+// import DateRangePicker from './DataRangePicker';
+import React, {useEffect, useMemo, useState } from 'react';
+// import api from '../../../api';
+import VisitsPageHead from './VisitsPageHead';
+import { fetchAllInsuranceCompanies, fetchAllVisits, fetchPatient } from '../../utils';
+import { type insuranceCompanyParams, type patientInfo, type VisitsInfo } from '../../types';
 
 
-interface Visit {
-  _id: string;
-  patient_id: string;
-  date: string;
-}
-
-interface PatientInfo {
-  patient_id: string;
-  name: string;
-  visit_id:string;
-}
 
 const Visits: React.FC = () =>{
-    const [patientData,setPatientData] = useState<PatientInfo[]>([]);
-    const [status, setStatus] = useState<string>(""); 
+    // const [patientData,setPatientData] = useState<PatientInfo[]>([]);
+    // const [status, setStatus] = useState<string>(""); 
     const navigate = useNavigate();
-    const [, setVisits] = useState<Visit[]>([]);
-    const today = new Date().toISOString().split("T")[0];
-    const [startDate, setStartDate] = useState<string>(today);
-    const [endDate, setEndDate] = useState<string>(today);
-
-    const handleSubmit = useCallback(async () => {
-        // console.log(`status : ${status}`);
-        // console.log(`start_date: ${startDate}`)
-        // console.log(`end_date: ${endDate}`)
-        
-        try {
-        setStatus("Fetching visits within this date range…");
-
-        const response = await api.get("/visits/", {
-            params: { start_date: startDate, end_date: endDate },
-        });
-
-        const fetchedVisits: Visit[] = response.data.items;
-        setVisits(fetchedVisits);
-
-        if (fetchedVisits.length === 0) {
-            setStatus(`No visits found between ${startDate} and ${endDate}.`);
-        } else {
-            setStatus(`Found ${fetchedVisits.length} visit(s) from ${startDate} to ${endDate}.`);
-        }
-        
-        const names: PatientInfo[] = await Promise.all(
-        fetchedVisits.map(async (v) => {
-            const resp = await api.get(`/patients/${v.patient_id}/visits/${v._id}/patient_name`);
-            return {
-            patient_id: v.patient_id,
-            visit_id:   v._id,
-            name:       resp.data.name
-            };
-        })
-        );
-            setPatientData(names);
-        } catch (err:unknown) {
-        setStatus(`Error fetching visits ${err}`);
-        setVisits([]);
-        }
-        
-    }, [startDate, endDate]); 
+    const [visits, setVisits] = useState<VisitsInfo[]>([]);
+    const [patientsData,setPatientsData] = useState<patientInfo[]>([]);
+    const [error,setError] = useState<string>("");
+    const [insuranceCompanies, setInsuranceCompanies] = useState<insuranceCompanyParams[]>([]);
+    
+    // const [visibleVisits] = useState<[]>([]);
+    // const today = new Date().toISOString().split("T")[0];
+    // const [startDate, setStartDate] = useState<string>(today);
+    // const [endDate, setEndDate] = useState<string>(today);
+    
+    useEffect(()=>{
+        fetchAllVisits()
+        .then((data) =>setVisits(data))
+        .catch((err) => setError(err.message || "Failed to load companies"));
+    },[setError]);
+    
     useEffect(() => {
-        handleSubmit();
-        }, [handleSubmit]);
+        fetchAllInsuranceCompanies()
+        .then(setInsuranceCompanies)
+        .catch((err) => setError(err.message || "Failed to load companies"));
+    }, [setError]);
+    
+    useEffect(() => {
+        if (visits.length > 0) {
+            const fetchPatients = async () => {
+                try {
+                    const patientsInfo = await Promise.all(
+                        visits.map((v) => fetchPatient(v.patient_id))
+                    );
+                    setPatientsData(patientsInfo);
+                } catch (err) {
+                    if (err instanceof Error){
+                        setError(err.message || "Failed to load patient data");
+                        console.log(error);
+                    }
+                }
+            };
+            fetchPatients();
+        }
+    }, [visits,error]);
+
+    const patientNameById = useMemo(() => {
+            return patientsData.reduce<Record<string, string>>((map, c) => {
+            map[c.patient_id] = c.patient_name;
+            return map;
+            }, {});
+        }, [patientsData]);
+
+     const companyById = useMemo(() => {
+        return insuranceCompanies.reduce<Record<string, string>>((map, c) => {
+            map[c.insurance_company_id] = c.insurance_company_name;
+            return map;
+            }, {});
+    }, [insuranceCompanies]);
+
+    const insuranceCompanyById = useMemo(()=>{
+            return patientsData.reduce<Record<string, string>>((map, p) => {
+            map[p.patient_id] = companyById[p.insurance_company_id];
+            return map;
+            }, {});
+        }, [patientsData,companyById]);
+    
     return (
     
     <div className="relative w-screen h-screen bg-white">
         <main className="relative">
-            <div className="relative w-full">
+            <div className="relative w-full mt-10">
+                <div className="p-8 bg-white">
+                    <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
+                        <VisitsPageHead/>
+                        <tbody>
+                            {visits.map(v=>(
+                                <tr key={v.visit_id} className="border rounded-sm">
+                                <td className="border rounded-b-sm px-4 py-2">{v.date}</td>
+                                <td className="border rounded-b-sm px-4 py-2 font-bold">{patientNameById[v.patient_id]}</td>
+                                <td className="border rounded-b-sm  px-4 py-2">{insuranceCompanyById[v.patient_id]}</td>
+                                <td className="border rounded-b-sm  px-4 py-2"></td>
+                                <td className="border rounded-b-sm  px-4 py-2"></td>
+                                <td className="border rounded-b-sm  px-4 py-2">
+                                    <button
+                                    className="mt-4 p-2 h-fit w-fit rounded-sm text-center bg-blue-400 hover:bg-green-600"
+                                    onClick={() => navigate(`/visits/${v.visit_id}`)}
+                                    >
+                                        Preview Result
+                                    </button>
+                                </td>
+                                <td className="border rounded-b-sm  px-4 py-2">
+                                   <button
+                                    className="mt-4 p-2 h-fit w-fit rounded-sm text-center bg-blue-400 hover:bg-green-600"
+                                    onClick={() => navigate(`/visits/${v.visit_id}`)}
+                                    >
+                                        Edit Visit
+                                    </button>
+                                </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {/* <div className="absolute top-5 left-1/2 transform -translate-x-1/2 text-center bg-white p-4 rounded-xl shadow-md">             */}
+                    {/* <DateRangePicker startDate={startDate} endDate={endDate} setEndDate={setEndDate} setStartDate={setStartDate}/> 
+                    <button
+                        onClick={handleSubmit}
+                        className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                        >
+                            Submit
+                    </button>
+                    <p className="mt-4 text-gray-700">{status}</p> */}
 
-                <div className="absolute top-5 left-1/2 transform -translate-x-1/2 text-center bg-white p-4 rounded-xl shadow-md">            
-                <DateRangePicker startDate={startDate} endDate={endDate} setEndDate={setEndDate} setStartDate={setStartDate}/> 
-                <button
-                    onClick={handleSubmit}
-                    className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                    >
-                        Submit
-                </button>
-                <p className="mt-4 text-gray-700">{status}</p>
-
+                    {/* </div> */}
+                    </div>
                 </div>
-
-            </div>
-           
-            <div className="absolute p-6 top-60 w-full max-h-64 overflow-auto">
-                {patientData.map((p) => {
-                return (
-                    <ul
-                    key={p.patient_id}
-                    className="p-3 border rounded-sm hover:bg-white text-black  hover:text-gray-500  flex justify-between items-center py-2 border-b cursor-pointer"
-                    onClick={()=>navigate(`/edit-visit/patients/${p.patient_id}/${p.visit_id}`)}
-                    >
-                    <li 
-                    className="font-medium"
-                    >
-                        {p.name}
-                    </li>
-                    </ul>
-                );
-                })}
-            </div>        
-
         </main>  
     </div> 
     );
