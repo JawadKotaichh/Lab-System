@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status,Query
 from datetime import date, datetime, time
 from typing import Optional
-from src.models import Visit as DBVisit
-from src.models import Patient as DBPatient
-from src.schemas.schema_Visit import Visit, update_visit_model
+from ..models import Visit as DBVisit
+from ..models import Patient as DBPatient
+from ..schemas.schema_Visit import Visit, update_visit_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
@@ -18,14 +18,25 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 all_visits_router = APIRouter(prefix="/visits", tags=["all_visits"])
 
+@router.get("/page",response_model=list[Visit])
+async def get_visits_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    all_visits_paginated = DBVisit.find().skip(offset).limit(page_size)
+    visits_list = []
+    async for visits in all_visits_paginated:
+        visits_list.append(visits)
+    return visits_list
+
 @router.get("/{visit_id}/patient_name")
 async def get_patient_name(visit_id: PyObjectId):
     visit = await DBVisit.get(visit_id)
     if not visit:
         raise HTTPException(status_code=404, detail="Visit not found")
     patient  = await DBPatient.get(visit.patient_id)
-    return {"patient_id": visit.patient_id, "name": patient.name,"visit_id":visit_id}
-
+    if patient is not None:
+        return {"patient_id": visit.patient_id, "name": patient.name,"visit_id":visit_id}
+    else:
+        raise HTTPException(status_code=404, detail="Patient not found")
 
 @all_visits_router.get("/", response_model=Page[DBVisit])
 async def get_visits_by_date_range(

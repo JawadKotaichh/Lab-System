@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
-from src.models import lab_test_type_class as DBLab_test_type_class
-from src.schemas.schema_lab_test_type_class import Lab_Test_Type_Class, update_lab_test_type_class
+from ..models import lab_test_type_class as DBLab_test_type_class
+from ..schemas.schema_lab_test_type_class import Lab_Test_Type_Class, update_lab_test_type_class
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
@@ -11,6 +11,14 @@ from fastapi_pagination.ext.beanie import apaginate
 router = APIRouter(prefix="/lab_test_type_class", tags=["lab_test_type_class"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
+@router.get("/page",response_model=list[Lab_Test_Type_Class])
+async def get_Lab_Test_Type_Class_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    Lab_test_type_class_paginated = DBLab_test_type_class.find().skip(offset).limit(page_size)
+    Lab_test_type_class_paginated_list = []
+    async for test_type_class in Lab_test_type_class_paginated:
+        Lab_test_type_class_paginated_list.append(test_type_class)
+    return Lab_test_type_class_paginated_list
 
 @router.get("/all")
 async def getAllInsuranceCompany():
@@ -61,7 +69,7 @@ async def get_all_lab_test_type_classes():
 
 
 @router.put("/{lab_test_type_class_id}", response_model=DBLab_test_type_class)
-async def update_lab_test_type_class(lab_test_type_class_id: str, update_data: update_lab_test_type_class):
+async def Update_lab_test_type_class(lab_test_type_class_id: str, update_data: update_lab_test_type_class):
     if not ObjectId.is_valid(lab_test_type_class_id):
         raise HTTPException(400, "Invalid lab_test_type_class ID")
 
