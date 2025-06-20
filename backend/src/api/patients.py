@@ -30,6 +30,7 @@ async def get_patients_with_page_size(page_number:int,page_size:int):
 
     total_pages= ceil(total_number_of_patients / page_size)
     return {
+        "TotalNumberOfPatients":total_number_of_patients,
         "total_pages":total_pages,
         "patients":output
     }
