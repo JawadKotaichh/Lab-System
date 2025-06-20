@@ -28,7 +28,7 @@ class Patient(Document):
 
 class lab_test_type(Document):
     nssf_id: str = Field(...)
-    lab_test_type_class_id : str = Field(...)
+    lab_test_type_category_id : str = Field(...)
     name: str = Field(...)
     unit: str = Field(...)
     price: int = Field(...)
@@ -53,7 +53,7 @@ class insurance_company(Document):
     class Settings:
         name = "insurance_company"
 
-class lab_test_type_class(Document):
+class lab_test_type_category(Document):
     lab_test_type_class_name : str = Field(...) 
     class Settings:
         name = "lab_test_class"

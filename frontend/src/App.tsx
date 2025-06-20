@@ -2,14 +2,14 @@ import React from 'react';
 import { Routes, Route, Link,NavLink, useMatch } from 'react-router-dom';
 import logo from './assets/logo.png';
 import './App.css';
-import EditResultPage from './components/Pages/EditResult/EditResultPage';
 import Visits from './components/Pages/Visits/VisitsPage';
 import PatientPage from './components/Pages/Patients/PatientsPage';
 import EditPatientPage from './components/Pages/EditPatientPage/EditPatientPage';
 import CreatePatientPage from './components/Pages/CreatePatientPage/CreatePatientPage';
 import MaintenancePage from './components/Pages/MaintenancePage/MaintenancePage';
 import CreateLabTestTypePage from './components/Pages/MaintenancePage/CreateLabTestType';
-import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
+import EditVisitPage from './components/Pages/EditVisit/EditVisitPage';
+// import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
 
 type NavItem = {
   to: string;
@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
   { to: '/visits', label: 'Visits', end: true },
   { to: '/patients', label: 'Patients' },
   { to : '/maintenance', label : 'Maintenance'},
+  { to : '/edit-visit', label : 'Edit Visit'},
 ];
 
 const App: React.FC = () => {
@@ -62,7 +63,7 @@ const App: React.FC = () => {
     <main>
       <Routes>
         <Route path="/visits" element={<Visits />} />
-        <Route path="/edit-result/patients/:patient_id/:visit_id" element={<EditResultPage />}/>
+        <Route path="/edit-visit/patients/:patient_id/:visit_id" element={<EditVisitPage />}/>
         <Route path="/patients" element={<PatientPage/>}/>
         <Route path="/patients/edit-patient/:patient_id" element={<EditPatientPage/>}/>
         <Route path="/patients/create-patient" element={<CreatePatientPage/>}/>

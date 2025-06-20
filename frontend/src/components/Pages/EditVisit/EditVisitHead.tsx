@@ -1,4 +1,4 @@
-const EditResultsHead: React.FC = () =>(
+const EditVistHead: React.FC = () =>(
     <thead className="bg-gray-100 border-b border-black top-0 z-10"> 
         <th className="h-8 px-0 py-2">class</th>
         <th className="h-8 px-0 py-2">Test</th>
@@ -10,4 +10,4 @@ const EditResultsHead: React.FC = () =>(
         <th className="h-8 px-0 py-2">Remove</th>
     </thead>
 )
-export default EditResultsHead;
+export default EditVistHead;
