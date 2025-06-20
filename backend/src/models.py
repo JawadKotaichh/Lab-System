@@ -54,6 +54,6 @@ class insurance_company(Document):
         name = "insurance_company"
 
 class lab_test_type_category(Document):
-    lab_test_type_class_name : str = Field(...) 
+    lab_test_type_category_name : str = Field(...) 
     class Settings:
-        name = "lab_test_class"
+        name = "lab_test_type_category"
