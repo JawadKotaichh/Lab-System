@@ -7,7 +7,7 @@ from beanie import PydanticObjectId
 
 
 class Visit(BaseModel):
-    patient_id: PydanticObjectId
+    patient_id: str
     date: datetime = Field(...)
 
     model_config = ConfigDict(
@@ -15,15 +15,15 @@ class Visit(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "patient_id": "6829e34cf35023046f4b5c00",
-                "date": datetime(1995, 1, 15),
+                "patient_id": "682f96b6b102ec8900f41b2a",
+                "date": datetime(2025, 6,6),
             }
         },
     )
 
 
 class update_visit_model(BaseModel):
-    patient_id: Optional[PydanticObjectId]
+    patient_id: Optional[str]
     date: datetime = Field(...)
 
     model_config = ConfigDict(
