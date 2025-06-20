@@ -92,7 +92,7 @@ const Visits: React.FC = () =>{
                     <ul
                     key={p.patient_id}
                     className="p-3 border rounded-sm hover:bg-white text-black  hover:text-gray-500  flex justify-between items-center py-2 border-b cursor-pointer"
-                    onClick={()=>navigate(`/edit-result/patients/${p.patient_id}/${p.visit_id}`)}
+                    onClick={()=>navigate(`/edit-visit/patients/${p.patient_id}/${p.visit_id}`)}
                     >
                     <li 
                     className="font-medium"

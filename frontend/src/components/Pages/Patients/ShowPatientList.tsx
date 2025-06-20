@@ -8,8 +8,6 @@ import { createVisit } from "../../utils";
 import Pagination from "../../Pagination";
 
 // Add group if tests
-// family Group ID
-// add create test page
 // print pdf result see where it is easer
 
 interface ShowAllPatientsParams {
@@ -67,7 +65,7 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
         try{
             const resp = await createVisit(patient_id);
             const newVisit = resp.data;            
-            navigate(`/edit-result/patients/${patient_id}/${newVisit._id}`);
+            navigate(`/edit-visit/patients/${patient_id}/${newVisit._id}`);
         }catch (err: unknown) {
             console.error(err);
             if (err instanceof Error) {

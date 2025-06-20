@@ -1,5 +1,5 @@
-import EditResultsHead from "./EditResultsHead";
-import type {labTestClassParams, LabTestResult } from "../../types";
+import EditVistHead from "./EditVisitHead.js";
+import type {labTestClassParams, LabTestResult } from "../../types.js";
 import api from "../../../api.js";
 import { useEffect, useMemo, useState } from "react";
 import { fetchAllLabTestTypeClasses } from "../../utils.js";
@@ -24,7 +24,7 @@ const ShowResultsList : React.FC<ShowResultsListParams> = ({results,setResults,p
 
     const classById = useMemo(() => {
         return labTestTypeClases.reduce<Record<string, string>>((map, c) => {
-        map[c.lab_test_type_class_id] = c.lab_test_type_class_name;
+        map[c.lab_test_type_category_id] = c.lab_test_type_category_name;
         return map;
         }, {});
     }, [labTestTypeClases]);
@@ -51,11 +51,11 @@ const ShowResultsList : React.FC<ShowResultsListParams> = ({results,setResults,p
 
     return (
         <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
-            <EditResultsHead/>
+            <EditVistHead/>
             <tbody>
             {results.map(r => (
                 <tr key={r.lab_test_result_id} className="border rounded-sm">
-                <td className="border rounded-b-sm px-4 py-2">{classById[r.lab_test_type_class_id]}</td>
+                <td className="border rounded-b-sm px-4 py-2">{classById[r.lab_test_type_category_id]}</td>
                 <td className="border rounded-b-sm px-4 py-2">{r.lab_test_name}</td>
                 <td 
                 className="border rounded-b-sm  px-4 py-2"

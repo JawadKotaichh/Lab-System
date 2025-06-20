@@ -1,4 +1,4 @@
-import AddResultHead from "./AddResultHead";
+import AddResultHead from "./AddResultHead.js";
 // import SearchTest from "./SearchTest";
 import api from "../../../api.js";
 import type {labTestClassParams, LabTestResult} from "../../types.js";
@@ -62,7 +62,7 @@ const ShowTestsList : React.FC<TestsList> = ({
 
     const classById = useMemo(() => {
         return labTestTypeClases.reduce<Record<string, string>>((map, c) => {
-        map[c.lab_test_type_class_id] = c.lab_test_type_class_name;
+        map[c.lab_test_type_category_id] = c.lab_test_type_category_name;
         return map;
         }, {});
     }, [labTestTypeClases]);
@@ -141,7 +141,7 @@ const ShowTestsList : React.FC<TestsList> = ({
                             visibleTests.map(
                                 test =>
                                     <tr key={test.lab_test_id}>
-                                        <td className="border rounded-b-sm px-4 py-2">{classById[test.lab_test_type_class_id]}</td>
+                                        <td className="border rounded-b-sm px-4 py-2">{classById[test.lab_test_type_category_id]}</td>
                                         <td className="border rounded-b-sm px-4 py-2">{test.nssf_id}</td>
                                         <td className="border font-bold px-4 py-2">{test.lab_test_name}</td>
                                         <td className="border rounded-b-sm px-4 py-2">{test.unit}</td>

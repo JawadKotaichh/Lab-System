@@ -9,7 +9,7 @@ import type { LabTestResult } from '../../types.js';
 import type { Params } from '../../types.js';
 import ShowResultsList from './ShowResultsList.js';
 
-const EditResult: React.FC = () =>{
+const EditVisitPage: React.FC = () =>{
     const { patient_id, visit_id } = useParams<Params>();
     const [results, setResults] = useState<LabTestResult[]>([]);
     const [loading, setLoading] = useState(true);
@@ -136,4 +136,4 @@ const EditResult: React.FC = () =>{
     );
 };
 
-export default EditResult;
+export default EditVisitPage;
