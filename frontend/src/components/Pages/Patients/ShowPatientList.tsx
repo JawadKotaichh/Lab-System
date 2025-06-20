@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { insuranceCompanyParams, patientInfo } from "../../types";
-import { fetchAllInsuranceCompanies, fetchAllPatients } from "../../utils";
+import { fetchAllInsuranceCompanies, fetchAllPatients, fetchPatientsPaginated } from "../../utils";
 import PatientListHead from "./PatientListHead";
-import SearchPatient from "./SearchPatient";
+// import SearchPatient from "./SearchPatient";
 import { useNavigate } from "react-router-dom";
 import { createVisit } from "../../utils";
+import Pagination from "../../Pagination";
 
 // Add group if tests
 // family Group ID
@@ -22,6 +23,12 @@ interface ShowAllPatientsParams {
     setError:React.Dispatch<React.SetStateAction<string>>;
     searchInput:string;
     setSearchInput:React.Dispatch<React.SetStateAction<string>>;
+    currentPage:number;
+    setCurrentPage:React.Dispatch<React.SetStateAction<number>>;
+    totalPages:number;
+    setTotalPages:React.Dispatch<React.SetStateAction<number>>;
+    pageSize:number;
+    setPageSize:React.Dispatch<React.SetStateAction<number>>;
 }
 
 const ShowPatientList: React.FC<ShowAllPatientsParams>= ( { 
@@ -33,8 +40,14 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
     setLoadingPatients,
     error,
     setError,
-    searchInput,
-    setSearchInput
+    // searchInput,
+    // setSearchInput,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    setTotalPages,
+    pageSize,
+    setPageSize
 }: ShowAllPatientsParams) => {  
 
     const [insuranceCompanies, setInsuranceCompanies] = useState<insuranceCompanyParams[]>([]);
@@ -44,8 +57,8 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
         .then(setInsuranceCompanies)
         .catch((err) => setError(err.message || "Failed to load companies"));
     }, [setError]);
+    
     const navigate = useNavigate();
-
 
     const handleNewVisit = async(patient_id:string) =>{
         try{
@@ -61,9 +74,9 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
     }
     const companyById = useMemo(() => {
         return insuranceCompanies.reduce<Record<string, string>>((map, c) => {
-        map[c.insurance_company_id] = c.insurance_company_name;
-        return map;
-        }, {});
+            map[c.insurance_company_id] = c.insurance_company_name;
+            return map;
+            }, {});
     }, [insuranceCompanies]);
     
     useEffect(() => {
@@ -80,8 +93,16 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
     },[setAllPatients,setError,setLoadingPatients]);
 
     useEffect(() => {
-          setVisiblePatients(allPatients)
-        }, [allPatients,setVisiblePatients])
+        if (pageSize && currentPage) {
+            fetchPatientsPaginated(currentPage,pageSize)
+            .then((data) => {
+                setVisiblePatients(data.patients);
+                console.log(`total pages: ${data.total_pages}`)
+                console.log(`patients: ${data.patients}`)
+                setTotalPages(data.total_pages);
+            }).catch((err) => setError(err.message || "Failed to load"))
+        }
+    },  [pageSize,totalPages, currentPage, setVisiblePatients, setTotalPages, setError]);
     
     if (loadingPatients) return <div className="p-4">Loading Patient list…</div>;
     if (error)   return <div className="p-4 text-red-600">Error: {error}</div>;
@@ -93,12 +114,7 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
                 <p> No patients found!</p>
                 ) : (
                 <>
-                <SearchPatient
-                searchInput={searchInput}
-                setSearchInput={setSearchInput}
-                setVisiblePatients={setVisiblePatients}
-                allPatients={allPatients}
-                />
+               
                 <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
                     <PatientListHead/>
                     <tbody>
@@ -129,7 +145,77 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
                         </tr>
                     ))}
                     </tbody>
-            </table>
+                </table>
+                <Pagination
+                    setPageSize={setPageSize}
+                    pageSize={pageSize}
+                    currentPage={currentPage} 
+                    totalPages={totalPages} 
+                    setCurrentPage={setCurrentPage}
+                />
+                {/* <SearchPatient
+                searchInput={searchInput}
+                setSearchInput={setSearchInput}
+                setVisiblePatients={setVisiblePatients}
+                allPatients={allPatients}
+                /> 
+                 <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
+                    <PatientListHead/>
+                    <tbody>
+                    {visiblePatients.map(patient => (
+                        <tr key={patient.patient_id} className="border rounded-sm">
+                        <td className="border rounded-b-sm px-4 py-2">{patient.patient_id}</td>
+                        <td className="font-bold border rounded-b-sm px-4 py-2">{patient.patient_name}</td>
+                        <td className="border rounded-b-sm px-4 py-2">{patient.gender}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">{new Date(patient.DOB).toLocaleDateString()}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">{companyById[patient.insurance_company_id]}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">{patient.phone_number}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">
+                            <button 
+                            className="p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600"
+                            onClick={() => handleNewVisit(patient.patient_id)}
+                            >
+                                New Visit 
+                            </button>       
+                        </td>
+                        <td className="border rounded-b-sm  px-4 py-2">
+                            <button 
+                            className="p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600"
+                            onClick={() => navigate(`/patients/edit-patient/${patient.patient_id}`)}
+                            >
+                                Edit Patient 
+                            </button>
+                        </td>
+                        </tr>
+                    ))} 
+                     {visiblePatients.map(patient => (
+                        <tr key={patient.patient_id} className="border rounded-sm">
+                        <td className="border rounded-b-sm px-4 py-2">{patient.patient_id}</td>
+                        <td className="font-bold border rounded-b-sm px-4 py-2">{patient.patient_name}</td>
+                        <td className="border rounded-b-sm px-4 py-2">{patient.gender}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">{new Date(patient.DOB).toLocaleDateString()}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">{companyById[patient.insurance_company_id]}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">{patient.phone_number}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">
+                            <button 
+                            className="p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600"
+                            onClick={() => handleNewVisit(patient.patient_id)}
+                            >
+                                New Visit 
+                            </button>       
+                        </td>
+                        <td className="border rounded-b-sm  px-4 py-2">
+                            <button 
+                            className="p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600"
+                            onClick={() => navigate(`/patients/edit-patient/${patient.patient_id}`)}
+                            >
+                                Edit Patient 
+                            </button>
+                        </td>
+                        </tr>
+                    ))} 
+                     </tbody>
+            </table> */}
 
             </>
             )

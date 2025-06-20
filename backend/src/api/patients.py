@@ -1,16 +1,38 @@
 from fastapi import APIRouter, HTTPException, status
-from src.models import Patient as DBPatient
-from src.schemas.schema_Patient import Patient, update_patient_model
+from ..models import Patient as DBPatient
+from ..schemas.schema_Patient import Patient, update_patient_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
+from math import ceil
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
+@router.get("/page/{page_size}/{page_number}")
+async def get_patients_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    total_number_of_patients = await DBPatient.find_all().count()
+    all_patient_paginated = DBPatient.find().skip(offset).limit(page_size)
+    output = []
+    async for patient in all_patient_paginated:
+        d = {}
+        d["patient_id"] = str(patient.id)
+        d["patient_name"] = patient.name
+        d["gender"] = patient.gender
+        d["DOB"] = patient.DOB
+        d["phone_number"] = patient.phone_number
+        d["insurance_company_id"]=patient.insurance_company_id
+        output.append(d)
+
+    total_pages= ceil(total_number_of_patients / page_size)
+    return {
+        "total_pages":total_pages,
+        "patients":output
+    }
 
 @router.get("/all")
 async def getAllPatients():

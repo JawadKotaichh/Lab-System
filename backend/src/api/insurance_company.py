@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
-from src.models import insurance_company as DBInsurance_company
-from src.schemas.schema_Insurance_Company import Insurance_company, update_insurance_company
+from ..models import insurance_company as DBInsurance_company
+from ..schemas.schema_Insurance_Company import Insurance_company, update_insurance_company
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
@@ -11,6 +11,15 @@ from fastapi_pagination.ext.beanie import apaginate
 router = APIRouter(prefix="/insurance_company", tags=["insurance_company"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
+
+@router.get("/page",response_model=list[Insurance_company])
+async def get_insurance_company_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    all_insurance_companies_paginated = DBInsurance_company.find().skip(offset).limit(page_size)
+    insurance_companies_list = []
+    async for insurance_company in all_insurance_companies_paginated:
+        insurance_companies_list.append(insurance_company)
+    return insurance_companies_list
 
 @router.get("/all")
 async def getAllInsuranceCompany():
