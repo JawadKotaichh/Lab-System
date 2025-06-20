@@ -18,8 +18,8 @@ class Lab_test_type(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "nssf_id": 8000,
-                "lab_test_type_class_id":"",
+                "nssf_id": "8000",
+                "lab_test_type_class_id":"684fd209009ae7352f726b22",
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,
@@ -44,8 +44,8 @@ class update_Lab_test_type_model(BaseModel):
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "nssf_id": 9002,
-                "lab_test_type_class_id":"",
+                "nssf_id": "9002",
+                "lab_test_type_class_id":"684fd209009ae7352f726b22",
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,
