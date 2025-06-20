@@ -75,7 +75,7 @@ export interface insuranceCompanyParams {
   rate: string;
 }
 
-export interface labTestClassParams {
+export interface labTestCategoryParams {
   lab_test_type_category_id:string;
   lab_test_type_category_name: string;
 }
@@ -101,3 +101,8 @@ export interface PaginationParams{
   setPageSize:React.Dispatch<React.SetStateAction<number>>;
   setCurrentPage:React.Dispatch<React.SetStateAction<number>>;
 };
+export type VisitsInfo ={
+  visit_id:string;
+  date:string;
+  patient_id:string;
+}

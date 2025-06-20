@@ -65,7 +65,7 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
         try{
             const resp = await createVisit(patient_id);
             const newVisit = resp.data;            
-            navigate(`/edit-visit/patients/${patient_id}/${newVisit._id}`);
+            navigate(`/visits/${newVisit._id}`);
         }catch (err: unknown) {
             console.error(err);
             if (err instanceof Error) {
@@ -73,7 +73,7 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
             }
         }
     }
-    const companyById = useMemo(() => {
+    const insuranceCompanyById = useMemo(() => {
         return insuranceCompanies.reduce<Record<string, string>>((map, c) => {
             map[c.insurance_company_id] = c.insurance_company_name;
             return map;
@@ -124,7 +124,7 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
                         <td className="font-bold border rounded-b-sm px-4 py-2">{patient.patient_name}</td>
                         <td className="border rounded-b-sm px-4 py-2">{patient.gender}</td>
                         <td className="border rounded-b-sm  px-4 py-2">{new Date(patient.DOB).toLocaleDateString()}</td>
-                        <td className="border rounded-b-sm  px-4 py-2">{companyById[patient.insurance_company_id]}</td>
+                        <td className="border rounded-b-sm  px-4 py-2">{insuranceCompanyById[patient.insurance_company_id]}</td>
                         <td className="border rounded-b-sm  px-4 py-2">{patient.phone_number}</td>
                         <td className="border rounded-b-sm  px-4 py-2">
                             <button 
