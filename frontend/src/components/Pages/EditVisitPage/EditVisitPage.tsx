@@ -29,7 +29,7 @@ const EditVisitPage: React.FC = () => {
     try {
       await Promise.all(
         results.map((item) => {
-          const url = `/visits/${visit_id}/lab_tests_results/${item.lab_test_result_id}`;
+          const url = `/lab_tests_results/${item.lab_test_result_id}`;
           api.put(url, null, { params: { result: item.result } });
         })
       );

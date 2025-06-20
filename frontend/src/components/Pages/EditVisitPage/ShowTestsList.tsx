@@ -107,14 +107,14 @@ const ShowTestsList: React.FC<TestsList> = ({
       return;
     }
     setAddError("");
-    const url = `/visits/${visit_id}/lab_tests_results`;
+    const url = `/lab_tests_results/${visit_id}`;
     try {
       await api.post(url, {
         lab_test_type_id: lab_test_id,
         visit_id,
         result: "",
       });
-      const updated = await fetchLabTestResults(visit_id!);
+      const updated = await fetchLabTestResults(visit_id);
       setResults(updated);
       setShow(false);
     } catch (err: unknown) {
