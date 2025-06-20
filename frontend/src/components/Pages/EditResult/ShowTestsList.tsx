@@ -1,10 +1,11 @@
 import AddResultHead from "./AddResultHead";
-import SearchTest from "./SearchTest";
+// import SearchTest from "./SearchTest";
 import api from "../../../api.js";
 import type {labTestClassParams, LabTestResult} from "../../types.js";
 import type {labTest} from "../../types.js";
-import {fetchAllLabTestTypeClasses, fetchLabTestResults} from "../../utils.js"
+import {fetchAllLabTestTypeClasses, fetchLabTestResults, fetchLabTestTypePaginated} from "../../utils.js"
 import { useEffect, useMemo, useState } from "react";
+import Pagination from "../../Pagination.js";
 
 
 interface TestsList  {
@@ -12,8 +13,8 @@ interface TestsList  {
     setAddError:React.Dispatch<React.SetStateAction<string>>;
     show:boolean;
     setShow:React.Dispatch<React.SetStateAction<boolean>>;
-    searchInput:string;
-    setSearchInput:React.Dispatch<React.SetStateAction<string>>;
+    // searchInput:string;
+    // setSearchInput:React.Dispatch<React.SetStateAction<string>>;
     allTests: labTest[];
     visibleTests:labTest[];
     setVisibleTests:React.Dispatch<React.SetStateAction<labTest[]>>;
@@ -23,12 +24,34 @@ interface TestsList  {
     visit_id: string;
     error:string;
     setError:React.Dispatch<React.SetStateAction<string>>;
+    pageSize:number;
+    setPageSize:React.Dispatch<React.SetStateAction<number>>;
+    totalPages:number;
+    setTotalPages:React.Dispatch<React.SetStateAction<number>>;
+    currentPage:number;
+    setCurrentPage:React.Dispatch<React.SetStateAction<number>>;
+    TotalNumberOfTests:number;
+    setTotalNumberOfTests:React.Dispatch<React.SetStateAction<number>>;
 }
 
   
 
 
-const ShowTestsList : React.FC<TestsList> = ({addError,setAddError,show,setShow,searchInput,setSearchInput,allTests,visibleTests,setVisibleTests,results,setResults,patient_id,visit_id,setError}:TestsList) =>{
+const ShowTestsList : React.FC<TestsList> = ({
+    addError,
+    setAddError,
+    show,setShow,
+    // searchInput,setSearchInput,
+    allTests,
+    visibleTests,setVisibleTests,
+    results,setResults,
+    patient_id,visit_id,
+    setError,
+    currentPage,setCurrentPage,
+    totalPages,setTotalPages,
+    pageSize,setPageSize,
+    TotalNumberOfTests,setTotalNumberOfTests
+}:TestsList) =>{
     const [labTestTypeClases, setLabTestTypeClases] = useState<labTestClassParams[]>([]);
 
     useEffect(() => {
@@ -44,6 +67,18 @@ const ShowTestsList : React.FC<TestsList> = ({addError,setAddError,show,setShow,
         }, {});
     }, [labTestTypeClases]);
     
+    
+    useEffect(() => {
+        if (pageSize && currentPage) {  
+            fetchLabTestTypePaginated(currentPage,pageSize)
+            .then((data) => {
+                setVisibleTests(data.lab_tests);
+                setTotalPages(data.total_pages);
+                setTotalNumberOfTests(data.TotalNumberOfTests);
+            }).catch((err) => setError(err.message || "Failed to load"))
+        }
+    },  [pageSize,totalPages, currentPage,setTotalNumberOfTests, setVisibleTests, setTotalPages, setError]);
+
     const handleAdd = async (lab_test_id:string) =>{
         console.log(results.some(r => r.lab_test_type_id == lab_test_id));
         if (results.some(r => r.lab_test_type_id === lab_test_id)) {
@@ -51,7 +86,7 @@ const ShowTestsList : React.FC<TestsList> = ({addError,setAddError,show,setShow,
             alert("This test already exists.");
             setShow(false);
             setAddError("");
-            setSearchInput("");
+            // setSearchInput("");
             setVisibleTests(allTests);
             return;
         }     
@@ -92,12 +127,12 @@ const ShowTestsList : React.FC<TestsList> = ({addError,setAddError,show,setShow,
                 {addError&& 
                     (<p className="mb-2 text-sm text-red-600">{addError}</p>)
                 }
-                <SearchTest
+                {/* <SearchTest
                 searchInput={searchInput}
                 setSearchInput={setSearchInput}
                 allTests={allTests}
                 setVisibleTests={setVisibleTests}
-                />
+                /> */}
                 <div className="flex-1 overflow-y-auto mt-4 border border-black">
                    <table className="w-full border border-black border-collapse text-center">
                         <AddResultHead/>                       
@@ -126,7 +161,14 @@ const ShowTestsList : React.FC<TestsList> = ({addError,setAddError,show,setShow,
                             }
                         </tbody>
                     </table>
-                    
+                    <Pagination
+                        TotalNumberOfPaginatedItems={TotalNumberOfTests}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        setPageSize={setPageSize}
+                    />
                     <div className="sticky bottom-0 bg-white border-t pt-4 flex">
                         <button
                         onClick={() => setShow(false)}

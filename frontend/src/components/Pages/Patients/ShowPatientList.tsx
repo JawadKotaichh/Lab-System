@@ -29,6 +29,8 @@ interface ShowAllPatientsParams {
     setTotalPages:React.Dispatch<React.SetStateAction<number>>;
     pageSize:number;
     setPageSize:React.Dispatch<React.SetStateAction<number>>;
+    totalNumberOfPatients:number;
+    setTotalNumberOfPatients:React.Dispatch<React.SetStateAction<number>>;
 }
 
 const ShowPatientList: React.FC<ShowAllPatientsParams>= ( { 
@@ -47,7 +49,8 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
     totalPages,
     setTotalPages,
     pageSize,
-    setPageSize
+    setPageSize,
+    setTotalNumberOfPatients,totalNumberOfPatients
 }: ShowAllPatientsParams) => {  
 
     const [insuranceCompanies, setInsuranceCompanies] = useState<insuranceCompanyParams[]>([]);
@@ -97,12 +100,11 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
             fetchPatientsPaginated(currentPage,pageSize)
             .then((data) => {
                 setVisiblePatients(data.patients);
-                console.log(`total pages: ${data.total_pages}`)
-                console.log(`patients: ${data.patients}`)
                 setTotalPages(data.total_pages);
+                setTotalNumberOfPatients(data.TotalNumberOfPatients);
             }).catch((err) => setError(err.message || "Failed to load"))
         }
-    },  [pageSize,totalPages, currentPage, setVisiblePatients, setTotalPages, setError]);
+    },  [pageSize,totalPages, currentPage, setTotalNumberOfPatients,setVisiblePatients, setTotalPages, setError]);
     
     if (loadingPatients) return <div className="p-4">Loading Patient list…</div>;
     if (error)   return <div className="p-4 text-red-600">Error: {error}</div>;
@@ -147,11 +149,13 @@ const ShowPatientList: React.FC<ShowAllPatientsParams>= ( {
                     </tbody>
                 </table>
                 <Pagination
+                    TotalNumberOfPaginatedItems={totalNumberOfPatients}
                     setPageSize={setPageSize}
                     pageSize={pageSize}
                     currentPage={currentPage} 
                     totalPages={totalPages} 
                     setCurrentPage={setCurrentPage}
+                    
                 />
                 {/* <SearchPatient
                 searchInput={searchInput}

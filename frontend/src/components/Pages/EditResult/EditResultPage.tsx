@@ -18,8 +18,12 @@ const EditResult: React.FC = () =>{
     const [show,setShow] = useState<boolean>(false);
     const [allTests,setAllTests] = useState<labTest[]>([]);
     const [addError,setAddError] = useState<string>("");
-    const [searchInput,setSearchInput] = useState<string>("");
+    // const [searchInput,setSearchInput] = useState<string>("");
     const [visibleTests,setVisibleTests]  = useState<labTest[]>(allTests);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(1); 
+    const [pageSize, setPageSize] = useState<number>(10); 
+    const [totalNumberOfTests,setTotalNumberOfTests]=useState<number>(0);
     
     const handleSaveAll = async() => {
          try{
@@ -104,12 +108,13 @@ const EditResult: React.FC = () =>{
         </button>
 
         <ShowTestsList
+            TotalNumberOfTests={totalNumberOfTests}
             addError={addError}
             setAddError={setAddError}
             show={show}
             setShow ={setShow}
-            searchInput={searchInput}
-            setSearchInput={setSearchInput}
+            // searchInput={searchInput}
+            // setSearchInput={setSearchInput}
             allTests={allTests}
             visibleTests={visibleTests}
             setVisibleTests={setVisibleTests}
@@ -119,6 +124,13 @@ const EditResult: React.FC = () =>{
             visit_id={visit_id!}
             error={error}
             setError={setError}
+            pageSize={pageSize}
+            setPageSize={setPageSize}
+            totalPages={totalPages}
+            setTotalPages={setTotalPages}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            setTotalNumberOfTests={setTotalNumberOfTests}
         />
     </div>  
     );

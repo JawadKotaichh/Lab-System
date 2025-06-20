@@ -85,12 +85,19 @@ export type LabTestTypeParams = {
 };
 export type paginatedPatientInfo={
   "total_pages":number;
+  "TotalNumberOfPatients":number;
   "patients":patientInfo[];
+};
+export type paginatedlabTest ={
+  "total_pages":number;
+  "TotalNumberOfTests":number;
+  "lab_tests":labTest[];
 };
 export interface PaginationParams{
   currentPage:number;
   totalPages:number;
   pageSize:number;
+  TotalNumberOfPaginatedItems:number;
   setPageSize:React.Dispatch<React.SetStateAction<number>>;
   setCurrentPage:React.Dispatch<React.SetStateAction<number>>;
 };
