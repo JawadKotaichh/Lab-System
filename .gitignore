@@ -1,1 +1,50 @@
+# Python related
+*.pyc
+*.pyo
+__pycache__/
+env/
 .venv/
+venv/
+.Python
+*.db
+
+# FastAPI-related
+*.log
+*.sqlite
+*.pid
+
+# TypeScript related
+node_modules/
+dist/
+build/
+*.log
+*.tsbuildinfo
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*~
+
+# OS-related files
+.DS_Store
+Thumbs.db
+
+# Environment variables file
+.env
+
+# Coverage reports
+.coverage
+*.coveragerc
+*.tox
+*.nox
+*.coverage.*
+
+# FastAPI migration folders (if using alembic)
+migrations/
+
+# TypeScript build artifacts
+*.js
+*.d.ts
