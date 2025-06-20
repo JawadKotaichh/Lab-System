@@ -5,7 +5,7 @@ const Pagination = ({ currentPage, totalPages, setCurrentPage,pageSize,setPageSi
             const newSize = Number(e.target.value);
                 if (newSize > 0) {
                     setPageSize(newSize);
-                    setCurrentPage(1)
+                    setCurrentPage(1);
                 }
         };
         return (
