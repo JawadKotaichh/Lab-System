@@ -5,7 +5,7 @@ export type Params = {
 
 export type LabTestResult = {
   lab_test_type_id: string;
-  lab_test_type_category_id: string;
+  lab_test_category_id: string;
   lab_test_name: string;
   result: string;
   unit: string;
@@ -17,7 +17,7 @@ export type LabTestResult = {
 
 export type labTest = {
   lab_test_id: string;
-  lab_test_type_category_id: string;
+  lab_test_category_id: string;
   lab_test_name: string;
   nssf_id: number;
   unit: string;
@@ -58,7 +58,7 @@ export interface CreatePatient {
 
 export interface CreateLabTestType {
   nssf_id: string;
-  lab_test_type_category_id: string;
+  lab_test_category_id: string;
   name: string;
   unit: string;
   price: number;
@@ -73,8 +73,8 @@ export interface insuranceCompanyParams {
 }
 
 export interface labTestCategoryParams {
-  lab_test_type_category_id: string;
-  lab_test_type_category_name: string;
+  lab_test_category_id: string;
+  lab_test_category_name: string;
 }
 
 export type LabTestTypeParams = {

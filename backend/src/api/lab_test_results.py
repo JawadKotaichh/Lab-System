@@ -109,7 +109,7 @@ async def get_list_of_lab_test( visit_id: str):
         lab_test = await DBLab_test_type.find_one(DBLab_test_type.id==ObjectId(item.lab_test_type_id))
         if lab_test is not None:
             d["lab_test_type_id"] = str(item.lab_test_type_id)
-            d["lab_test_type_category_id"] = str(lab_test.lab_test_type_category_id)
+            d["lab_test_category_id"] = str(lab_test.lab_test_category_id)
             d["lab_test_name"] = lab_test.name
             d["result"] = item.result
             d["unit"] = lab_test.unit
