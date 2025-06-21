@@ -6,7 +6,7 @@ from typing import Union
 
 class Lab_test_type(BaseModel):
     nssf_id: str = Field(...)
-    lab_test_type_category_id : str = Field(...)
+    lab_test_category_id : str = Field(...)
     name: str = Field(...)
     unit: str = Field(...)
     price: int = Field(...)
@@ -19,7 +19,7 @@ class Lab_test_type(BaseModel):
         json_schema_extra={
             "example": {
                 "nssf_id": "8000",
-                "lab_test_type_category_id":"684fd209009ae7352f726b22",
+                "lab_test_category_id":"68573ff6389dfecf5abc2638",
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,
@@ -32,7 +32,7 @@ class Lab_test_type(BaseModel):
 
 class update_Lab_test_type_model(BaseModel):
     nssf_id: Optional[str] = None
-    lab_test_type_category_id:Optional[str]=None
+    lab_test_category_id:Optional[str]=None
     name: Optional[str] = None
     unit: Optional[str] = None
     price: Optional[int] = None
@@ -45,7 +45,7 @@ class update_Lab_test_type_model(BaseModel):
         json_schema_extra={
             "example": {
                 "nssf_id": "9002",
-                "lab_test_type_category_id":"684fd209009ae7352f726b22",
+                "lab_test_category_id":"68573ff6389dfecf5abc2638",
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,

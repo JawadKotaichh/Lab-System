@@ -1,43 +1,59 @@
-import {  useEffect, useState } from "react";
-import { type CreateLabTestType, type labTestCategoryParams,} from "../../types";
+import { useEffect, useState } from "react";
+import {
+  type CreateLabTestType,
+  type labTestCategoryParams,
+} from "../../types";
 import api from "../../../api";
-import {Activity, TestTube, IdCard, Type, DollarSign } from 'lucide-react';
+import { Activity, TestTube, IdCard, Type, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchAllLabTestTypeCategories } from "../../utils";
 
 const CreateLabTestTypePage: React.FC = () => {
   const [error, setError] = useState<string>();
-  const [state,setState] = useState<string>("");
+  const [state, setState] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [createdLabTestType, setCreatedLabTestType] = useState<CreateLabTestType>({
-    nssf_id: "",
-    lab_test_type_category_id : "", 
-    name: "",
-    unit: "",
-    price: 0,
-    lower_bound: "",
-    upper_bound: "",
-  });
+  const [createdLabTestType, setCreatedLabTestType] =
+    useState<CreateLabTestType>({
+      nssf_id: "",
+      lab_test_category_id: "",
+      name: "",
+      unit: "",
+      price: 0,
+      lower_bound: "",
+      upper_bound: "",
+    });
   const navigate = useNavigate();
-  const [allTestsClasess,setAllTestsClasses] = useState<labTestCategoryParams[]>([]);
+  const [allTestsClasess, setAllTestsClasses] = useState<
+    labTestCategoryParams[]
+  >([]);
 
-  useEffect(()=>{
+  useEffect(() => {
     setLoading(true);
     fetchAllLabTestTypeCategories()
-    .then((data)=>{
-      setAllTestsClasses(data);
-      setLoading(false);
-    }).catch((err) =>{
-          setError(err.message || 'Failed to load');
-          setLoading(false);
-       }
-      )
-    }, []);
-  
-  if(!loading){console.log(error);}
-  
+      .then((data) => {
+        setAllTestsClasses(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load");
+        setLoading(false);
+      });
+  }, []);
+
+  if (!loading) {
+    console.log(error);
+  }
+
   const handleSaveAll = async (data: CreateLabTestType) => {
-    if( data.nssf_id=="" || data.lab_test_type_category_id=="" || data.name=="" || data.unit=="" || data.lower_bound=="" || data.upper_bound=="" || data.price == 0){
+    if (
+      data.nssf_id == "" ||
+      data.lab_test_category_id == "" ||
+      data.name == "" ||
+      data.unit == "" ||
+      data.lower_bound == "" ||
+      data.upper_bound == "" ||
+      data.price == 0
+    ) {
       setState("Please insert all the reuqired fields!");
       return;
     }
@@ -53,8 +69,9 @@ const CreateLabTestTypePage: React.FC = () => {
       }
     }
   };
- 
-  if (error) return <div className="text-red-600 text-center p-8">Error: {error}</div>;
+
+  if (error)
+    return <div className="text-red-600 text-center p-8">Error: {error}</div>;
   if (!createdLabTestType) return null;
 
   return (
@@ -77,7 +94,10 @@ const CreateLabTestTypePage: React.FC = () => {
             placeholder="Enter nssf id"
             onChange={(e) => {
               const newNssfID = e.target.value;
-              setCreatedLabTestType((prev) => ({ ...prev!,  nssf_id: newNssfID }));
+              setCreatedLabTestType((prev) => ({
+                ...prev!,
+                nssf_id: newNssfID,
+              }));
             }}
           />
         </div>
@@ -105,18 +125,23 @@ const CreateLabTestTypePage: React.FC = () => {
           </label>
           <select
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={createdLabTestType.lab_test_type_category_id}
-            onChange={e =>
-              setCreatedLabTestType(prev => ({
+            value={createdLabTestType.lab_test_category_id}
+            onChange={(e) =>
+              setCreatedLabTestType((prev) => ({
                 ...prev!,
-                lab_test_type_category_id: e.target.value
+                lab_test_category_id: e.target.value,
               }))
             }
           >
-            <option value="" disabled>— Select lab test class —</option>
-            {allTestsClasess.map(lbc => (
-              <option key={lbc.lab_test_type_category_id} value={lbc.lab_test_type_category_id}>
-                {lbc.lab_test_type_category_name}
+            <option value="" disabled>
+              — Select lab test class —
+            </option>
+            {allTestsClasess.map((lbc) => (
+              <option
+                key={lbc.lab_test_category_id}
+                value={lbc.lab_test_category_id}
+              >
+                {lbc.lab_test_category_name}
               </option>
             ))}
           </select>
@@ -150,7 +175,10 @@ const CreateLabTestTypePage: React.FC = () => {
             placeholder="Enter price"
             onChange={(e) => {
               const newPrice = e.target.value;
-              setCreatedLabTestType((prev) => ({ ...prev!, price: Number(newPrice) }));
+              setCreatedLabTestType((prev) => ({
+                ...prev!,
+                price: Number(newPrice),
+              }));
             }}
           />
         </div>
@@ -166,7 +194,10 @@ const CreateLabTestTypePage: React.FC = () => {
             placeholder="Enter lower bound"
             onChange={(e) => {
               const newLowerBound = e.target.value;
-              setCreatedLabTestType((prev) => ({ ...prev!, lower_bound: newLowerBound }));
+              setCreatedLabTestType((prev) => ({
+                ...prev!,
+                lower_bound: newLowerBound,
+              }));
             }}
           />
         </div>
@@ -182,20 +213,21 @@ const CreateLabTestTypePage: React.FC = () => {
             placeholder="Enter upper bound"
             onChange={(e) => {
               const newUpperBound = e.target.value;
-              setCreatedLabTestType((prev) => ({ ...prev!, upper_bound: newUpperBound }));
+              setCreatedLabTestType((prev) => ({
+                ...prev!,
+                upper_bound: newUpperBound,
+              }));
             }}
           />
         </div>
       </div>
-      
 
       <div className="mt-8 text-center">
         <button
           className="inline-flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg shadow transition"
           onClick={() => {
             handleSaveAll(createdLabTestType!);
-          }
-        }
+          }}
         >
           <Activity className="w-5 h-5" />
           <span>Save Changes</span>
