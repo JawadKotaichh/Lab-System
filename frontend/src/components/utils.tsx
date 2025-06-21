@@ -5,6 +5,7 @@ import type {
   LabTestResult,
   paginatedlabTest,
   paginatedPatientInfo,
+  paginatedVisitInfo,
   patientInfo,
   VisitsInfo,
 } from "./types.js";
@@ -42,7 +43,7 @@ const fetchPatient = async (patient_id: string): Promise<patientInfo> => {
 };
 
 export const createVisit = (patientId: string) => {
-  return api.post(`/patients/${patientId}/visits`, {
+  return api.post(`/visits/${patientId}/`, {
     patient_id: patientId,
     date: new Date().toISOString(),
   });
@@ -87,6 +88,15 @@ const fetchNumberOfCompletedResultsAndTotal = async (
   return response.data;
 };
 
+const fetchVisitsPaginated = async (
+  page_number: number,
+  page_size: number
+): Promise<paginatedVisitInfo> => {
+  const url = `/visits/page/${page_size}/${page_number}`;
+  const response = await api.get(url);
+  return response.data;
+};
+
 export { fetchNumberOfCompletedResultsAndTotal };
 export { fetchLabTestResults };
 export { fetchAllLabTest };
@@ -97,3 +107,4 @@ export { fetchAllLabTestTypeCategories };
 export { fetchPatientsPaginated };
 export { fetchLabTestTypePaginated };
 export { fetchAllVisits };
+export { fetchVisitsPaginated };
