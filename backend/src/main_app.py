@@ -2,7 +2,6 @@ import uvicorn
 import asyncio
 from fastapi import FastAPI
 from .db import init_db
-from .api.visits import all_visits_router
 from .api.patients import router as patients_router
 from .api.visits import router as visits_router
 from .api.lab_test_results import router as lab_test_results_router
@@ -20,7 +19,6 @@ app.include_router(patients_router)
 app.include_router(visits_router)
 app.include_router(lab_test_type_router)
 app.include_router(lab_test_results_router)
-app.include_router(all_visits_router)
 app.include_router(insurance_comapny_router)
 app.include_router(lab_test_category_router)
 

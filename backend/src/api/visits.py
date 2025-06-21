@@ -10,16 +10,37 @@ from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
+from math import ceil
 
 
-
-router = APIRouter(prefix="/patients/{patient_id}/visits", tags=["visits"])
+router = APIRouter(prefix="/visits", tags=["visits"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-all_visits_router = APIRouter(prefix="/visits", tags=["all_visits"])
+
+@router.get("/page/{page_size}/{page_number}")
+async def get_visits_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    total_number_of_visits = await DBVisit.find_all().count()
+    all_visit_paginated = DBVisit.find().skip(offset).limit(page_size)
+    output = []
+    async for visit in all_visit_paginated:
+        d = {}
+        d["visit_id"] = str(visit.id)
+        d["date"] = str(visit.date)[:10]
+        d["patient_id"] = str(visit.patient_id)
+
+        output.append(d)
+
+    total_pages= ceil(total_number_of_visits / page_size)
+    return {
+        "TotalNumberOfVisits":total_number_of_visits,
+        "total_pages":total_pages,
+        "visits":output
+    }
 
 
-@all_visits_router.get("/all")
+
+@router.get("/all")
 async def getAllVisits():
     all_items = DBVisit.find()
     output=[]
@@ -31,14 +52,7 @@ async def getAllVisits():
         output.append(d)
     return output
 
-@router.get("/page",response_model=list[Visit])
-async def get_visits_with_page_size(page_number:int,page_size:int):
-    offset = (page_number - 1) * page_size
-    all_visits_paginated = DBVisit.find().skip(offset).limit(page_size)
-    visits_list = []
-    async for visits in all_visits_paginated:
-        visits_list.append(visits)
-    return visits_list
+
 
 @router.get("/{visit_id}/patient_name")
 async def get_patient_name(visit_id: PyObjectId):
@@ -51,7 +65,7 @@ async def get_patient_name(visit_id: PyObjectId):
     else:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-@all_visits_router.get("/", response_model=Page[DBVisit])
+@router.get("/", response_model=Page[DBVisit])
 async def get_visits_by_date_range(
     start_date: Optional[date] = Query(
         None, 
@@ -83,7 +97,7 @@ async def get_visits_by_date_range(
     return await apaginate(cursor)
 
 @router.post(
-    "/",
+    "/{patient_id}",
     response_model=DBVisit,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new visit",

@@ -67,7 +67,6 @@ const ShowTestsList: React.FC<TestsList> = ({
       .then(setLabTestTypeCategories)
       .catch((err) => setError(err.message || "Failed to load companies"));
   }, [setError]);
-  console.log("labTestCategories: ", labTestTypeCategories);
   const classById = useMemo(() => {
     return labTestTypeCategories.reduce<Record<string, string>>((map, c) => {
       map[c.lab_test_type_category_id] = c.lab_test_type_category_name;
