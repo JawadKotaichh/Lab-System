@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from ..models import lab_test_type as DBLab_test_type
-from ..models import lab_test_type_category as DBlab_test_type_category
+from ..models import lab_test_category as DBlab_test_category
 from ..schemas.schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
@@ -20,12 +20,12 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 async def get_Lab_test_type_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
     total_number_of_lab_test_type = await DBLab_test_type.find_all().count()
-    all_patient_paginated = DBLab_test_type.find().skip(offset).limit(page_size)
+    all_lab_tests_paginated = DBLab_test_type.find().skip(offset).limit(page_size)
     output = []
-    async for lab_test in all_patient_paginated:
+    async for lab_test in all_lab_tests_paginated:
         d={}
         d["lab_test_id"] = str(lab_test.id)
-        d["lab_test_type_category_id"]=str(lab_test.lab_test_type_category_id)
+        d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
         d["lab_test_name"] = lab_test.name
         d["nssf_id"] = lab_test.nssf_id
         d["unit"] = lab_test.unit
@@ -50,7 +50,7 @@ async def getAllTestTypes():
     async for lab_test in all_items:
         d={}
         d["lab_test_id"] = str(lab_test.id)
-        d["lab_test_type_category_id"]=str(lab_test.lab_test_type_category_id)
+        d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
         d["lab_test_name"] = lab_test.name
         d["nssf_id"] = lab_test.nssf_id
         d["unit"] = lab_test.unit
@@ -67,11 +67,11 @@ async def getAllTestTypes():
     summary="Create a new lab test type",
 )
 async def create_lab_test_type(data: Lab_test_type):
-    if DBlab_test_type_category.find_one(DBlab_test_type_category.id == ObjectId(data.lab_test_type_category_id)) is None:
-        raise HTTPException(400, "Invalid lab_test_type_category ID")
+    if DBlab_test_category.find_one(DBlab_test_category.id == ObjectId(data.lab_test_category_id)) is None:
+        raise HTTPException(400, "Invalid lab_test_category ID")
     db_Lab_test_type = DBLab_test_type(
         nssf_id=data.nssf_id,
-        lab_test_type_category_id=data.lab_test_type_category_id,
+        lab_test_category_id=data.lab_test_category_id,
         name=data.name,
         unit=data.unit,
         price=data.price,
@@ -126,8 +126,8 @@ async def update_lab_test_type(
         existing_Lab_test_type.lower_bound = update_data.lower_bound
     if update_data.upper_bound is not None:
         existing_Lab_test_type.upper_bound = update_data.upper_bound
-    if update_data.lab_test_type_category_id is not None:
-        existing_Lab_test_type.lab_test_type_category_id = update_data.lab_test_type_category_id
+    if update_data.lab_test_category_id is not None:
+        existing_Lab_test_type.lab_test_category_id = update_data.lab_test_category_id
 
     await existing_Lab_test_type.replace()
 
