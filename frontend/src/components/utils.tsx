@@ -52,7 +52,7 @@ export const createVisit = (patientId: string) => {
 const fetchAllLabTestTypeCategories = async (): Promise<
   labTestCategoryParams[]
 > => {
-  const url = "/lab_test_type_category/all";
+  const url = "/lab_test_category/all";
   const response = await api.get(url);
   return response.data;
 };
