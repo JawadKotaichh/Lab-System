@@ -85,6 +85,11 @@ export type paginatedPatientInfo = {
   TotalNumberOfPatients: number;
   patients: patientInfo[];
 };
+export type paginatedVisitInfo = {
+  total_pages: number;
+  TotalNumberOfVisits: number;
+  visits: VisitsInfo[];
+};
 export type paginatedlabTest = {
   total_pages: number;
   TotalNumberOfTests: number;

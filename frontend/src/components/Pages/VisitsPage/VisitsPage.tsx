@@ -5,9 +5,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import VisitsPageHead from "./VisitsPageHead";
 import {
   fetchAllInsuranceCompanies,
-  fetchAllVisits,
   fetchNumberOfCompletedResultsAndTotal,
   fetchPatient,
+  fetchVisitsPaginated,
 } from "../../utils";
 import {
   type CompletedResultsInfo,
@@ -16,13 +16,11 @@ import {
   type VisitsInfo,
 } from "../../types";
 import handleDeleteVisit from "./handleDeleteVisit";
+import Pagination from "../../Pagination";
 
 const Visits: React.FC = () => {
-  // const [patientData,setPatientData] = useState<PatientInfo[]>([]);
-  // const [status, setStatus] = useState<string>("");
   const navigate = useNavigate();
-
-  const [visits, setVisits] = useState<VisitsInfo[]>([]);
+  const [visibleVisits, setVisibleVisits] = useState<VisitsInfo[]>([]);
   const [patientsData, setPatientsData] = useState<patientInfo[]>([]);
   const [error, setError] = useState<string>("");
   const [insuranceCompanies, setInsuranceCompanies] = useState<
@@ -31,17 +29,36 @@ const Visits: React.FC = () => {
   const [resultsPatientsData, setResultsPatientsData] = useState<
     CompletedResultsInfo[]
   >([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalNumberOfVisits, setTotalNumberOfVisits] = useState<number>(0);
+
   // const [visibleVisits] = useState<[]>([]);
   // const today = new Date().toISOString().split("T")[0];
   // const [startDate, setStartDate] = useState<string>(today);
   // const [endDate, setEndDate] = useState<string>(today);
 
   useEffect(() => {
-    if (visits.length > 0) {
+    if (pageSize && currentPage) {
+      fetchVisitsPaginated(currentPage, pageSize)
+        .then((data) => {
+          setVisibleVisits(data.visits);
+          setTotalPages(data.total_pages);
+          setTotalNumberOfVisits(data.TotalNumberOfVisits);
+        })
+        .catch((err) => setError(err.message || "Failed to load"));
+    }
+  }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    if (visibleVisits.length > 0) {
       const fetchTotalCompleted = async () => {
         try {
           const CompletedResultsInfo = await Promise.all(
-            visits.map((v) => fetchNumberOfCompletedResultsAndTotal(v.visit_id))
+            visibleVisits.map((v) =>
+              fetchNumberOfCompletedResultsAndTotal(v.visit_id)
+            )
           );
           setResultsPatientsData(CompletedResultsInfo);
         } catch (err) {
@@ -53,13 +70,7 @@ const Visits: React.FC = () => {
       };
       fetchTotalCompleted();
     }
-  }, [visits, error]);
-
-  useEffect(() => {
-    fetchAllVisits()
-      .then((data) => setVisits(data))
-      .catch((err) => setError(err.message || "Failed to load companies"));
-  }, [setError]);
+  }, [visibleVisits, error]);
 
   useEffect(() => {
     fetchAllInsuranceCompanies()
@@ -68,11 +79,11 @@ const Visits: React.FC = () => {
   }, [setError]);
 
   useEffect(() => {
-    if (visits.length > 0) {
+    if (visibleVisits.length > 0) {
       const fetchPatients = async () => {
         try {
           const patientsInfo = await Promise.all(
-            visits.map((v) => fetchPatient(v.patient_id))
+            visibleVisits.map((v) => fetchPatient(v.patient_id))
           );
           setPatientsData(patientsInfo);
         } catch (err) {
@@ -84,7 +95,7 @@ const Visits: React.FC = () => {
       };
       fetchPatients();
     }
-  }, [visits, error]);
+  }, [visibleVisits, error]);
 
   const patientNameById = useMemo(() => {
     return patientsData.reduce<Record<string, string>>((map, c) => {
@@ -136,7 +147,7 @@ const Visits: React.FC = () => {
             <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
               <VisitsPageHead />
               <tbody>
-                {visits.map((v) => (
+                {visibleVisits.map((v) => (
                   <tr key={v.visit_id} className="border rounded-sm">
                     <td className="border rounded-b-sm px-4 py-2">{v.date}</td>
                     <td className="border rounded-b-sm px-4 py-2 font-bold">
@@ -172,9 +183,15 @@ const Visits: React.FC = () => {
                     <td className="border rounded-b-sm  px-4 py-2">
                       <button
                         className="mt-4 p-2 h-fit w-fit rounded-sm text-center bg-red-500 hover:bg-red-600"
-                        onClick={() =>
-                          handleDeleteVisit(v.visit_id, v.patient_id)
-                        }
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this visit?"
+                            )
+                          ) {
+                            handleDeleteVisit(v.visit_id!);
+                          }
+                        }}
                       >
                         Delete Visit
                       </button>
@@ -183,6 +200,14 @@ const Visits: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              TotalNumberOfPaginatedItems={totalNumberOfVisits}
+              setPageSize={setPageSize}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
             {/* <div className="absolute top-5 left-1/2 transform -translate-x-1/2 text-center bg-white p-4 rounded-xl shadow-md">             */}
             {/* <DateRangePicker startDate={startDate} endDate={endDate} setEndDate={setEndDate} setStartDate={setStartDate}/> 
                     <button
