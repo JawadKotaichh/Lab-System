@@ -114,3 +114,12 @@ export type CompletedResultsInfo = {
   totalNumberOfTests: number;
   totalPrice: number;
 };
+export type optionsMenuPages = {
+  label: string;
+  path: string;
+};
+export interface MenuParams {
+  isMenuOpen: boolean;
+  setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  options: optionsMenuPages[];
+}
