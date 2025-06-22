@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Routes, Route, Link, NavLink, useMatch } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./App.css";
@@ -9,6 +9,8 @@ import CreatePatientPage from "./components/Pages/CreatePatientPage/CreatePatien
 import MaintenancePage from "./components/Pages/MaintenancePage/MaintenancePage";
 import CreateLabTestTypePage from "./components/Pages/MaintenancePage/CreateLabTestType";
 import EditVisitPage from "./components/Pages/EditVisitPage/EditVisitPage";
+import type { optionsMenuPages } from "./components/types";
+import MaintenanceMenu from "./components/Pages/MaintenanceMenu";
 // import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
 
 type NavItem = {
@@ -21,7 +23,10 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: "/visits", label: "Visits", end: true },
   { to: "/patients", label: "Patients" },
-  { to: "/maintenance", label: "Maintenance" },
+];
+const menuPages: optionsMenuPages[] = [
+  { label: "Insurance Companies", path: "/insurance-companies" },
+  { label: "Lab Tests", path: "/lab-tests" },
 ];
 
 const App: React.FC = () => {
@@ -30,7 +35,7 @@ const App: React.FC = () => {
     "px-3 py-2 rounded-md text-white bg-gradient-to-r from-blue-400 to-emerald-400 transition";
   const inactiveClass =
     "px-3 py-2 rounded-md text-gray-700 hover:text-white hover:bg-gradient-to-r from-blue-400 to-emerald-400 transition";
-
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow w-full border-b">
@@ -41,8 +46,8 @@ const App: React.FC = () => {
             </Link>
           </div>
 
-          <div className="flex-1">
-            <div className="max-w-7xl mx-auto px-4 flex justify-end items-center space-x-6">
+          <div className="flex-1 justify-end">
+            <div className="mx-auto px-4 flex justify-end items-center space-x-6">
               {navItems.map(({ to, label, end, dynamic }) => (
                 <NavLink
                   key={to}
@@ -56,6 +61,11 @@ const App: React.FC = () => {
                   {label}
                 </NavLink>
               ))}
+              <MaintenanceMenu
+                options={menuPages}
+                isMenuOpen={isMenuOpen}
+                setIsMenuOpen={setIsMenuOpen}
+              />
             </div>
           </div>
         </div>
@@ -74,7 +84,6 @@ const App: React.FC = () => {
             path="/patients/create-patient"
             element={<CreatePatientPage />}
           />
-          <Route path="/maintenance" element={<MaintenancePage />} />
           <Route
             path="/create-lab-test-type"
             element={<CreateLabTestTypePage />}
