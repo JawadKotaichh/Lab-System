@@ -70,6 +70,10 @@ export interface insuranceCompanyParams {
   insurance_company_id: string;
   insurance_company_name: string;
   rate: string;
+};
+export interface CreateInsuranceCompanyParams {
+  insurance_company_name: string;
+  rate: string;
 }
 
 export interface labTestCategoryParams {
@@ -123,3 +127,19 @@ export interface MenuParams {
   setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   options: optionsMenuPages[];
 }
+
+
+// Create Pages Params
+export type attributesParams = {
+  subItem: string;
+  attributeName:string;
+  icon:string;
+  typeOfInput:string;
+  placeHolder: string;
+};
+export interface InsuranceCompanyCreatePageParams {
+    apiURL: string;
+    pageUrL:string;
+    title:string;
+    listOfAttributes:attributesParams[];
+};
