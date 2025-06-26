@@ -41,6 +41,11 @@ const fetchPatient = async (patient_id: string): Promise<patientInfo> => {
   const response = await api.get(`/patients/${patient_id}`);
   return response.data;
 };
+const fetchInsuranceCompany = async (insurance_company_id:string) : Promise<insuranceCompanyParams> => {
+  const response = await api.get(`/insurance_company/${insurance_company_id}`);
+  console.log(response.data);
+  return response.data;
+};
 
 export const createVisit = (patientId: string) => {
   return api.post(`/visits/${patientId}/`, {
@@ -108,3 +113,4 @@ export { fetchPatientsPaginated };
 export { fetchLabTestTypePaginated };
 export { fetchAllVisits };
 export { fetchVisitsPaginated };
+export {fetchInsuranceCompany};
