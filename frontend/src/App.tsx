@@ -11,10 +11,10 @@ import CreateLabTestTypePage from "./components/Pages/MaintenancePage/CreateLabT
 import EditVisitPage from "./components/Pages/EditVisitPage/EditVisitPage";
 import type { optionsMenuPages } from "./components/types";
 import MaintenanceMenu from "./components/Pages/MaintenanceMenu";
-import InsuranceCompanyPage from "./components/Pages/CreateInsuranceCompany/InsuranceCompanyPage";
-import CreateInsuranceCompanyPage from "./components/Pages/CreateInsuranceCompany/CreatePageInsuranceCompany";
 import CreatePatient from "./components/Pages/Tempo/CreatePatient";
-import EditInsuranceCompany from "./components/Pages/CreateInsuranceCompany/EditInsuranceCompany";
+import CreateInsuranceCompanyPage from "./components/Pages/ModifyInsuranceCompany/CreateInsuranceCompanyPage";
+import EditInsuranceCompanyPage from "./components/Pages/ModifyInsuranceCompany/EditInsuranceCompanyPage";
+import MainInsuranceCompanyPage from "./components/Pages/ModifyInsuranceCompany/MainInsuranceCompanyPage";
 // import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
 
 type NavItem = {
@@ -84,17 +84,14 @@ const App: React.FC = () => {
             path="/patients/edit-patient/:patient_id"
             element={<EditPatientPage />}
           />
-          <Route
-            path="/patients/create-patient"
-            element={<CreatePatient />}
-          />
+          <Route path="/patients/create-patient" element={<CreatePatient />} />
           <Route
             path="/create-lab-test-type"
             element={<CreateLabTestTypePage />}
           />
           <Route
             path="/insurance-companies"
-            element={<InsuranceCompanyPage />}
+            element={<MainInsuranceCompanyPage />}
           />
           <Route
             path="/create-insurance-company"
@@ -102,7 +99,7 @@ const App: React.FC = () => {
           />
           <Route
             path="/edit-insurance-company/:insurance_company_id"
-            element={<EditInsuranceCompany />}
+            element={<EditInsuranceCompanyPage />}
           />
           {/* <Route path='/edit-lab-test-type' element={<EditLabTestTypePage/>}/> */}
           <Route path="*" element={<h2 className="p-8">Page not found</h2>} />

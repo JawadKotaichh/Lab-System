@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { MenuParams } from "../types";
+import { useEffect } from "react";
 
 const MaintenanceMenu = ({
   isMenuOpen,
@@ -7,11 +8,16 @@ const MaintenanceMenu = ({
   options,
 }: MenuParams) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const toggleMenu = () => setIsMenuOpen((isMenuOpen) => !isMenuOpen);
   const handleSelect = (path: string) => {
     navigate(path);
-    setIsMenuOpen(false);
   };
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname, setIsMenuOpen]);
+
   return (
     <div className="relative bg-white">
       <i
@@ -25,6 +31,7 @@ const MaintenanceMenu = ({
           style={{
             transition: "transform 0.3s ease, opacity 0.3s ease",
             zIndex: 1000,
+            display: isMenuOpen ? "flex" : "none",
           }}
         >
           {options.map((opt) => (
