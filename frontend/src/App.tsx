@@ -3,18 +3,18 @@ import { Routes, Route, Link, NavLink, useMatch } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./App.css";
 import Visits from "./components/Pages/VisitsPage/VisitsPage";
-import PatientPage from "./components/Pages/Patients/PatientsPage";
-import EditPatientPage from "./components/Pages/EditPatientPage/EditPatientPage";
+import PatientPage from "./components/Pages/PatientsPage/PatientsPage";
 // import CreatePatientPage from "./components/Pages/CreatePatientPage/CreatePatientPage";
 // import MaintenancePage from "./components/Pages/MaintenancePage/MaintenancePage";
-import CreateLabTestTypePage from "./components/Pages/MaintenancePage/CreateLabTestType";
+import CreateLabTestTypePage from "./components/Pages/PageToRemove/MaintenancePage/CreateLabTestType";
 import EditVisitPage from "./components/Pages/EditVisitPage/EditVisitPage";
 import type { optionsMenuPages } from "./components/types";
-import MaintenanceMenu from "./components/Pages/MaintenanceMenu";
-import CreatePatient from "./components/Pages/Tempo/CreatePatient";
+import MaintenanceMenu from "./components/MaintenanceMenu";
 import CreateInsuranceCompanyPage from "./components/Pages/ModifyInsuranceCompany/CreateInsuranceCompanyPage";
 import EditInsuranceCompanyPage from "./components/Pages/ModifyInsuranceCompany/EditInsuranceCompanyPage";
 import MainInsuranceCompanyPage from "./components/Pages/ModifyInsuranceCompany/MainInsuranceCompanyPage";
+import EditPatientPage from "./components/Pages/ModifyPatient/EditPatientPage";
+import CreatePatientPage from "./components/Pages/ModifyPatient/CreatePatientPage";
 // import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
 
 type NavItem = {
@@ -84,7 +84,6 @@ const App: React.FC = () => {
             path="/patients/edit-patient/:patient_id"
             element={<EditPatientPage />}
           />
-          <Route path="/patients/create-patient" element={<CreatePatient />} />
           <Route
             path="/create-lab-test-type"
             element={<CreateLabTestTypePage />}
@@ -98,8 +97,16 @@ const App: React.FC = () => {
             element={<CreateInsuranceCompanyPage />}
           />
           <Route
+            path="/patients/create-patient"
+            element={<CreatePatientPage />}
+          />
+          <Route
             path="/edit-insurance-company/:insurance_company_id"
             element={<EditInsuranceCompanyPage />}
+          />
+          <Route
+            path="/patients/edit-patient/:patient_id"
+            element={<EditPatientPage />}
           />
           {/* <Route path='/edit-lab-test-type' element={<EditLabTestTypePage/>}/> */}
           <Route path="*" element={<h2 className="p-8">Page not found</h2>} />

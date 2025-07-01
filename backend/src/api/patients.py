@@ -57,6 +57,7 @@ async def getAllPatients():
     summary="Create a new Patient",
 )
 async def create_patient(data: Patient):
+    print("I was called")
     db_patient = DBPatient(
         name=data.name, gender=data.gender, DOB=data.DOB, phone_number=data.phone_number,insurance_company_id=data.insurance_company_id
     )
@@ -78,7 +79,7 @@ async def get_patient(patient_id: str):
         raise HTTPException(404, f"Patient {patient_id} not found")
     output = {}
     output["patient_id"] = str(patient.id)
-    output["patient_name"] = patient.name
+    output["name"] = patient.name
     output["gender"] = patient.gender
     output["DOB"] = patient.DOB
     output["phone_number"] = patient.phone_number
