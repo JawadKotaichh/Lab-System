@@ -28,7 +28,7 @@ export type labTest = {
 
 export type patientInfo = {
   patient_id: string;
-  patient_name: string;
+  name: string;
   gender: string;
   DOB: string;
   phone_number: string;
@@ -46,14 +46,6 @@ export interface UpdatePatient {
   gender?: string;
   phone_number?: string;
   insurance_company_name?: string;
-}
-
-export interface CreatePatient {
-  name: string;
-  DOB: string;
-  gender: string;
-  phone_number: string;
-  insurance_company_id: string;
 }
 
 export interface CreateLabTestType {
