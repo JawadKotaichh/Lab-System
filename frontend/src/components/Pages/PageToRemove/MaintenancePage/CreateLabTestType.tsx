@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import {
   type CreateLabTestType,
   type labTestCategoryParams,
-} from "../../types";
-import api from "../../../api";
+} from "../../../types";
+import api from "../../../../api";
 import { Activity, TestTube, IdCard, Type, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { fetchAllLabTestTypeCategories } from "../../utils";
+import { fetchAllLabTestTypeCategories } from "../../../utils";
 
 const CreateLabTestTypePage: React.FC = () => {
   const [error, setError] = useState<string>();
