@@ -1,19 +1,7 @@
-import {
-  InsuranceApiURL,
-  InsuranceMainPageURL,
-  listOfAttributesInsuranceCompany,
-} from "../../data";
-import CreateInsuranceCompanyComponent from "./ModifyInsuranceCompany";
+import ModifyInsuranceCompany from "./ModifyInsuranceCompany";
 
 const EditInsuranceCompanyPage = () => {
   const title = "Edit Insurance Company";
-  return (
-    <CreateInsuranceCompanyComponent
-      listOfAttributes={listOfAttributesInsuranceCompany}
-      apiURL={InsuranceApiURL}
-      title={title}
-      pageUrL={InsuranceMainPageURL}
-    />
-  );
+  return <ModifyInsuranceCompany title={title} />;
 };
 export default EditInsuranceCompanyPage;
