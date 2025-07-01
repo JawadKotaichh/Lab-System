@@ -24,9 +24,7 @@ import {
   listOfAttributesInsuranceCompany,
 } from "../../data";
 
-const ModifyInsuranceCompany = ({
-  title,
-}: InsuranceCompanyCreatePageParams) => {
+const EditInsuranceCompany = ({ title }: InsuranceCompanyCreatePageParams) => {
   const [state, setState] = useState<string>("");
   const navigate = useNavigate();
   const { insurance_company_id } = useParams();
@@ -126,4 +124,4 @@ const ModifyInsuranceCompany = ({
     </div>
   );
 };
-export default ModifyInsuranceCompany;
+export default EditInsuranceCompany;

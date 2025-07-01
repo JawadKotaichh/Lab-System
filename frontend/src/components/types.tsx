@@ -25,6 +25,15 @@ export type labTest = {
   upper_bound: string;
   lower_bound: string;
 };
+export type CreateLabTestParams = {
+  lab_test_category_id: string;
+  name: string;
+  nssf_id: number;
+  unit: string;
+  price: number;
+  upper_bound: string;
+  lower_bound: string;
+};
 
 export type patientInfo = {
   patient_id: string;
@@ -129,8 +138,5 @@ export type attributesParams = {
   placeHolder: string;
 };
 export interface InsuranceCompanyCreatePageParams {
-  apiURL: string;
-  pageUrL: string;
   title: string;
-  listOfAttributes: attributesParams[];
 }
