@@ -1,38 +1,34 @@
 import { useEffect, useState } from "react";
 import type { insuranceCompanyParams } from "../../types";
 import { fetchAllInsuranceCompanies } from "../../utils";
-import InsuranceCompanyListHead from "./InsuranceCompanyListHead";
 import {
   pageListTitle,
   tableCreateButton,
   tableDeleteButton,
   tableHandleButton,
+  tableHead,
+  tableHeadCols,
   tableItem,
 } from "../../../style";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api";
+import {
+  InsuranceApiURL,
+  InsuranceCreatePageURL,
+  InsuranceEditPageURL,
+} from "../../data";
 
-interface EditInsuranceCompanyParams {
-  createPageURL: string;
-  editPageURL: string;
-  apiURL: string;
-}
-
-const ShowInsuranceCompanyList = ({
-  apiURL,
-  editPageURL,
-  createPageURL,
-}: EditInsuranceCompanyParams) => {
+const InsuranceCompanyList = () => {
   const [availableInsuranceCompanies, setAvailableInsuranceCompanies] =
     useState<insuranceCompanyParams[]>([]);
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const handleCreateInsuranceCompany = () => {
-    navigate(createPageURL);
+    navigate(InsuranceCreatePageURL);
   };
   const handleEditInsuranceCompany = (insurance_company_id: string) => {
-    navigate(`${editPageURL}${insurance_company_id}`);
+    navigate(`${InsuranceEditPageURL}${insurance_company_id}`);
   };
   const handleDeleteInsuranceCompany = (insurance_company_id: string) => {
     if (
@@ -41,7 +37,7 @@ const ShowInsuranceCompanyList = ({
       return;
     }
     try {
-      api.delete(`${apiURL}/${insurance_company_id}`);
+      api.delete(`${InsuranceApiURL}/${insurance_company_id}`);
       window.location.reload();
     } catch (err) {
       if (err instanceof Error) {
@@ -73,7 +69,14 @@ const ShowInsuranceCompanyList = ({
       ) : (
         <>
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
-            <InsuranceCompanyListHead />
+            <thead className={tableHead}>
+              <tr>
+                <th className={tableHeadCols}>Insurance Company Name</th>
+                <th className={tableHeadCols}>Rate</th>
+                <th className={tableHeadCols}>Edit</th>
+                <th className={tableHeadCols}>Delete</th>
+              </tr>
+            </thead>{" "}
             <tbody>
               {availableInsuranceCompanies.map((ic) => (
                 <tr key={ic.insurance_company_id} className="border rounded-sm">
@@ -114,4 +117,4 @@ const ShowInsuranceCompanyList = ({
     </div>
   );
 };
-export default ShowInsuranceCompanyList;
+export default InsuranceCompanyList;
