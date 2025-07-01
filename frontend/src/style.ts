@@ -14,4 +14,4 @@ export const tableDeleteButton = "p-2 h-fit w-20 rounded-sm bg-red-500 hover:bg-
 export const tableCreateButton = "p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600 mt-5";
 export const pageListTitle = "text-4xl font-semibold mb-6";
 export const stateStyle = "text-red-400";
-export const iconStyle = "w-4 h-4 text-gray-500";
+export const iconStyle = "w-4 h-4 text-gray-500 text-center";
