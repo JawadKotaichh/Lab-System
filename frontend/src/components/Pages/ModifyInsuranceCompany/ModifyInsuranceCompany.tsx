@@ -18,12 +18,14 @@ import type {
 } from "../../types";
 import { DollarSign, User } from "lucide-react";
 import { fetchInsuranceCompany } from "../../utils";
+import {
+  InsuranceApiURL,
+  InsuranceMainPageURL,
+  listOfAttributesInsuranceCompany,
+} from "../../data";
 
 const ModifyInsuranceCompany = ({
-  apiURL,
-  listOfAttributes,
   title,
-  pageUrL,
 }: InsuranceCompanyCreatePageParams) => {
   const [state, setState] = useState<string>("");
   const navigate = useNavigate();
@@ -62,12 +64,11 @@ const ModifyInsuranceCompany = ({
     }
     try {
       if (insurance_company_id) {
-        apiURL = apiURL + insurance_company_id;
-        api.put(apiURL, data);
+        api.put(InsuranceApiURL + insurance_company_id, data);
       } else {
-        api.post(apiURL, data);
+        api.post(InsuranceApiURL, data);
       }
-      navigate(pageUrL);
+      navigate(InsuranceMainPageURL);
     } catch (err) {
       if (err instanceof Error) {
         console.log(err.message);
@@ -88,7 +89,7 @@ const ModifyInsuranceCompany = ({
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
       <div className={inputFormAttributeList}>
-        {listOfAttributes.map((i) => (
+        {listOfAttributesInsuranceCompany.map((i) => (
           <div className={inputFormAttributeListItem}>
             <label className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
