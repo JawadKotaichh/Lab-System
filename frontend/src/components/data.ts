@@ -60,7 +60,7 @@ const PatientsApiURL = "/patients/";
 const PatientsMainPageURL = "/patients";
 
 // Lab Test
-const listOfAttributesLabTest = [
+export const listOfAttributesLabTest = [
   {
     subItem: "Nssf ID",
     attributeName: "nssf_id",
@@ -114,7 +114,6 @@ const listOfAttributesLabTest = [
 const labTestApiURL = "/lab_test_type/";
 const labTestMainPageURL = "/lab-tests";
 
-export { listOfAttributesLabTest };
 export { listOfAttributesInsuranceCompany };
 export { listOfAttributesPatient };
 export { labTestApiURL };
