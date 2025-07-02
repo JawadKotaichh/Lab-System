@@ -14,18 +14,18 @@ import {
 } from "../../../style";
 import type {
   patientInfo,
-  InsuranceCompanyCreatePageParams,
   insuranceCompanyParams,
+  PageTitle,
 } from "../../types";
 import { Building, Calendar, DollarSign, Phone, User } from "lucide-react";
 import { fetchAllInsuranceCompanies, fetchPatient } from "../../utils";
+import {
+  listOfAttributesPatient,
+  PatientsApiURL,
+  PatientsMainPageURL,
+} from "../../data";
 
-const ModifyPatient = ({
-  apiURL,
-  listOfAttributes,
-  title,
-  pageUrL,
-}: InsuranceCompanyCreatePageParams) => {
+const EditPatientPage = ({ title }: PageTitle) => {
   const [state, setState] = useState<string>("");
   const navigate = useNavigate();
   const { patient_id } = useParams();
@@ -95,12 +95,11 @@ const ModifyPatient = ({
     }
     try {
       if (patient_id) {
-        apiURL = apiURL + patient_id;
-        api.put(apiURL, data);
+        api.put(PatientsApiURL + patient_id, data);
       } else {
-        api.post(apiURL, data);
+        api.post(PatientsApiURL, data);
       }
-      navigate(pageUrL);
+      navigate(PatientsMainPageURL);
     } catch (err) {
       if (err instanceof Error) {
         console.log(err.message);
@@ -131,7 +130,7 @@ const ModifyPatient = ({
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
       <div className={inputFormAttributeList}>
-        {listOfAttributes.map((i) => (
+        {listOfAttributesPatient.map((i) => (
           <div className={inputFormAttributeListItem}>
             <label className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
@@ -200,4 +199,4 @@ const ModifyPatient = ({
     </div>
   );
 };
-export default ModifyPatient;
+export default EditPatientPage;
