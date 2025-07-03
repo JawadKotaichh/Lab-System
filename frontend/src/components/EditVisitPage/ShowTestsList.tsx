@@ -1,15 +1,15 @@
 import AddResultHead from "./AddResultHead.js";
 // import SearchTest from "./SearchTest";
-import api from "../../../api.js";
-import type { labTestCategoryParams, LabTestResult } from "../../types.js";
-import type { labTest } from "../../types.js";
+import api from "../../api.js";
+import type { labTestCategoryParams, LabTestResult } from "../types.js";
+import type { labTest } from "../types.js";
 import {
   fetchAllLabTestTypeCategories,
   fetchLabTestResults,
   fetchLabTestTypePaginated,
-} from "../../utils.js";
+} from "../utils.js";
 import { useEffect, useMemo, useState } from "react";
-import Pagination from "../../Pagination.js";
+import Pagination from "../Pagination.js";
 
 interface TestsList {
   addError: string;

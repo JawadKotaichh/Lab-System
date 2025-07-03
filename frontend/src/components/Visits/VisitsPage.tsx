@@ -8,15 +8,15 @@ import {
   fetchNumberOfCompletedResultsAndTotal,
   fetchPatient,
   fetchVisitsPaginated,
-} from "../../utils";
+} from "../utils";
 import {
   type CompletedResultsInfo,
   type insuranceCompanyParams,
   type patientInfo,
   type VisitsInfo,
-} from "../../types";
+} from "../types";
 import handleDeleteVisit from "./handleDeleteVisit";
-import Pagination from "../../Pagination";
+import Pagination from "../Pagination";
 
 const Visits: React.FC = () => {
   const navigate = useNavigate();

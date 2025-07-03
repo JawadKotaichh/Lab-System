@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import api from "../../../api.js";
-import { useParams } from "react-router-dom";
+import { useParams, type Params } from "react-router-dom";
 import ShowTestsList from "./ShowTestsList.js";
-import { fetchLabTestResults } from "../../utils.js";
-import { fetchAllLabTest } from "../../utils.js";
-import type { labTest } from "../../types.js";
-import type { LabTestResult } from "../../types.js";
-import type { Params } from "../../types.js";
+
 import ShowResultsList from "./ShowResultsList.js";
+import type { labTest, LabTestResult } from "../types.js";
+import { fetchAllLabTest, fetchLabTestResults } from "../utils.js";
+import api from "../../api.js";
 
 const EditVisitPage: React.FC = () => {
   const { visit_id } = useParams<Params>();

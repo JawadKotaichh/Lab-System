@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { patientInfo } from "../../types";
+import type { patientInfo } from "../types";
 import { useNavigate } from "react-router-dom";
 import PatientList from "./PatientList";
 

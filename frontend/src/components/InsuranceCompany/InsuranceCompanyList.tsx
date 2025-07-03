@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { insuranceCompanyParams } from "../../types";
-import { fetchAllInsuranceCompanies } from "../../utils";
+import type { insuranceCompanyParams } from "../types";
+import { fetchAllInsuranceCompanies } from "../utils";
 import {
   pageListTitle,
   tableCreateButton,
@@ -9,14 +9,14 @@ import {
   tableHead,
   tableHeadCols,
   tableItem,
-} from "../../../style";
+} from "../../style";
 import { useNavigate } from "react-router-dom";
-import api from "../../../api";
+import api from "../../api";
 import {
   InsuranceApiURL,
   InsuranceCreatePageURL,
   InsuranceEditPageURL,
-} from "../../data";
+} from "../data";
 
 const InsuranceCompanyList = () => {
   const [availableInsuranceCompanies, setAvailableInsuranceCompanies] =
@@ -76,7 +76,7 @@ const InsuranceCompanyList = () => {
                 <th className={tableHeadCols}>Edit</th>
                 <th className={tableHeadCols}>Delete</th>
               </tr>
-            </thead>{" "}
+            </thead>
             <tbody>
               {availableInsuranceCompanies.map((ic) => (
                 <tr key={ic.insurance_company_id} className="border rounded-sm">

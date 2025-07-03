@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import type { MenuParams } from "../types";
 import { useEffect } from "react";
+import type { MenuParams } from "./types";
 
 const MaintenanceMenu = ({
   isMenuOpen,
@@ -36,6 +36,7 @@ const MaintenanceMenu = ({
         >
           {options.map((opt) => (
             <li
+              key={opt.path}
               className="list-none w-full text-lg text-center border rounded-sm p-4 hover:text-white  hover:bg-gradient-to-r from-blue-400 to-emerald-400"
               onClick={() => handleSelect(opt.path)}
             >
