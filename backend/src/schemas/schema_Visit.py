@@ -2,10 +2,6 @@ from typing import Optional
 from pydantic import ConfigDict, BaseModel, Field
 from datetime import datetime
 
-from beanie import PydanticObjectId
-
-
-
 class Visit(BaseModel):
     patient_id: str
     date: datetime = Field(...)
