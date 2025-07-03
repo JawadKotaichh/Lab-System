@@ -114,7 +114,65 @@ export const listOfAttributesLabTest = [
 const labTestApiURL = "/lab_test_type/";
 const labTestMainPageURL = "/lab-tests";
 const labTestEditPageURL="/edit-lab-test/";
-const labTestCreatePageURL="/create-lab-test"
+const labTestCreatePageURL="/create-lab-test";
+
+//Panels
+export const listOfAttributesLabPanel = [
+  {
+    subItem: "Nssf ID",
+    attributeName: "nssf_id",
+    typeOfInput: "number",
+    icon: "id",
+    placeHolder: "Enter nssf ID",
+  },
+  {
+    subItem: "Category",
+    attributeName: "lab_test_category_id",
+    typeOfInput: "Selection",
+    icon: "category",
+    placeHolder: "Choose lab test category",
+  },
+  {
+    subItem: "Test Name",
+    attributeName: "name",
+    typeOfInput: "string",
+    icon: "labtest",
+    placeHolder: "Enter test name",
+  },
+  {
+    subItem: "Unit",
+    attributeName: "unit",
+    typeOfInput: "string",
+    icon: "unit",
+    placeHolder: "Enter unit",
+  },
+  {
+    subItem: "Price",
+    attributeName: "price",
+    typeOfInput: "number",
+    icon: "DollarSign",
+    placeHolder: "Enter price",
+  },
+  {
+    subItem: "Lower Bound",
+    attributeName: "lower_bound",
+    typeOfInput: "number",
+    icon: "lowerbound",
+    placeHolder: "Enter lower bound",
+  },
+  {
+    subItem: "Upper Bound",
+    attributeName: "upper_bound",
+    typeOfInput: "number",
+    icon: "upperbound",
+    placeHolder: "Enter upper bound",
+  },
+];
+const labPanelApiURL = "/lab_panel";
+const labPanelEditPageURL="/edit-lab-panel/";
+const labPanelCreatePageURL="/create-lab-panel";
+const labPanelMainPageURL = "/lab-panels";
+
 export { listOfAttributesInsuranceCompany };
 export { listOfAttributesPatient };
 export { labTestApiURL };
@@ -127,3 +185,7 @@ export { InsuranceCreatePageURL };
 export { InsuranceApiURL };
 export { PatientsApiURL };
 export { PatientsMainPageURL };
+export {labPanelMainPageURL};
+export { labPanelApiURL };
+export {labPanelEditPageURL};
+export {labPanelCreatePageURL};

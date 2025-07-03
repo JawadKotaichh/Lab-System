@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { labTest, labTestCategoryParams } from "../types";
 import {
-  fetchAllLabTest,
   fetchAllLabTestTypeCategories,
   fetchLabTestTypePaginated,
 } from "../utils";
@@ -17,6 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import api from "../../api";
 import {
+  labPanelMainPageURL,
   labTestApiURL,
   labTestCreatePageURL,
   labTestEditPageURL,
@@ -38,6 +38,9 @@ const LabTestsList = () => {
   const navigate = useNavigate();
   const handleCreateLabTest = () => {
     navigate(labTestCreatePageURL);
+  };
+  const handleGoToLabPanels = () => {
+    navigate(labPanelMainPageURL);
   };
   const handleEditLabTest = (insurance_company_id: string) => {
     navigate(`${labTestEditPageURL}${insurance_company_id}`);
@@ -69,17 +72,6 @@ const LabTestsList = () => {
   }, [currentPage, pageSize]);
 
   useEffect(() => {
-    fetchAllLabTest()
-      .then((data) => {
-        setAvailableLabTests(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message || "Failed to load");
-        setLoading(false);
-      });
-  }, []);
-  useEffect(() => {
     fetchAllLabTestTypeCategories()
       .then((data) => {
         setLabTestCategories(data);
@@ -104,11 +96,17 @@ const LabTestsList = () => {
   return (
     <div className="p-8 bg-white">
       <h1 className={pageListTitle}>Lab Tests List</h1>
+      <button
+        className={tableCreateButton}
+        onClick={() => handleGoToLabPanels()}
+      >
+        Go to Lab Panels
+      </button>
       {totalNumberOfLabTests === 0 ? (
         <p> No lab tests found!</p>
       ) : (
         <>
-          <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
+          <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
             <thead className={tableHead}>
               <tr>
                 <th className={tableHeadCols}>Nssf ID</th>
