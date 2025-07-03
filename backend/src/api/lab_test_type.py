@@ -63,6 +63,8 @@ async def getAllTestTypes():
 @router.get("/{lab_test_type_id}")
 async def getLabTestType(lab_test_type_id:str):
     lab_test = await DBLab_test_type.get(ObjectId(lab_test_type_id))
+    if not lab_test:
+        raise HTTPException(status_code=404, detail="Lab Test Type not found")
     d={}
     d["lab_test_id"] = str(lab_test_type_id)
     d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
