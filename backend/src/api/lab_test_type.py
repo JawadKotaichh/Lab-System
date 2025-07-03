@@ -43,6 +43,7 @@ async def get_Lab_test_type_with_page_size(page_number:int,page_size:int):
     return result
 
 
+
 @router.get("/all")
 async def getAllTestTypes():
     all_items = DBLab_test_type.find()
@@ -59,6 +60,20 @@ async def getAllTestTypes():
         d["lower_bound"] = lab_test.lower_bound
         output.append(d)
     return output
+@router.get("/{lab_test_type_id}")
+async def getLabTestType(lab_test_type_id:str):
+    lab_test = await DBLab_test_type.get(ObjectId(lab_test_type_id))
+    d={}
+    d["lab_test_id"] = str(lab_test_type_id)
+    d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
+    d["name"] = lab_test.name
+    d["nssf_id"] = lab_test.nssf_id
+    d["unit"] = lab_test.unit
+    d["price"] = lab_test.price
+    d["upper_bound"] = lab_test.upper_bound
+    d["lower_bound"] = lab_test.lower_bound
+
+    return d
 
 @router.post(
     "/",
