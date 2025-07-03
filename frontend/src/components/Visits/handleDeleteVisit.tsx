@@ -1,4 +1,4 @@
-import api from "../../../api";
+import api from "../../api";
 
 const handleDeleteVisit = async (visit_id: string) => {
   try {

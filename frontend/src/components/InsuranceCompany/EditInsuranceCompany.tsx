@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../../api";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   iconStyle,
@@ -11,20 +11,17 @@ import {
   inputFormSave,
   inputFormTitle,
   stateStyle,
-} from "../../../style";
-import type {
-  CreateInsuranceCompanyParams,
-  InsuranceCompanyCreatePageParams,
-} from "../../types";
+} from "../../style";
+import type { CreateInsuranceCompanyParams, PageTitle } from "../types";
 import { DollarSign, User } from "lucide-react";
-import { fetchInsuranceCompany } from "../../utils";
+import { fetchInsuranceCompany } from "../utils";
 import {
   InsuranceApiURL,
   InsuranceMainPageURL,
   listOfAttributesInsuranceCompany,
-} from "../../data";
+} from "../data";
 
-const EditInsuranceCompany = ({ title }: InsuranceCompanyCreatePageParams) => {
+const EditInsuranceCompany = ({ title }: PageTitle) => {
   const [state, setState] = useState<string>("");
   const navigate = useNavigate();
   const { insurance_company_id } = useParams();
