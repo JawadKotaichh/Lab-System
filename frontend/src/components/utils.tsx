@@ -1,5 +1,6 @@
 import type {
   CompletedResultsInfo,
+  CreateLabTestParams,
   insuranceCompanyParams,
   labTestCategoryParams,
   LabTestResult,
@@ -22,6 +23,13 @@ const fetchLabTestResults = async (
 
 const fetchAllLabTest = async (): Promise<labTest[]> => {
   const url = "/lab_test_type/all";
+  const response = await api.get(url);
+  return response.data;
+};
+const fetchLabTest = async (
+  lab_test_type_id: string
+): Promise<CreateLabTestParams> => {
+  const url = `/lab_test_type/${lab_test_type_id}`;
   const response = await api.get(url);
   return response.data;
 };
@@ -115,3 +123,4 @@ export { fetchLabTestTypePaginated };
 export { fetchAllVisits };
 export { fetchVisitsPaginated };
 export { fetchInsuranceCompany };
+export { fetchLabTest };
