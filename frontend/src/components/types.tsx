@@ -137,6 +137,6 @@ export type attributesParams = {
   typeOfInput: string;
   placeHolder: string;
 };
-export interface InsuranceCompanyCreatePageParams {
+export interface PageTitle {
   title: string;
 }
