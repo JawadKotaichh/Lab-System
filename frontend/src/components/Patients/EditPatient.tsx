@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../../api";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   iconStyle,
@@ -11,19 +11,15 @@ import {
   inputFormSave,
   inputFormTitle,
   stateStyle,
-} from "../../../style";
-import type {
-  patientInfo,
-  insuranceCompanyParams,
-  PageTitle,
-} from "../../types";
+} from "../../style";
+import type { patientInfo, insuranceCompanyParams, PageTitle } from "../types";
 import { Building, Calendar, DollarSign, Phone, User } from "lucide-react";
-import { fetchAllInsuranceCompanies, fetchPatient } from "../../utils";
+import { fetchAllInsuranceCompanies, fetchPatient } from "../utils";
 import {
   listOfAttributesPatient,
   PatientsApiURL,
   PatientsMainPageURL,
-} from "../../data";
+} from "../data";
 
 const EditPatientPage = ({ title }: PageTitle) => {
   const [state, setState] = useState<string>("");

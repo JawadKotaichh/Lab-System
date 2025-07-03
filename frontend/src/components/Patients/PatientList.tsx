@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import type { insuranceCompanyParams, patientInfo } from "../../types";
+import type { insuranceCompanyParams, patientInfo } from "../types";
 import {
   fetchAllInsuranceCompanies,
   fetchAllPatients,
   fetchPatientsPaginated,
-} from "../../utils";
+} from "../utils";
 // import SearchPatient from "./SearchPatient";
 import { useNavigate } from "react-router-dom";
-import { createVisit } from "../../utils";
-import Pagination from "../../Pagination";
+import { createVisit } from "../utils";
+import Pagination from "../Pagination";
 
 // Add group if tests
 // print pdf result see where it is easer
