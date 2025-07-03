@@ -2,21 +2,16 @@ import React, { useState } from "react";
 import { Routes, Route, Link, NavLink, useMatch } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./App.css";
-import Visits from "./components/Pages/VisitsPage/VisitsPage";
-import PatientPage from "./components/Pages/PatientsPage/PatientsPage";
-// import CreatePatientPage from "./components/Pages/CreatePatientPage/CreatePatientPage";
-// import MaintenancePage from "./components/Pages/MaintenancePage/MaintenancePage";
-import CreateLabTestTypePage from "./components/Pages/PageToRemove/MaintenancePage/CreateLabTestType";
-import EditVisitPage from "./components/Pages/EditVisitPage/EditVisitPage";
+import Visits from "./components/Visits/VisitsPage";
+import PatientPage from "./components/Patients/PatientsPage";
 import type { optionsMenuPages } from "./components/types";
 import MaintenanceMenu from "./components/MaintenanceMenu";
-import EditPatientPage from "./components/Pages/ModifyPatient/EditPatientPage";
-import CreatePatientPage from "./components/Pages/ModifyPatient/CreatePatientPage";
-import MainLabTestPage from "./components/Pages/ModifyLabTest/MainLabTestPage";
-import EditLabTestPage from "./components/Pages/ModifyLabTest/EditLabTestPage";
-import CreateLabTestPage from "./components/Pages/ModifyLabTest/CreateLabTestPage";
-import EditInsuranceCompany from "./components/Pages/InsuranceCompany/EditInsuranceCompany";
-import InsuranceCompanyList from "./components/Pages/InsuranceCompany/InsuranceCompanyList";
+import EditPatientPage from "./components/Patients/EditPatient";
+import EditVisitPage from "./components/EditVisitPage/EditVisitPage";
+import InsuranceCompanyList from "./components/InsuranceCompany/InsuranceCompanyList";
+import EditInsuranceCompany from "./components/InsuranceCompany/EditInsuranceCompany";
+import EditLabTest from "./components/LabTest/EditLabTest";
+import LabTestsList from "./components/LabTest/LabTestsList";
 // import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
 
 type NavItem = {
@@ -83,14 +78,6 @@ const App: React.FC = () => {
           <Route path="/visits/:visit_id" element={<EditVisitPage />} />
           <Route path="/patients" element={<PatientPage />} />
           <Route
-            path="/patients/edit-patient/:patient_id"
-            element={<EditPatientPage />}
-          />
-          <Route
-            path="/create-lab-test-type"
-            element={<CreateLabTestTypePage />}
-          />
-          <Route
             path="/insurance-companies"
             element={<InsuranceCompanyList />}
           />
@@ -100,23 +87,26 @@ const App: React.FC = () => {
           />
           <Route
             path="/patients/create-patient"
-            element={<CreatePatientPage />}
+            element={<EditPatientPage title="Create Patient" />}
+          />
+          <Route
+            path="/patients/edit-patient/:patient_id"
+            element={<EditPatientPage title="Edit Patient" />}
           />
           <Route
             path="/edit-insurance-company/:insurance_company_id"
             element={<EditInsuranceCompany title="Edit Insurance Company" />}
           />
-          <Route
-            path="/patients/edit-patient/:patient_id"
-            element={<EditPatientPage />}
-          />
-          <Route path="/lab-tests" element={<MainLabTestPage />} />
+          <Route path="/lab-tests" element={<LabTestsList />} />
           <Route
             path="/edit-lab-test/:lab_test_id"
-            element={<EditLabTestPage />}
+            element={<EditLabTest title="Edit Lab Test" />}
           />
 
-          <Route path="/create-lab-test" element={<CreateLabTestPage />} />
+          <Route
+            path="/create-lab-test"
+            element={<EditLabTest title="Create Lab Test" />}
+          />
 
           {/* <Route path='/edit-lab-test-type' element={<EditLabTestTypePage/>}/> */}
           <Route path="*" element={<h2 className="p-8">Page not found</h2>} />

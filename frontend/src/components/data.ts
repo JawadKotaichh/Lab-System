@@ -113,10 +113,13 @@ export const listOfAttributesLabTest = [
 ];
 const labTestApiURL = "/lab_test_type/";
 const labTestMainPageURL = "/lab-tests";
-
+const labTestEditPageURL="/edit-lab-test/";
+const labTestCreatePageURL="/create-lab-test"
 export { listOfAttributesInsuranceCompany };
 export { listOfAttributesPatient };
 export { labTestApiURL };
+export {labTestEditPageURL};
+export {labTestCreatePageURL};
 export { labTestMainPageURL };
 export { InsuranceEditPageURL };
 export { InsuranceMainPageURL };

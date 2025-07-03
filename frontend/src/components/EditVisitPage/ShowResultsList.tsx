@@ -1,8 +1,8 @@
 import EditVistHead from "./EditVisitHead.js";
-import type { labTestCategoryParams, LabTestResult } from "../../types.js";
-import api from "../../../api.js";
+import type { labTestCategoryParams, LabTestResult } from "../types.js";
+import api from "../../api.js";
 import { useEffect, useMemo, useState } from "react";
-import { fetchAllLabTestTypeCategories } from "../../utils.js";
+import { fetchAllLabTestTypeCategories } from "../utils.js";
 
 interface ShowResultsListParams {
   results: LabTestResult[];
