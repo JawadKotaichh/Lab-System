@@ -12,6 +12,8 @@ import InsuranceCompanyList from "./components/InsuranceCompany/InsuranceCompany
 import EditInsuranceCompany from "./components/InsuranceCompany/EditInsuranceCompany";
 import EditLabTest from "./components/LabTest/EditLabTest";
 import LabTestsList from "./components/LabTest/LabTestsList";
+import LabPanelsList from "./components/LabTest/LabPanelsList";
+import EditLabPanel from "./components/LabTest/EditLabPanel";
 // import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
 
 type NavItem = {
@@ -102,12 +104,19 @@ const App: React.FC = () => {
             path="/edit-lab-test/:lab_test_id"
             element={<EditLabTest title="Edit Lab Test" />}
           />
-
           <Route
             path="/create-lab-test"
             element={<EditLabTest title="Create Lab Test" />}
           />
-
+          <Route path="/lab-panels" element={<LabPanelsList />} />
+          <Route
+            path="/create-lab-panel"
+            element={<EditLabPanel title="Create Lab Panel" />}
+          />
+          <Route
+            path="/edit-lab-panel/:lab_panel_id"
+            element={<EditLabPanel title="Create Lab Panel" />}
+          />
           {/* <Route path='/edit-lab-test-type' element={<EditLabTestTypePage/>}/> */}
           <Route path="*" element={<h2 className="p-8">Page not found</h2>} />
         </Routes>
