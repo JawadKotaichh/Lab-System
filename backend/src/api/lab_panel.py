@@ -26,7 +26,10 @@ async def get_Lab_panel_with_page_size(page_number:int,page_size:int):
         d={}
         d["lab_panel_id"] = str(lab_panel.id)
         d["lab_panel_name"]=str(lab_panel.panel_name)
-        d["list_of_test_type_ids"] = lab_panel.list_of_test_type_ids
+        tempList = []
+        for test_type_id in lab_panel.list_of_test_type_ids:
+            tempList.append(str(test_type_id))
+        d["list_of_test_type_ids"] = tempList
         output.append(d)
 
     total_pages = ceil(total_number_of_lab_panel / page_size)
