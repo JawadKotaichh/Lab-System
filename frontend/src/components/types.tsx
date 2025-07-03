@@ -25,6 +25,11 @@ export type labTest = {
   upper_bound: string;
   lower_bound: string;
 };
+export type labPanel = {
+  lab_panel_id: string;
+  lab_panel_name: string;
+  list_of_test_type_ids: string[];
+};
 export type CreateLabTestParams = {
   lab_test_category_id: string;
   name: string;
@@ -99,6 +104,11 @@ export type paginatedlabTest = {
   total_pages: number;
   TotalNumberOfTests: number;
   lab_tests: labTest[];
+};
+export type paginatedlabPanel = {
+  total_pages: number;
+  TotalNumberOfPanels: number;
+  lab_panels: labPanel[];
 };
 export interface PaginationParams {
   currentPage: number;
