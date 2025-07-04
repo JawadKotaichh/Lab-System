@@ -50,7 +50,10 @@ async def getAllLabPanels():
         d={}
         d["lab_panel_id"] = str(lab_panel.id)
         d["lab_panel_name"]=str(lab_panel.panel_name)
-        d["list_of_test_type_ids"] = lab_panel.list_of_test_type_ids
+        tempList = []
+        for test_type_id in lab_panel.list_of_test_type_ids:
+            tempList.append(str(test_type_id))
+        d["list_of_test_type_ids"] = tempList
         output.append(d)
     return output
 
@@ -62,7 +65,10 @@ async def getLabPanel(lab_panel_id:str):
     d={}
     d["lab_panel_id"] = str(lab_panel.id)
     d["lab_panel_name"]=str(lab_panel.panel_name)
-    d["list_of_test_type_ids"] = lab_panel.list_of_test_type_ids
+    tempList = []
+    for test_type_id in lab_panel.list_of_test_type_ids:
+        tempList.append(str(test_type_id))
+    d["list_of_test_type_ids"] = tempList
     return d
 
 @router.post(
