@@ -40,7 +40,7 @@ const LabTestCategoryList = () => {
   };
   const handleDeleteLabTestCategory = (lab_test_category_id: string) => {
     if (
-      !window.confirm("Are you sure you want to delete this lab test category?")
+      !window.confirm("Are you  you want to delete this lab test category?")
     ) {
       return;
     }
