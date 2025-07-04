@@ -10,8 +10,8 @@ import {
   tableCreateButton,
   tableDeleteButton,
   tableHandleButton,
-  tableHeadCols,
   tableItem,
+  tableItemPanel,
 } from "../../style";
 import { useNavigate } from "react-router-dom";
 import api from "../../api";
@@ -63,40 +63,26 @@ const LabPanelsList = () => {
   };
 
   useEffect(() => {
-    if (pageSize && currentPage) {
-      fetchLabPanelsPaginated(currentPage, pageSize)
-        .then((data) => {
-          setAvailableLabPanels(data.lab_panels);
-          setTotalPages(data.total_pages);
-          setTotalNumberOfLabPanels(data.TotalNumberOfPanels);
-        })
-        .catch((err) => setError(err.message || "Failed to load"));
-    }
+    setLoading(true);
+    Promise.all([
+      fetchLabPanelsPaginated(currentPage, pageSize),
+      fetchLabTestTypePaginated(1, 100),
+      fetchAllLabTestTypeCategories(),
+    ])
+      .then(([panelData, testData, categoryData]) => {
+        setAvailableLabPanels(panelData.lab_panels);
+        setTotalPages(panelData.total_pages);
+        setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
+
+        const map: Record<string, labTest> = {};
+        testData.lab_tests.forEach((t) => (map[t.lab_test_id] = t));
+        setLabTests(map);
+
+        setLabTestCategories(categoryData);
+      })
+      .catch((err) => setError(err.message || err.toString()))
+      .finally(() => setLoading(false));
   }, [currentPage, pageSize]);
-
-  useEffect(() => {
-    fetchLabTestTypePaginated(1, 100)
-      .then((data) => {
-        const labTestMap = data.lab_tests.reduce((acc, test) => {
-          acc[test.lab_test_id] = test;
-          return acc;
-        }, {} as Record<string, labTest>);
-        setLabTests(labTestMap);
-      })
-      .catch((err) => setError(err.message));
-  }, []);
-
-  useEffect(() => {
-    fetchAllLabTestTypeCategories()
-      .then((data) => {
-        setLabTestCategories(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message || "Failed to load");
-        setLoading(false);
-      });
-  }, []);
 
   const labTestCategoryById = useMemo(() => {
     return labTestCategories.reduce<Record<string, string>>((map, c) => {
@@ -105,7 +91,7 @@ const LabPanelsList = () => {
     }, {});
   }, [labTestCategories]);
 
-  if (loading) return <div className="p-4">Loading lab tests...</div>;
+  if (loading) return <div className="p-4">Loading lab panels...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   return (
     <div className="p-8 bg-white">
@@ -117,62 +103,72 @@ const LabPanelsList = () => {
         Go Back To Lab Test List
       </button>
       {totalNumberOfLabPanels === 0 ? (
-        <p> No lab tests found!</p>
+        <p> No lab panels found!</p>
       ) : (
         <>
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
             <tbody>
               {availableLabPanels.map((lp) => (
-                <>
-                  <tr>
-                    <th className={tableHeadCols}>Panel Name</th>
-                  </tr>
-                  <tr key={lp.lab_panel_id} className="border rounded-sm">
-                    <td className={tableItem}>{lp.lab_panel_name}</td>
-                    <td className={tableItem}>
-                      <button
-                        className={tableHandleButton}
-                        onClick={() => handleEditLabPanel(lp.lab_panel_id)}
-                      >
-                        Edit
-                      </button>
+                <React.Fragment key={lp.lab_panel_id}>
+                  <tr className="border">
+                    <td
+                      colSpan={1 + lp.list_of_test_type_ids.length * 6}
+                      className="px-4 py-2"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-xl text-left">
+                          {lp.lab_panel_name}
+                        </span>
+                        <div className="flex space-x-2">
+                          <button
+                            className={tableHandleButton}
+                            onClick={() => handleEditLabPanel(lp.lab_panel_id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className={tableDeleteButton}
+                            onClick={() =>
+                              handleDeleteLabPanel(lp.lab_panel_id)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                     </td>
-                    <td className={tableItem}>
-                      <button
-                        className={tableDeleteButton}
-                        onClick={() => handleDeleteLabPanel(lp.lab_panel_id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
                   </tr>
                   <tr>
-                    {lp.list_of_test_type_ids.map((lab_test_id) => {
-                      const lab_test = labTests[lab_test_id];
-                      if (!lab_test) {
-                        console.warn(
-                          `Lab test with ID ${lab_test_id} not found.`
-                        );
-                        return null;
-                      }
+                    <th className={tableItemPanel}>Nssf ID</th>
+                    <th className={tableItemPanel}>Lab Test</th>
+                    <th className={tableItemPanel}>Category</th>
+                    <th className={tableItemPanel}>Unit</th>
+                    <th className={tableItemPanel}>Price</th>
+                    <th className={tableItemPanel}>Lower Bound</th>
+                    <th className={tableItemPanel}>Upper Bound</th>
+                  </tr>
 
-                      return (
-                        <React.Fragment key={lab_test_id}>
-                          <td className={tableItem}>
-                            {lab_test.lab_test_name}
-                          </td>
-                          <td className={tableItem}>
-                            {labTestCategoryById[lab_test.lab_test_category_id]}
-                          </td>
-                          <td className={tableItem}>{lab_test.unit}</td>
-                          <td className={tableItem}>{lab_test.price}</td>
-                          <td className={tableItem}>{lab_test.upper_bound}</td>
-                          <td className={tableItem}>{lab_test.lower_bound}</td>
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                </>
+                  {lp.list_of_test_type_ids.map((id) => {
+                    const t = labTests[id]!;
+                    return (
+                      <>
+                        <tr>
+                          <React.Fragment key={id}>
+                            <td className={tableItem}>{t.nssf_id}</td>
+                            <td className={tableItem}>{t.lab_test_name}</td>
+                            <td className={tableItem}>
+                              {labTestCategoryById[t.lab_test_category_id]}
+                            </td>
+                            <td className={tableItem}>{t.unit}</td>
+                            <td className={tableItem}>{t.price}</td>
+                            <td className={tableItem}>{t.lower_bound}</td>
+                            <td className={tableItem}>{t.upper_bound}</td>
+                          </React.Fragment>
+                        </tr>
+                      </>
+                    );
+                  })}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

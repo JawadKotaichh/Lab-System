@@ -33,11 +33,15 @@ export type labPanel = {
 export type CreateLabTestParams = {
   lab_test_category_id: string;
   name: string;
-  nssf_id: number;
+  nssf_id: string;
   unit: string;
   price: number;
   upper_bound: string;
   lower_bound: string;
+};
+export type CreateLabPanelParams = {
+  lab_panel_name: string;
+  list_of_test_type_ids: string[];
 };
 
 export type patientInfo = {

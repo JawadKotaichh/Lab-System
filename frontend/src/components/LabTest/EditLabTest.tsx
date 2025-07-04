@@ -48,7 +48,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({
   const [data, setData] = useState<CreateLabTestParams>({
     lab_test_category_id: "",
     name: "",
-    nssf_id: 0,
+    nssf_id: "",
     unit: "",
     price: 0,
     upper_bound: "",
@@ -61,7 +61,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({
           setData({
             lab_test_category_id: resp.lab_test_category_id,
             name: resp.name,
-            nssf_id: Number(resp.nssf_id),
+            nssf_id: resp.nssf_id,
             unit: resp.unit,
             price: resp.price,
             lower_bound: resp.lower_bound,
@@ -103,7 +103,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({
       data.lab_test_category_id == "" ||
       data.unit == "" ||
       data.price == 0 ||
-      data.nssf_id == 0 ||
+      data.nssf_id == "" ||
       data.lower_bound == "" ||
       data.upper_bound == ""
     ) {
@@ -111,6 +111,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({
       return;
     }
     try {
+      console.log("Data before save is: ", data);
       if (lab_test_id) {
         api.put(labTestApiURL + lab_test_id, data);
       } else {

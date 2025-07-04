@@ -122,6 +122,7 @@ async def get_all_lab_test_type():
 async def update_lab_test_type(
     lab_test_type_id: str, update_data: update_Lab_test_type_model
 ):
+    print("Iwas called")
     if not ObjectId.is_valid(lab_test_type_id):
         raise HTTPException(400, "Invalid lab_test_type ID")
 

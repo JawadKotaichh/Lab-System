@@ -119,7 +119,7 @@ const LabTestsList = () => {
                 <th className={tableHeadCols}>Edit</th>
                 <th className={tableHeadCols}>Delete</th>
               </tr>
-            </thead>{" "}
+            </thead>
             <tbody>
               {availableLabTests.map((lt) => (
                 <tr key={lt.lab_test_id} className="border rounded-sm">
@@ -130,8 +130,8 @@ const LabTestsList = () => {
                   </td>
                   <td className={tableItem}>{lt.unit}</td>
                   <td className={tableItem}>{lt.price}</td>
-                  <td className={tableItem}>{lt.upper_bound}</td>
                   <td className={tableItem}>{lt.lower_bound}</td>
+                  <td className={tableItem}>{lt.upper_bound}</td>
                   <td className={tableItem}>
                     <button
                       className={tableHandleButton}
