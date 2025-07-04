@@ -1,29 +1,20 @@
-import AddResultHead from "./AddResultHead.js";
 // import SearchTest from "./SearchTest";
-import api from "../../api.js";
-import type { labTestCategoryParams, LabTestResult } from "../types.js";
-import type { labTest } from "../types.js";
-import {
-  fetchAllLabTestTypeCategories,
-  fetchLabTestResults,
-  fetchLabTestTypePaginated,
-} from "../utils.js";
-import { useEffect, useMemo, useState } from "react";
+import type { CreateLabPanelParams, labTest } from "../types.js";
+import { fetchLabTestTypePaginated } from "../utils.js";
+import { useEffect } from "react";
 import Pagination from "../Pagination.js";
+import AddResultHead from "../EditVisitPage/AddResultHead.js";
 
 interface TestsList {
+  labTestCategoryById: Record<string, string>;
   addError: string;
   setAddError: React.Dispatch<React.SetStateAction<string>>;
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
-  // searchInput:string;
-  // setSearchInput:React.Dispatch<React.SetStateAction<string>>;
-  // allTests: labTest[];
   visibleTests: labTest[];
   setVisibleTests: React.Dispatch<React.SetStateAction<labTest[]>>;
-  results: LabTestResult[];
-  setResults: React.Dispatch<React.SetStateAction<LabTestResult[]>>;
-  visit_id: string;
+  data: CreateLabPanelParams;
+  setData: React.Dispatch<React.SetStateAction<CreateLabPanelParams>>;
   error: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
   pageSize: number;
@@ -36,18 +27,16 @@ interface TestsList {
   setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const ShowTestsList: React.FC<TestsList> = ({
+const AddTestToPanel: React.FC<TestsList> = ({
   addError,
   setAddError,
   show,
   setShow,
-  // searchInput,setSearchInput,
-  // allTests,
+  data,
+  setData,
+  labTestCategoryById,
   visibleTests,
   setVisibleTests,
-  results,
-  setResults,
-  visit_id,
   setError,
   currentPage,
   setCurrentPage,
@@ -58,22 +47,6 @@ const ShowTestsList: React.FC<TestsList> = ({
   TotalNumberOfTests,
   setTotalNumberOfTests,
 }: TestsList) => {
-  const [labTestTypeCategories, setLabTestTypeCategories] = useState<
-    labTestCategoryParams[]
-  >([]);
-
-  useEffect(() => {
-    fetchAllLabTestTypeCategories()
-      .then(setLabTestTypeCategories)
-      .catch((err) => setError(err.message || "Failed to load companies"));
-  }, [setError]);
-  const classById = useMemo(() => {
-    return labTestTypeCategories.reduce<Record<string, string>>((map, c) => {
-      map[c.lab_test_category_id] = c.lab_test_category_name;
-      return map;
-    }, {});
-  }, [labTestTypeCategories]);
-
   useEffect(() => {
     if (pageSize && currentPage) {
       fetchLabTestTypePaginated(currentPage, pageSize)
@@ -89,14 +62,13 @@ const ShowTestsList: React.FC<TestsList> = ({
     totalPages,
     currentPage,
     setTotalNumberOfTests,
-    setVisibleTests,
     setTotalPages,
     setError,
+    setVisibleTests,
   ]);
 
   const handleAdd = async (lab_test_id: string) => {
-    console.log(results.some((r) => r.lab_test_type_id == lab_test_id));
-    if (results.some((r) => r.lab_test_type_id === lab_test_id)) {
+    if (data.list_of_test_type_ids.some((r) => r === lab_test_id)) {
       setAddError("This test already exists.");
       alert("This test already exists.");
       setShow(false);
@@ -106,41 +78,18 @@ const ShowTestsList: React.FC<TestsList> = ({
       return;
     }
     setAddError("");
-    const url = `/lab_tests_results/${visit_id}`;
-    try {
-      await api.post(url, {
-        lab_test_type_id: lab_test_id,
-        visit_id,
-        result: "",
-      });
-      const updated = await fetchLabTestResults(visit_id);
-      setResults(updated);
-      setShow(false);
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      }
-    }
+    setData((prev) => ({
+      ...prev,
+      list_of_test_type_ids: [...prev.list_of_test_type_ids, lab_test_id],
+    }));
+    setShow(false);
   };
 
   return (
     <>
       {show && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div
-            className="
-                    bg-white 
-                    p-6 
-                    rounded 
-                    shadow-lg 
-                    w-full 
-                    max-w-5xl
-                    max-h-[80vh]
-                    flex 
-                    flex-col
-                "
-          >
+          <div className="bg-white  p-6 rounded shadow-lg w-full max-w-5xl max-h-[80vh] flex-col">
             <h2 className="text-lg font-semibold mb-4">Add a new test</h2>
             {addError && (
               <p className="mb-2 text-sm text-red-600">{addError}</p>
@@ -158,7 +107,7 @@ const ShowTestsList: React.FC<TestsList> = ({
                   {visibleTests.map((test) => (
                     <tr key={test.lab_test_id}>
                       <td className="border rounded-b-sm px-4 py-2">
-                        {classById[test.lab_test_category_id]}
+                        {labTestCategoryById[test.lab_test_category_id]}
                       </td>
                       <td className="border rounded-b-sm px-4 py-2">
                         {test.nssf_id}
@@ -213,4 +162,4 @@ const ShowTestsList: React.FC<TestsList> = ({
     </>
   );
 };
-export default ShowTestsList;
+export default AddTestToPanel;
