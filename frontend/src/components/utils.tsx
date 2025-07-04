@@ -1,5 +1,6 @@
 import type {
   CompletedResultsInfo,
+  CreateLabPanelParams,
   CreateLabTestParams,
   insuranceCompanyParams,
   labTestCategoryParams,
@@ -35,6 +36,14 @@ const fetchLabTest = async (
   const response = await api.get(url);
   return response.data;
 };
+const fetchLabPanel = async (
+  lab_panel_id: string
+): Promise<CreateLabPanelParams> => {
+  const url = `${labPanelApiURL}/${lab_panel_id}`;
+  const response = await api.get(url);
+  console.log("Fetched Data: ", response.data);
+  return response.data;
+};
 
 const fetchLabPanelsPaginated = async (
   page_number: number,
@@ -42,7 +51,6 @@ const fetchLabPanelsPaginated = async (
 ): Promise<paginatedlabPanel> => {
   const url = `${labPanelApiURL}/page/${page_size}/${page_number}`;
   const response = await api.get(url);
-  console.log("The fetched data is ", response.data);
   return response.data;
 };
 
@@ -124,6 +132,7 @@ const fetchVisitsPaginated = async (
   return response.data;
 };
 
+export { fetchLabPanel };
 export { fetchLabPanelsPaginated };
 export { fetchNumberOfCompletedResultsAndTotal };
 export { fetchLabTestResults };
