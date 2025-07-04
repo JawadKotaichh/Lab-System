@@ -109,7 +109,7 @@ const EditVisitPage: React.FC = () => {
         setShow={setShow}
         // searchInput={searchInput}
         // setSearchInput={setSearchInput}
-        allTests={allTests}
+        // allTests={allTests}
         visibleTests={visibleTests}
         setVisibleTests={setVisibleTests}
         results={results}

@@ -18,7 +18,7 @@ interface TestsList {
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   // searchInput:string;
   // setSearchInput:React.Dispatch<React.SetStateAction<string>>;
-  allTests: labTest[];
+  // allTests: labTest[];
   visibleTests: labTest[];
   setVisibleTests: React.Dispatch<React.SetStateAction<labTest[]>>;
   results: LabTestResult[];
@@ -42,7 +42,7 @@ const ShowTestsList: React.FC<TestsList> = ({
   show,
   setShow,
   // searchInput,setSearchInput,
-  allTests,
+  // allTests,
   visibleTests,
   setVisibleTests,
   results,
@@ -102,7 +102,7 @@ const ShowTestsList: React.FC<TestsList> = ({
       setShow(false);
       setAddError("");
       // setSearchInput("");
-      setVisibleTests(allTests);
+      // setVisibleTests(allTests);
       return;
     }
     setAddError("");

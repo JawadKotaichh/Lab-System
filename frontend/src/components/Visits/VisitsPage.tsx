@@ -99,7 +99,7 @@ const Visits: React.FC = () => {
 
   const patientNameById = useMemo(() => {
     return patientsData.reduce<Record<string, string>>((map, c) => {
-      map[c.patient_id] = c.patient_name;
+      map[c.patient_id] = c.name;
       return map;
     }, {});
   }, [patientsData]);

@@ -115,7 +115,7 @@ const App: React.FC = () => {
           />
           <Route
             path="/edit-lab-panel/:lab_panel_id"
-            element={<EditLabPanel title="Create Lab Panel" />}
+            element={<EditLabPanel title="Edit Lab Panel" />}
           />
           {/* <Route path='/edit-lab-test-type' element={<EditLabTestTypePage/>}/> */}
           <Route path="*" element={<h2 className="p-8">Page not found</h2>} />
