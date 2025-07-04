@@ -117,62 +117,31 @@ const labTestEditPageURL="/edit-lab-test/";
 const labTestCreatePageURL="/create-lab-test";
 
 //Panels
-export const listOfAttributesLabPanel = [
-  {
-    subItem: "Lab Panel Name",
-    attributeName: "panel_name",
-    typeOfInput: "number",
-    icon: "labtest",
-    placeHolder: "Enter nssf ID",
-  },
-  {
-    subItem: "Category",
-    attributeName: "lab_test_category_id",
-    typeOfInput: "Selection",
-    icon: "category",
-    placeHolder: "Choose lab test category",
-  },
-  {
-    subItem: "Test Name",
-    attributeName: "name",
-    typeOfInput: "string",
-    icon: "labtest",
-    placeHolder: "Enter test name",
-  },
-  {
-    subItem: "Unit",
-    attributeName: "unit",
-    typeOfInput: "string",
-    icon: "unit",
-    placeHolder: "Enter unit",
-  },
-  {
-    subItem: "Price",
-    attributeName: "price",
-    typeOfInput: "number",
-    icon: "DollarSign",
-    placeHolder: "Enter price",
-  },
-  {
-    subItem: "Lower Bound",
-    attributeName: "lower_bound",
-    typeOfInput: "number",
-    icon: "lowerbound",
-    placeHolder: "Enter lower bound",
-  },
-  {
-    subItem: "Upper Bound",
-    attributeName: "upper_bound",
-    typeOfInput: "number",
-    icon: "upperbound",
-    placeHolder: "Enter upper bound",
-  },
-];
 const labPanelApiURL = "/lab_panel";
 const labPanelEditPageURL="/edit-lab-panel/";
 const labPanelCreatePageURL="/create-lab-panel";
 const labPanelMainPageURL = "/lab-panels";
 
+// Lab Categoory
+export const listOfAttributesLabTestCategory = [
+  {
+    subItem: "Category Name",
+    attributeName: "lab_test_category_name",
+    typeOfInput: "text",
+    icon: "labtest",
+    placeHolder: "Enter Category Name",
+  },
+];
+const labTestCategoryApiURL = "/lab_test_category/";
+const labTestCategoryMainPageURL = "/lab-test-categories";
+const labTestCategoryEditPageURL="/edit-lab-test-category/";
+const labTestCategoryCreatePageURL="/create-lab-test-category";
+
+
+export{labTestCategoryMainPageURL};
+export{labTestCategoryEditPageURL};
+export{labTestCategoryCreatePageURL};
+export{labTestCategoryApiURL};
 export { listOfAttributesInsuranceCompany };
 export { listOfAttributesPatient };
 export { labTestApiURL };
