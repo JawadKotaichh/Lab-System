@@ -7,18 +7,34 @@ from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
+from math import ceil
 
 router = APIRouter(prefix="/lab_test_category", tags=["lab_test_category"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-@router.get("/page",response_model=list[lab_test_category])
+
+
+@router.get("/page/{page_size}/{page_number}")
 async def get_lab_test_category_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
-    lab_test_category_paginated = DBlab_test_category.find().skip(offset).limit(page_size)
-    lab_test_category_paginated_list = []
-    async for test_type_category in lab_test_category_paginated:
-        lab_test_category_paginated_list.append(test_type_category)
-    return lab_test_category_paginated_list
+    total_number_of_lab_test_category = await DBlab_test_category.find_all().count()
+    all_lab_tests_paginated = DBlab_test_category.find().skip(offset).limit(page_size)
+    output = []
+    async for current_lab_test_category in all_lab_tests_paginated:
+        d={}
+        d["lab_test_category_id"]=str(current_lab_test_category.id)
+        d["lab_test_category_name"] = current_lab_test_category.lab_test_category_name
+        output.append(d)
+
+    total_pages = ceil(total_number_of_lab_test_category / page_size)
+    result= {
+        "TotalNumberOfLabTestCategories":total_number_of_lab_test_category,
+        "total_pages":total_pages,
+        "lab_test_categories":output
+    }
+    return result
+
+
 
 @router.get("/all")
 async def getAllTestTypeCategories():
