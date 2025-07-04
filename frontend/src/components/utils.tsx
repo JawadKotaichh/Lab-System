@@ -8,13 +8,14 @@ import type {
   paginatedlabPanel,
   paginatedlabTest,
   paginatedPatientInfo,
+  paginatedTestCategoryInfo,
   paginatedVisitInfo,
   patientInfo,
   VisitsInfo,
 } from "./types.js";
 import api from "../api.js";
 import type { labTest } from "./types.js";
-import { labPanelApiURL } from "./data.js";
+import { labPanelApiURL, labTestCategoryApiURL } from "./data.js";
 
 const fetchLabTestResults = async (
   visit_id: string
@@ -76,6 +77,14 @@ const fetchInsuranceCompany = async (
   const response = await api.get(`/insurance_company/${insurance_company_id}`);
   return response.data;
 };
+const fetchLabTestCategory = async (
+  lab_test_category_id: string
+): Promise<labTestCategoryParams> => {
+  const response = await api.get(
+    `${labTestCategoryApiURL}${lab_test_category_id}`
+  );
+  return response.data;
+};
 
 export const createVisit = (patientId: string) => {
   return api.post(`/visits/${patientId}/`, {
@@ -98,6 +107,15 @@ const fetchPatientsPaginated = async (
 ): Promise<paginatedPatientInfo> => {
   const url = `/patients/page/${page_size}/${page_number}`;
   const response = await api.get(url);
+  return response.data;
+};
+const fetchLabTestCategoryPaginated = async (
+  page_number: number,
+  page_size: number
+): Promise<paginatedTestCategoryInfo> => {
+  const url = `${labTestCategoryApiURL}page/${page_size}/${page_number}`;
+  const response = await api.get(url);
+  console.log("DATA: ", response.data);
   return response.data;
 };
 
@@ -132,7 +150,9 @@ const fetchVisitsPaginated = async (
   return response.data;
 };
 
+export { fetchLabTestCategory };
 export { fetchLabPanel };
+export { fetchLabTestCategoryPaginated };
 export { fetchLabPanelsPaginated };
 export { fetchNumberOfCompletedResultsAndTotal };
 export { fetchLabTestResults };
