@@ -1,6 +1,7 @@
 export const inputForm = "flex flex-col items-center justify-center";
 export const inputFormTitle = "text-2xl items-center mb-10 text-center mt-5";
 export const inputFormAttributeList = "grid grid-cols-1 md:grid-cols-2 border rounded-sm w-fit shadow-lg shadow-blue-200";
+export const inputFormAttributeCategoryList = "grid grid-cols-1 md:grid-cols-1 border rounded-sm w-fit shadow-lg shadow-blue-200";
 export const inputFormAttributeListItem ="flex flex-col p-5";
 export const inputFormAttributeListItemLabel ="mb-2 text-sm font-medium text-gray-700 flex items-center space-x-1";
 export const inputFormAttributeListItemInput ="border rounded-sm text-center w-70 p-3 flex focus:outline-blue-400";
