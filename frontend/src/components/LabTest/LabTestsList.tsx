@@ -18,6 +18,7 @@ import api from "../../api";
 import {
   labPanelMainPageURL,
   labTestApiURL,
+  labTestCategoryMainPageURL,
   labTestCreatePageURL,
   labTestEditPageURL,
 } from "../data";
@@ -41,6 +42,9 @@ const LabTestsList = () => {
   };
   const handleGoToLabPanels = () => {
     navigate(labPanelMainPageURL);
+  };
+  const handleGoToLabCategories = () => {
+    navigate(labTestCategoryMainPageURL);
   };
   const handleEditLabTest = (insurance_company_id: string) => {
     navigate(`${labTestEditPageURL}${insurance_company_id}`);
@@ -101,6 +105,12 @@ const LabTestsList = () => {
         onClick={() => handleGoToLabPanels()}
       >
         Go to Lab Panels
+      </button>
+      <button
+        className={tableCreateButton}
+        onClick={() => handleGoToLabCategories()}
+      >
+        Go to Lab Categories
       </button>
       {totalNumberOfLabTests === 0 ? (
         <p> No lab tests found!</p>
