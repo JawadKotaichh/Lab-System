@@ -119,10 +119,10 @@ const labTestCreatePageURL="/create-lab-test";
 //Panels
 export const listOfAttributesLabPanel = [
   {
-    subItem: "Nssf ID",
-    attributeName: "nssf_id",
+    subItem: "Lab Panel Name",
+    attributeName: "panel_name",
     typeOfInput: "number",
-    icon: "id",
+    icon: "labtest",
     placeHolder: "Enter nssf ID",
   },
   {
