@@ -85,6 +85,10 @@ export interface CreateInsuranceCompanyParams {
   insurance_company_name: string;
   rate: string;
 }
+export interface CreateLabTestCategoryParams {
+  lab_test_category_id: string;
+  lab_test_category_name: string;
+}
 
 export interface labTestCategoryParams {
   lab_test_category_id: string;
@@ -98,6 +102,11 @@ export type paginatedPatientInfo = {
   total_pages: number;
   TotalNumberOfPatients: number;
   patients: patientInfo[];
+};
+export type paginatedTestCategoryInfo = {
+  total_pages: number;
+  TotalNumberOfLabTestCategories: number;
+  lab_test_categories: labTestCategoryParams[];
 };
 export type paginatedVisitInfo = {
   total_pages: number;
