@@ -17,6 +17,7 @@ import {
 } from "../types";
 import handleDeleteVisit from "./handleDeleteVisit";
 import Pagination from "../Pagination";
+import { pageListTitle } from "../../style";
 
 const Visits: React.FC = () => {
   const navigate = useNavigate();
@@ -104,6 +105,13 @@ const Visits: React.FC = () => {
     }, {});
   }, [patientsData]);
 
+  const phoneNumberById = useMemo(() => {
+    return patientsData.reduce<Record<string, string>>((map, c) => {
+      map[c.patient_id] = c.phone_number;
+      return map;
+    }, {});
+  }, [patientsData]);
+
   const CompletedResultsByVisitId = useMemo(() => {
     return resultsPatientsData.reduce<Record<string, number>>((map, c) => {
       map[c.visit_id] = c.countOfCompletedResults;
@@ -142,8 +150,9 @@ const Visits: React.FC = () => {
   return (
     <div className="relative w-screen h-screen bg-white">
       <main className="relative">
-        <div className="relative w-full mt-10">
+        <div className="relative w-full">
           <div className="p-8 bg-white">
+            <h1 className={pageListTitle}>Visits</h1>
             <Pagination
               TotalNumberOfPaginatedItems={totalNumberOfVisits}
               setPageSize={setPageSize}
@@ -167,6 +176,10 @@ const Visits: React.FC = () => {
                     <td className="border rounded-b-sm  px-4 py-2">
                       {TotalPriceByVisitId[v.visit_id]} $
                     </td>
+                    <td className="border rounded-b-sm  px-4 py-2">
+                      {phoneNumberById[v.patient_id]}
+                    </td>
+
                     <td className="border rounded-b-sm  px-4 py-2">
                       {CompletedResultsByVisitId[v.visit_id]} /
                       {TotalTestsResultsByVisitId[v.visit_id]}
