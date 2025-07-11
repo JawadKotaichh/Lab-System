@@ -9,6 +9,8 @@ from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
+from typing import Any, Dict, List
+
 
 router = APIRouter(
     prefix="/lab_test_type",
@@ -16,56 +18,57 @@ router = APIRouter(
 )
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-@router.get("/page/{page_size}/{page_number}")
+@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
 async def get_Lab_test_type_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
     total_number_of_lab_test_type = await DBLab_test_type.find_all().count()
-    all_lab_tests_paginated = DBLab_test_type.find().skip(offset).limit(page_size)
-    output = []
-    async for lab_test in all_lab_tests_paginated:
-        d={}
-        d["lab_test_id"] = str(lab_test.id)
-        d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
-        d["lab_test_name"] = lab_test.name
-        d["nssf_id"] = lab_test.nssf_id
-        d["unit"] = lab_test.unit
-        d["price"] = lab_test.price
-        d["upper_bound"] = lab_test.upper_bound
-        d["lower_bound"] = lab_test.lower_bound
-        output.append(d)
-
+    cursor = DBLab_test_type.find().skip(offset).limit(page_size)
+    lab_tests: List[Dict[str, Any]] = []
+    async for test in cursor:
+        lab_tests.append({
+            "lab_test_id": str(test.id),
+            "lab_test_category_id": test.lab_test_category_id,
+            "lab_test_name": test.name,
+            "nssf_id":test.nssf_id,
+            "unit":test.unit,
+            "price":test.price,
+            "upper_bound":test.upper_bound,
+            "lower_bound":test.lower_bound,
+        })
     total_pages = ceil(total_number_of_lab_test_type / page_size)
     result= {
         "TotalNumberOfTests":total_number_of_lab_test_type,
         "total_pages":total_pages,
-        "lab_tests":output
+        "lab_tests":lab_tests
     }
     return result
 
 
 
-@router.get("/all")
-async def getAllTestTypes():
-    all_items = DBLab_test_type.find()
-    output=[]
-    async for lab_test in all_items:
-        d={}
-        d["lab_test_id"] = str(lab_test.id)
-        d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
-        d["lab_test_name"] = lab_test.name
-        d["nssf_id"] = lab_test.nssf_id
-        d["unit"] = lab_test.unit
-        d["price"] = lab_test.price
-        d["upper_bound"] = lab_test.upper_bound
-        d["lower_bound"] = lab_test.lower_bound
-        output.append(d)
-    return output
-@router.get("/{lab_test_type_id}")
+@router.get("/all",response_model=List[Dict[str, Any]])
+async def getAllTestTypes()->List[Dict[str, Any]]:
+    cursor = DBLab_test_type.find()
+    lab_tests: List[Dict[str, Any]] = []
+    async for test in cursor:
+        lab_tests.append({
+            "lab_test_id": str(test.id),
+            "lab_test_category_id": test.lab_test_category_id,
+            "lab_test_name": test.name,
+            "nssf_id":test.nssf_id,
+            "unit":test.unit,
+            "price":test.price,
+            "upper_bound":test.upper_bound,
+            "lower_bound":test.lower_bound,
+        })
+    return lab_tests
+
+
+@router.get("/{lab_test_type_id}",response_model=Dict[str, Any])
 async def getLabTestType(lab_test_type_id:str):
     lab_test = await DBLab_test_type.get(ObjectId(lab_test_type_id))
     if not lab_test:
         raise HTTPException(status_code=404, detail="Lab Test Type not found")
-    d={}
+    d: Dict[str, Any] = {}
     d["lab_test_id"] = str(lab_test_type_id)
     d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
     d["name"] = lab_test.name
@@ -152,7 +155,7 @@ async def update_lab_test_type(
     return existing_Lab_test_type
 
 
-@router.delete("/{lab_test_type_id}")
+@router.delete("/{lab_test_type_id}", response_class=Response)
 async def delete_lab_test_type(lab_test_type_id: str):
     if not ObjectId.is_valid(lab_test_type_id):
         raise HTTPException(400, "Invalid lab_test_type ID")

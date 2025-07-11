@@ -1,3 +1,4 @@
+from math import ceil
 from fastapi import APIRouter, HTTPException, status
 from ..models import lab_test_result as DBLab_test_result
 from ..models import Visit as DBVisit
@@ -7,13 +8,14 @@ from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
+from typing import Any, Dict, List
 
 router = APIRouter(
     prefix="/lab_tests_results",
     tags=["lab_tests_results"],
 )
 
-@router.get("/completed/{visit_id}")
+@router.get("/completed/{visit_id}",response_model=Dict[str,Any])
 async def get_completed_and_total_results( visit_id: str):
     all_items = DBLab_test_result.find(DBLab_test_result.visit_id == ObjectId(visit_id))
     total = 0
@@ -26,22 +28,38 @@ async def get_completed_and_total_results( visit_id: str):
             totalPrice+=lab_test.price
         if item.result!="":
             completed+=1
-    output = {
-        "visit_id": visit_id,
+    output:Dict[str,Any] = {
+        "visit_id": str(visit_id),
         "countOfCompletedResults": completed,
         "totalNumberOfTests": total,
         "totalPrice": totalPrice
     }
     return output
 
-@router.get("/page",response_model=list[Lab_test_result])
-async def get_lab_test_results_with_page_size(page_number:int,page_size:int):
+
+
+@router.get("/page/{page_size}/{page_number}",response_model=List[Dict[str, Any]])
+async def get_Lab_panel_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
-    all_lab_test_results_paginated = DBLab_test_result.find().skip(offset).limit(page_size)
-    lab_test_results_list = []
-    async for lab_test_results in all_lab_test_results_paginated:
-        lab_test_results_list.append(lab_test_results)
-    return lab_test_results_list
+    total_number_of_labtest_results = await DBLab_test_result.find_all().count()
+    cursor = DBLab_test_result.find().skip(offset).limit(page_size)
+    test_results: List[Dict[str, Any]] = []
+    async for test_result in cursor:
+        test_results.append({
+            "lab_test_result_id": str(test_result.id),
+            "lab_test_type_id":str(test_result.lab_test_type_id),
+            "visit_id":str(test_result.visit_id),
+            "result": test_result.result,
+        })
+
+    total_pages = ceil(total_number_of_labtest_results / page_size)
+    output= {
+        "TotalNumberOfLabTestResults":total_number_of_labtest_results,
+        "total_pages":total_pages,
+        "test_results":test_results
+    }
+    return output
+
 
 @router.post(
     "/{visit_id}",
@@ -100,12 +118,12 @@ async def set_result(lab_test_result_id:str,result:str):
     ).update({"$set": {"result": result}})
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.get("/all/{visit_id}")
+@router.get("/all/{visit_id}",response_model= List[Dict[str, Any]])
 async def get_list_of_lab_test( visit_id: str):
     all_items = DBLab_test_result.find(DBLab_test_result.visit_id == ObjectId(visit_id))
-    output=[]
+    output: List[Dict[str, Any]]=[]
     async for item in all_items:
-        d={}
+        d: Dict[str, Any] = {}
         lab_test = await DBLab_test_type.find_one(DBLab_test_type.id==ObjectId(item.lab_test_type_id))
         if lab_test is not None:
             d["lab_test_type_id"] = str(item.lab_test_type_id)
@@ -164,7 +182,7 @@ async def update_lab_test_result(
     return existing_lab_test_result
 
 
-@router.delete("/{lab_test_result_id}")
+@router.delete("/{lab_test_result_id}", response_class=Response)
 async def delete_lab_test_result(lab_test_result_id: str):
     if not ObjectId.is_valid(lab_test_result_id):
         raise HTTPException(400, "Invalid lab_test_result ID")
