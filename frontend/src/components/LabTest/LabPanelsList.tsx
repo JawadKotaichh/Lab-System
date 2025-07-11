@@ -18,7 +18,6 @@ import api from "../../api";
 import {
   labPanelCreatePageURL,
   labPanelApiURL,
-  labTestMainPageURL,
   labPanelEditPageURL,
 } from "../data";
 import Pagination from "../Pagination";
@@ -42,9 +41,7 @@ const LabPanelsList = () => {
   const handleCreateLabPanel = () => {
     navigate(labPanelCreatePageURL);
   };
-  const handleGoBackToLabTests = () => {
-    navigate(labTestMainPageURL);
-  };
+
   const handleEditLabPanel = (lab_panel_id: string) => {
     navigate(`${labPanelEditPageURL}${lab_panel_id}`);
   };
@@ -96,12 +93,7 @@ const LabPanelsList = () => {
   return (
     <div className="p-8 bg-white">
       <h1 className={pageListTitle}>Lab Panels List</h1>
-      <button
-        className={tableCreateButton}
-        onClick={() => handleGoBackToLabTests()}
-      >
-        Go Back To Lab Test List
-      </button>
+
       {totalNumberOfLabPanels === 0 ? (
         <p> No lab panels found!</p>
       ) : (

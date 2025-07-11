@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useParams, type Params } from "react-router-dom";
+import { useLocation, useParams, type Params } from "react-router-dom";
 import ShowTestsList from "./ShowTestsList.js";
 
 import ShowResultsList from "./ShowResultsList.js";
 import type { labTest, LabTestResult } from "../types.js";
 import { fetchAllLabTest, fetchLabTestResults } from "../utils.js";
 import api from "../../api.js";
+import PatientInfo from "./PatientInfo.js";
 
 const EditVisitPage: React.FC = () => {
+  const location = useLocation();
+  const { patientData } = location.state || {};
   const { visit_id } = useParams<Params>();
   const [results, setResults] = useState<LabTestResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +19,7 @@ const EditVisitPage: React.FC = () => {
   const [show, setShow] = useState<boolean>(false);
   const [allTests, setAllTests] = useState<labTest[]>([]);
   const [addError, setAddError] = useState<string>("");
-  // const [searchInput,setSearchInput] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>("");
   const [visibleTests, setVisibleTests] = useState<labTest[]>(allTests);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -77,6 +80,19 @@ const EditVisitPage: React.FC = () => {
   return (
     <div className="p-8 bg-white">
       <h1 className="text-2xl font-semibold mb-6">Edit Visit</h1>
+      <PatientInfo patientData={patientData}></PatientInfo>
+      <button
+        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
+        onClick={() => setShow(true)}
+      >
+        Add result
+      </button>
+      <button
+        className="p-2 h-10 w-20 rounded-sm border bg-blue-400 hover:bg-green-500"
+        onClick={() => handleSaveAll()}
+      >
+        Save
+      </button>
       {results.length === 0 ? (
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
@@ -87,19 +103,6 @@ const EditVisitPage: React.FC = () => {
           visit_id={visit_id!}
         />
       )}
-      <button
-        className="p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500"
-        onClick={() => setShow(true)}
-      >
-        Add result
-      </button>
-
-      <button
-        className="p-2 h-10 w-20 rounded-sm border bg-blue-400 hover:bg-green-500"
-        onClick={() => handleSaveAll()}
-      >
-        Save
-      </button>
 
       <ShowTestsList
         TotalNumberOfTests={totalNumberOfTests}
@@ -107,8 +110,8 @@ const EditVisitPage: React.FC = () => {
         setAddError={setAddError}
         show={show}
         setShow={setShow}
-        // searchInput={searchInput}
-        // setSearchInput={setSearchInput}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
         // allTests={allTests}
         visibleTests={visibleTests}
         setVisibleTests={setVisibleTests}
