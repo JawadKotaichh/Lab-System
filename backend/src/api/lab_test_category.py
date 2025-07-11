@@ -8,44 +8,42 @@ from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
+from typing import Any, Dict, List
 
 router = APIRouter(prefix="/lab_test_category", tags=["lab_test_category"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-
-
-@router.get("/page/{page_size}/{page_number}")
+@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
 async def get_lab_test_category_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
     total_number_of_lab_test_category = await DBlab_test_category.find_all().count()
-    all_lab_tests_paginated = DBlab_test_category.find().skip(offset).limit(page_size)
-    output = []
-    async for current_lab_test_category in all_lab_tests_paginated:
-        d={}
-        d["lab_test_category_id"]=str(current_lab_test_category.id)
-        d["lab_test_category_name"] = current_lab_test_category.lab_test_category_name
-        output.append(d)
+    cursor = DBlab_test_category.find().skip(offset).limit(page_size)
+    insurance_companies: List[Dict[str, Any]] = []
+    async for current_lab_test_category in cursor:
+        insurance_companies.append({
+            "lab_test_category_id": str(current_lab_test_category.id),
+            "lab_test_category_name": current_lab_test_category.lab_test_category_name,
+        })
 
     total_pages = ceil(total_number_of_lab_test_category / page_size)
     result= {
         "TotalNumberOfLabTestCategories":total_number_of_lab_test_category,
         "total_pages":total_pages,
-        "lab_test_categories":output
+        "lab_test_categories":insurance_companies
     }
     return result
 
+@router.get("/all",response_model= List[Dict[str, Any]])
+async def getAllTestTypeCategories() -> List[Dict[str, Any]]:
+    cursor = DBlab_test_category.find()
+    lab_test_categories: List[Dict[str, Any]] = []
+    async for category in cursor:
+        lab_test_categories.append({
+            "lab_test_category_id": str(category.id),
+            "lab_test_category_name": category.lab_test_category_name,
+        })
+    return lab_test_categories
 
-
-@router.get("/all")
-async def getAllTestTypeCategories():
-    all_lab_test_type_categories = await DBlab_test_category.find().to_list()
-    output = []
-    for category in all_lab_test_type_categories:
-        d = {}
-        d["lab_test_category_id"] = str(category.id)
-        d["lab_test_category_name"] = category.lab_test_category_name
-        output.append(d)
-    return output
 
 @router.post(
     "/",
@@ -64,7 +62,7 @@ async def create_lab_test_category(data: lab_test_category):
 
 
 @router.get("/{lab_test_category_id}")
-async def get_lab_test_category(lab_test_category_id: str):
+async def get_lab_test_category(lab_test_category_id: str,response_model=Dict[str, Any]):
     
     if not ObjectId.is_valid(lab_test_category_id):
         raise HTTPException(400, "Invalid lab_test_category ID")
@@ -72,7 +70,7 @@ async def get_lab_test_category(lab_test_category_id: str):
     
     if not lab_test_category:
         raise HTTPException(404, f"lab_test_category {lab_test_category_id} not found")
-    output = {}
+    output: Dict[str, Any] = {}
     output["lab_test_category_id"] = str(lab_test_category.id)
     output["lab_test_category_name"] = lab_test_category.lab_test_category_name
     return output
@@ -101,7 +99,7 @@ async def Update_lab_test_category(lab_test_category_id: str, update_data: updat
     return existing_lab_test_category
 
 
-@router.delete("/{lab_test_category_id}")
+@router.delete("/{lab_test_category_id}", response_class=Response)
 async def delete_lab_test_category(lab_test_category_id: str):
     if not ObjectId.is_valid(lab_test_category_id):
         raise HTTPException(400, "Invalid lab_test_category ID")
