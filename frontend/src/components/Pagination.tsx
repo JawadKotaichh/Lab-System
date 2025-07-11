@@ -6,8 +6,7 @@ const Pagination = ({
   setCurrentPage,
   pageSize,
   setPageSize,
-}: //   TotalNumberOfPaginatedItems,
-PaginationParams) => {
+}: PaginationParams) => {
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSize = Number(e.target.value);
     if (newSize > 0) {

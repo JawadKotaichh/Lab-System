@@ -9,15 +9,30 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
 from typing import Any, Dict, List
+from fastapi import Query
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 @router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
-async def get_patients_with_page_size(page_number:int,page_size:int):
+async def get_patients_with_page_size(
+    page_number: int,
+    page_size:   int,
+    name:str | None = Query(None),
+    gender: str | None = Query(None),
+    insurance_company_id: str | None = Query(None),
+):
+    mongo_filter: dict[str, Any] = {}
+    if name:
+        mongo_filter["name"] = {"$regex": name, "$options": "i"}
+    if gender:
+        mongo_filter["gender"] = gender
+    if insurance_company_id and ObjectId.is_valid(insurance_company_id):
+        mongo_filter["insurance_company_id"] = ObjectId(insurance_company_id)
+
     offset = (page_number - 1) * page_size
-    total_number_of_patients = await DBPatient.find_all().count()
-    cursor = DBPatient.find().skip(offset).limit(page_size)
+    total_number_of_patients = await DBPatient.find(mongo_filter).count()
+    cursor = DBPatient.find(mongo_filter).skip(offset).limit(page_size)
     patients : List[Dict[str, Any]] = []
     async for patient in cursor:
         patients.append({
