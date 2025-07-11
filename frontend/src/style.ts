@@ -1,4 +1,9 @@
-export const inputForm = "flex flex-col items-center justify-center";
+export const inputForm = "flex flex-col items-center justify-center w-full";
+export const patientInfoCard = "flex flex-col";
+export const patientInfoCardGrid = "grid grid-cols-5 md:grid-cols-5 border rounded-sm shadow-lg shadow-blue-200";
+export const patientInfoCardItem ="mb-2 text-sm font-medium text-gray-700 flex items-center space-x-1";
+
+
 export const inputFormTitle = "text-2xl items-center mb-10 text-center mt-5";
 export const inputFormAttributeList = "grid grid-cols-1 md:grid-cols-2 border rounded-sm w-fit shadow-lg shadow-blue-200";
 export const inputFormAttributeCategoryList = "grid grid-cols-1 md:grid-cols-1 border rounded-sm w-fit shadow-lg shadow-blue-200";
@@ -13,7 +18,7 @@ export const tableItem = "border rounded-b-sm px-4 py-2";
 export const tableItemPanel ="border rounded-b-sm px-4 py-2 bg-gray-200";
 export const tableHandleButton = "p-2 h-fit w-20 rounded-sm bg-blue-400 hover:bg-green-600";
 export const tableDeleteButton = "p-2 h-fit w-20 rounded-sm bg-red-500 hover:bg-red-700";
-export const tableCreateButton = "p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600 mt-5";
+export const tableCreateButton = "p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600";
 export const pageListTitle = "text-4xl font-semibold mb-6";
 export const stateStyle = "text-red-400";
 export const iconStyle = "w-4 h-4 text-gray-500 text-center";

@@ -1,15 +1,16 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import type { MenuParams } from "./types";
+import type { MenuParams, optionsMenuPages } from "./types";
 
-const MaintenanceMenu = ({
-  isMenuOpen,
-  setIsMenuOpen,
-  options,
-}: MenuParams) => {
+const MaintenanceMenu = ({ isMenuOpen, setIsMenuOpen }: MenuParams) => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const options: optionsMenuPages[] = [
+    { label: "Insurance Companies", path: "/insurance-companies" },
+    { label: "Lab Panels", path: "/lab-panels" },
+    { label: "Lab Tests", path: "/lab-tests" },
+    { label: "Lab Tests Categories", path: "/lab-test-categories" },
+  ];
   const toggleMenu = () => setIsMenuOpen((isMenuOpen) => !isMenuOpen);
   const handleSelect = (path: string) => {
     navigate(path);
