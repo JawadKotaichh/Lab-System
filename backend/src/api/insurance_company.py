@@ -38,7 +38,7 @@ async def get_insurance_company_with_page_size(page_number:int,page_size:int):
 
     total_pages = ceil(total_number_of_insurance_companies / page_size)
     result= {
-        "TotalNumberOfLabPanels":total_number_of_insurance_companies,
+        "TotalNumberOfInsuranceCompanies":total_number_of_insurance_companies,
         "total_pages":total_pages,
         "insurance_companies":insurance_companies
     }

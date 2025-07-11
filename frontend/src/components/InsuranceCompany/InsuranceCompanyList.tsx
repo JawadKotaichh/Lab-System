@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { insuranceCompanyParams } from "../types";
-import { fetchAllInsuranceCompanies } from "../utils";
+import { fetchInsuranceCompaniesPaginated } from "../utils";
 import {
   pageListTitle,
   tableCreateButton,
@@ -17,6 +17,7 @@ import {
   InsuranceCreatePageURL,
   InsuranceEditPageURL,
 } from "../data";
+import Pagination from "../Pagination";
 
 const InsuranceCompanyList = () => {
   const [availableInsuranceCompanies, setAvailableInsuranceCompanies] =
@@ -24,6 +25,14 @@ const InsuranceCompanyList = () => {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [
+    totalNumberOfInsuranceComapanies,
+    setTotalNumberOfInsuranceComapanies,
+  ] = useState<number>(0);
+
   const handleCreateInsuranceCompany = () => {
     navigate(InsuranceCreatePageURL);
   };
@@ -47,27 +56,50 @@ const InsuranceCompanyList = () => {
   };
 
   useEffect(() => {
-    fetchAllInsuranceCompanies()
-      .then((data) => {
-        setAvailableInsuranceCompanies(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message || "Failed to load");
-        setLoading(false);
-      });
-  }, []);
+    if (pageSize && currentPage) {
+      setLoading(true);
+      fetchInsuranceCompaniesPaginated(currentPage, pageSize)
+        .then((data) => {
+          setAvailableInsuranceCompanies(data.insurance_companies);
+          setTotalPages(data.total_pages);
+          setTotalNumberOfInsuranceComapanies(
+            data.TotalNumberOfInsuranceCompanies
+          );
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError(err.message || "Failed to load");
+          setLoading(false);
+        });
+    }
+  }, [currentPage, pageSize]);
 
   if (loading) return <div className="p-4">Loading insurance companies…</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
     <div className="p-8 bg-white">
-      <h1 className={pageListTitle}>Insurance Company List</h1>
+      <div className="grid grid-cols-2">
+        <h1 className={pageListTitle}>Insurance Company List</h1>
+        <button
+          className={tableCreateButton + " ml-auto text-xl"}
+          onClick={() => handleCreateInsuranceCompany()}
+        >
+          Create Insurance Company
+        </button>
+      </div>
       {availableInsuranceCompanies.length === 0 ? (
         <p> No insurance companies found!</p>
       ) : (
         <>
+          <Pagination
+            TotalNumberOfPaginatedItems={totalNumberOfInsuranceComapanies}
+            setPageSize={setPageSize}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+          />
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
             <thead className={tableHead}>
               <tr>
@@ -108,12 +140,6 @@ const InsuranceCompanyList = () => {
           </table>
         </>
       )}
-      <button
-        className={tableCreateButton}
-        onClick={() => handleCreateInsuranceCompany()}
-      >
-        Create Insurance Company
-      </button>
     </div>
   );
 };

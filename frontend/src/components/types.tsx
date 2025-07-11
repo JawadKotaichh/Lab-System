@@ -123,6 +123,11 @@ export type paginatedlabPanel = {
   TotalNumberOfPanels: number;
   lab_panels: labPanel[];
 };
+export type paginatedInsuranceCompany = {
+  total_pages: number;
+  TotalNumberOfInsuranceCompanies: number;
+  insurance_companies: insuranceCompanyParams[];
+};
 export interface PaginationParams {
   currentPage: number;
   totalPages: number;
