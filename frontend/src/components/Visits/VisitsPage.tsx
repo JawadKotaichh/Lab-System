@@ -144,6 +144,14 @@ const Visits: React.FC = () => {
       <main className="relative">
         <div className="relative w-full mt-10">
           <div className="p-8 bg-white">
+            <Pagination
+              TotalNumberOfPaginatedItems={totalNumberOfVisits}
+              setPageSize={setPageSize}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
             <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
               <VisitsPageHead />
               <tbody>
@@ -212,14 +220,7 @@ const Visits: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            <Pagination
-              TotalNumberOfPaginatedItems={totalNumberOfVisits}
-              setPageSize={setPageSize}
-              pageSize={pageSize}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
+
             {/* <div className="absolute top-5 left-1/2 transform -translate-x-1/2 text-center bg-white p-4 rounded-xl shadow-md">             */}
             {/* <DateRangePicker startDate={startDate} endDate={endDate} setEndDate={setEndDate} setStartDate={setStartDate}/> 
                     <button

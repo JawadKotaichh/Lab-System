@@ -27,7 +27,7 @@ export type labTest = {
 };
 export type labPanel = {
   lab_panel_id: string;
-  lab_panel_name: string;
+  panel_name: string;
   list_of_test_type_ids: string[];
 };
 export type CreateLabTestParams = {
@@ -40,7 +40,7 @@ export type CreateLabTestParams = {
   lower_bound: string;
 };
 export type CreateLabPanelParams = {
-  lab_panel_name: string;
+  panel_name: string;
   list_of_test_type_ids: string[];
 };
 
