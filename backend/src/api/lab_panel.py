@@ -34,12 +34,11 @@ async def create_lab_panel(data: Lab_Panel):
     db_Lab_panel = await db_Lab_panel.insert()
     return db_Lab_panel
 
-@router.get("/page/{page_size}/{page_number}")
+@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
 async def get_Lab_panel_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
     total_number_of_lab_panel = await DBLab_panel.find_all().count()
     cursor = DBLab_panel.find().skip(offset).limit(page_size)
-    # output = []
     panels: List[Dict[str, Any]] = []
     async for panel in cursor:
         panels.append({
@@ -58,7 +57,7 @@ async def get_Lab_panel_with_page_size(page_number:int,page_size:int):
 
 
 
-@router.get("/all")
+@router.get("/all",response_model= List[Dict[str, Any]])
 async def getAllLabPanels() -> List[Dict[str, Any]]:
     cursor = DBLab_panel.find()
     panels: List[Dict[str, Any]] = []
@@ -70,8 +69,8 @@ async def getAllLabPanels() -> List[Dict[str, Any]]:
         })
     return panels
 
-@router.get("/{lab_panel_id}")
-async def getLabPanel(lab_panel_id:str)-> Dict[str, Any]:
+@router.get("/{lab_panel_id}",response_model=Dict[str, Any])
+async def getLabPanel(lab_panel_id:str):
     if not ObjectId.is_valid(lab_panel_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -134,7 +133,7 @@ async def update_lab_panel(
     return existing_Lab_panel
 
 
-@router.delete("/{lab_panel_id}")
+@router.delete("/{lab_panel_id}", response_class=Response)
 async def delete_lab_panel(lab_panel_id: str):
     if not ObjectId.is_valid(lab_panel_id):
         raise HTTPException(400, "Invalid lab_panel ID")
