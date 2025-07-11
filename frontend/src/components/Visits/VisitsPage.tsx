@@ -17,6 +17,7 @@ import {
 } from "../types";
 import handleDeleteVisit from "./handleDeleteVisit";
 import Pagination from "../Pagination";
+import { pageListTitle } from "../../style";
 
 const Visits: React.FC = () => {
   const navigate = useNavigate();
@@ -144,6 +145,7 @@ const Visits: React.FC = () => {
       <main className="relative">
         <div className="relative w-full mt-10">
           <div className="p-8 bg-white">
+            <h1 className={pageListTitle}>Visits</h1>
             <Pagination
               TotalNumberOfPaginatedItems={totalNumberOfVisits}
               setPageSize={setPageSize}
