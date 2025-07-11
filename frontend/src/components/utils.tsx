@@ -20,6 +20,7 @@ import {
   InsuranceApiURL,
   labPanelApiURL,
   labTestCategoryApiURL,
+  PatientsApiURL,
 } from "./data.js";
 
 const fetchLabTestResults = async (
@@ -123,6 +124,25 @@ const fetchPatientsPaginated = async (
   const response = await api.get(url);
   return response.data;
 };
+
+const fetchPatientsPaginatedTest = async (
+  pageNumber: number,
+  pageSize: number,
+  filters: {
+    name?: string;
+    gender?: string;
+    insurance_company_id?: string;
+  } = {}
+): Promise<paginatedPatientInfo> => {
+  const response = await api.get(
+    `${PatientsApiURL}page/${pageSize}/${pageNumber}`,
+    {
+      params: filters,
+    }
+  );
+  return response.data;
+};
+
 const fetchLabTestCategoryPaginated = async (
   page_number: number,
   page_size: number
@@ -181,3 +201,4 @@ export { fetchVisitsPaginated };
 export { fetchInsuranceCompany };
 export { fetchLabTest };
 export { fetchInsuranceCompaniesPaginated };
+export { fetchPatientsPaginatedTest };
