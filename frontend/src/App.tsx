@@ -3,8 +3,6 @@ import { Routes, Route, Link, NavLink, useMatch } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./App.css";
 import Visits from "./components/Visits/VisitsPage";
-import PatientPage from "./components/Patients/PatientsPage";
-import type { optionsMenuPages } from "./components/types";
 import MaintenanceMenu from "./components/MaintenanceMenu";
 import EditPatientPage from "./components/Patients/EditPatient";
 import EditVisitPage from "./components/EditVisitPage/EditVisitPage";
@@ -16,6 +14,7 @@ import LabPanelsList from "./components/LabTest/LabPanelsList";
 import EditLabPanel from "./components/LabTest/EditLabPanel";
 import EditLabTestCategory from "./components/LabTest/EditLabTestCategory";
 import LabTestCategoryList from "./components/LabTest/LabTestCategoryList";
+import PatientList from "./components/Patients/PatientList";
 // import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
 
 type NavItem = {
@@ -28,10 +27,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: "/visits", label: "Visits", end: true },
   { to: "/patients", label: "Patients" },
-];
-const menuPages: optionsMenuPages[] = [
-  { label: "Insurance Companies", path: "/insurance-companies" },
-  { label: "Lab Tests", path: "/lab-tests" },
 ];
 
 const App: React.FC = () => {
@@ -67,7 +62,6 @@ const App: React.FC = () => {
                 </NavLink>
               ))}
               <MaintenanceMenu
-                options={menuPages}
                 isMenuOpen={isMenuOpen}
                 setIsMenuOpen={setIsMenuOpen}
               />
@@ -80,7 +74,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/visits" element={<Visits />} />
           <Route path="/visits/:visit_id" element={<EditVisitPage />} />
-          <Route path="/patients" element={<PatientPage />} />
+          <Route path="/patients" element={<PatientList />} />
           <Route
             path="/insurance-companies"
             element={<InsuranceCompanyList />}
