@@ -3,6 +3,8 @@ from fastapi import APIRouter, HTTPException, status
 from ..models import lab_test_result as DBLab_test_result
 from ..models import Visit as DBVisit
 from ..models import lab_test_type as DBLab_test_type
+from ..models import Patient as DBPatient
+from ..models import insurance_company as DBInsurance_company
 from ..schemas.schema_Lab_Test_Result import Lab_test_result, update_lab_test_result_model
 from bson import ObjectId
 from fastapi.responses import Response
@@ -18,9 +20,27 @@ router = APIRouter(
 @router.get("/completed/{visit_id}",response_model=Dict[str,Any])
 async def get_completed_and_total_results( visit_id: str):
     all_items = DBLab_test_result.find(DBLab_test_result.visit_id == ObjectId(visit_id))
-    total = 0
+    total = 0.0
     completed = 0
-    totalPrice = 0
+    totalPrice = 0.0
+    visit = await DBVisit.find_one(DBVisit.id==ObjectId(visit_id))
+    if not visit:
+        raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Visit {visit_id} not found",
+        )
+    patient = await DBPatient.find_one(DBPatient.id==ObjectId(visit.patient_id))
+    if not patient:
+        raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Patient {visit.patient_id} not found",
+        )
+    insurance_company = await DBInsurance_company.find_one(DBInsurance_company.id==ObjectId(patient.insurance_company_id))
+    if not insurance_company:
+        raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Insurance Company {patient.insurance_company_id} not found",
+        )
     async for item in all_items:
         total+=1
         lab_test = await DBLab_test_type.find_one(DBLab_test_type.id==ObjectId(item.lab_test_type_id))
@@ -28,11 +48,12 @@ async def get_completed_and_total_results( visit_id: str):
             totalPrice+=lab_test.price
         if item.result!="":
             completed+=1
+    FinalTotalPrice = totalPrice*(float(insurance_company.rate))
     output:Dict[str,Any] = {
         "visit_id": str(visit_id),
         "countOfCompletedResults": completed,
         "totalNumberOfTests": total,
-        "totalPrice": totalPrice
+        "totalPrice": round(FinalTotalPrice, 2)
     }
     return output
 
