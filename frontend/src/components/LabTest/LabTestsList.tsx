@@ -100,7 +100,14 @@ const LabTestsList = () => {
           Create Lab Test
         </button>
       </div>
-
+      <Pagination
+        TotalNumberOfPaginatedItems={totalNumberOfLabTests}
+        setPageSize={setPageSize}
+        pageSize={pageSize}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
       {totalNumberOfLabTests === 0 ? (
         <p> No lab tests found!</p>
       ) : (
@@ -153,14 +160,6 @@ const LabTestsList = () => {
           </table>
         </>
       )}
-      <Pagination
-        TotalNumberOfPaginatedItems={totalNumberOfLabTests}
-        setPageSize={setPageSize}
-        pageSize={pageSize}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
-      />
     </div>
   );
 };

@@ -98,6 +98,23 @@ const LabPanelsList = () => {
         <p> No lab panels found!</p>
       ) : (
         <>
+          <div className="flex justify-between items-center mb-4">
+            <Pagination
+              TotalNumberOfPaginatedItems={totalNumberOfLabPanels}
+              setPageSize={setPageSize}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
+            <button
+              className={tableCreateButton + " float-left"}
+              onClick={handleCreateLabPanel}
+            >
+              Create Lab Panel
+            </button>
+          </div>
+
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
             <tbody>
               {availableLabPanels.map((lp) => (
@@ -109,7 +126,7 @@ const LabPanelsList = () => {
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-xl text-left">
-                          {lp.lab_panel_name}
+                          {lp.panel_name}
                         </span>
                         <div className="flex space-x-2">
                           <button
@@ -166,20 +183,6 @@ const LabPanelsList = () => {
           </table>
         </>
       )}
-      <Pagination
-        TotalNumberOfPaginatedItems={totalNumberOfLabPanels}
-        setPageSize={setPageSize}
-        pageSize={pageSize}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
-      />
-      <button
-        className={tableCreateButton}
-        onClick={() => handleCreateLabPanel()}
-      >
-        Create Lab Panel
-      </button>
     </div>
   );
 };

@@ -9,67 +9,13 @@ from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
+from typing import Any, Dict, List
 
 router = APIRouter(
     prefix="/lab_panel",
     tags=["lab_panel"],
 )
 PyObjectId = Annotated[str, BeforeValidator(str)]
-
-@router.get("/page/{page_size}/{page_number}")
-async def get_Lab_panel_with_page_size(page_number:int,page_size:int):
-    offset = (page_number - 1) * page_size
-    total_number_of_lab_panel = await DBLab_panel.find_all().count()
-    all_lab_panels_paginated = DBLab_panel.find().skip(offset).limit(page_size)
-    output = []
-    async for lab_panel in all_lab_panels_paginated:
-        d={}
-        d["lab_panel_id"] = str(lab_panel.id)
-        d["lab_panel_name"]=str(lab_panel.panel_name)
-        tempList = []
-        for test_type_id in lab_panel.list_of_test_type_ids:
-            tempList.append(str(test_type_id))
-        d["list_of_test_type_ids"] = tempList
-        output.append(d)
-
-    total_pages = ceil(total_number_of_lab_panel / page_size)
-    result= {
-        "TotalNumberOfLabPanels":total_number_of_lab_panel,
-        "total_pages":total_pages,
-        "lab_panels":output
-    }
-    return result
-
-
-
-@router.get("/all")
-async def getAllLabPanels():
-    all_items = DBLab_panel.find()
-    output=[]
-    async for lab_panel in all_items:
-        d={}
-        d["lab_panel_id"] = str(lab_panel.id)
-        d["lab_panel_name"]=str(lab_panel.panel_name)
-        tempList = []
-        for test_type_id in lab_panel.list_of_test_type_ids:
-            tempList.append(str(test_type_id))
-        d["list_of_test_type_ids"] = tempList
-        output.append(d)
-    return output
-
-@router.get("/{lab_panel_id}")
-async def getLabPanel(lab_panel_id:str):
-    lab_panel = await DBLab_panel.get(ObjectId(lab_panel_id))
-    if not lab_panel:
-        raise HTTPException(status_code=404, detail="Panel not found")
-    d={}
-    d["lab_panel_id"] = str(lab_panel.id)
-    d["lab_panel_name"]=str(lab_panel.panel_name)
-    tempList = []
-    for test_type_id in lab_panel.list_of_test_type_ids:
-        tempList.append(str(test_type_id))
-    d["list_of_test_type_ids"] = tempList
-    return d
 
 @router.post(
     "/",
@@ -87,6 +33,63 @@ async def create_lab_panel(data: Lab_Panel):
     )
     db_Lab_panel = await db_Lab_panel.insert()
     return db_Lab_panel
+
+@router.get("/page/{page_size}/{page_number}")
+async def get_Lab_panel_with_page_size(page_number:int,page_size:int):
+    offset = (page_number - 1) * page_size
+    total_number_of_lab_panel = await DBLab_panel.find_all().count()
+    cursor = DBLab_panel.find().skip(offset).limit(page_size)
+    # output = []
+    panels: List[Dict[str, Any]] = []
+    async for panel in cursor:
+        panels.append({
+            "lab_panel_id": str(panel.id),
+            "panel_name": panel.panel_name,
+            "list_of_test_type_ids": [str(tid) for tid in panel.list_of_test_type_ids],
+        })
+
+    total_pages = ceil(total_number_of_lab_panel / page_size)
+    result= {
+        "TotalNumberOfLabPanels":total_number_of_lab_panel,
+        "total_pages":total_pages,
+        "lab_panels":panels
+    }
+    return result
+
+
+
+@router.get("/all")
+async def getAllLabPanels() -> List[Dict[str, Any]]:
+    cursor = DBLab_panel.find()
+    panels: List[Dict[str, Any]] = []
+    async for panel in cursor:
+        panels.append({
+            "lab_panel_id": str(panel.id),
+            "panel_name": panel.panel_name,
+            "list_of_test_type_ids": [str(tid) for tid in panel.list_of_test_type_ids],
+        })
+    return panels
+
+@router.get("/{lab_panel_id}")
+async def getLabPanel(lab_panel_id:str)-> Dict[str, Any]:
+    if not ObjectId.is_valid(lab_panel_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid lab_panel_id ID"
+        )
+    lab_panel = await DBLab_panel.get(ObjectId(lab_panel_id))
+    if not lab_panel:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Panel not found")
+
+    d: Dict[str, Any] = {}
+    d["lab_panel_id"] = str(lab_panel.id)
+    d["panel_name"] = lab_panel.panel_name
+    tempList: List[str] = []
+    for test_type_id in lab_panel.list_of_test_type_ids:
+        tempList.append(str(test_type_id))
+    d["list_of_test_type_ids"] = tempList
+    return d
+
 
 
 @router.get("/{lab_panel_id}", response_model=DBLab_panel)

@@ -101,6 +101,14 @@ const AddTestToPanel: React.FC<TestsList> = ({
                 setVisibleTests={setVisibleTests}
                 /> */}
             <div className="flex-1 overflow-y-auto mt-4 border border-black">
+              <Pagination
+                TotalNumberOfPaginatedItems={TotalNumberOfTests}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                setPageSize={setPageSize}
+              />
               <table className="w-full border border-black border-collapse text-center">
                 <AddResultHead />
                 <tbody>
@@ -139,14 +147,7 @@ const AddTestToPanel: React.FC<TestsList> = ({
                   ))}
                 </tbody>
               </table>
-              <Pagination
-                TotalNumberOfPaginatedItems={TotalNumberOfTests}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                totalPages={totalPages}
-                pageSize={pageSize}
-                setPageSize={setPageSize}
-              />
+
               <div className="sticky bottom-0 bg-white border-t pt-4 flex">
                 <button
                   onClick={() => setShow(false)}
