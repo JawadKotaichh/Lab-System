@@ -11,46 +11,45 @@ from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
+from typing import Any, Dict, List
 
 
 router = APIRouter(prefix="/visits", tags=["visits"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
-@router.get("/page/{page_size}/{page_number}")
+@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
 async def get_visits_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
     total_number_of_visits = await DBVisit.find_all().count()
-    all_visit_paginated = DBVisit.find().skip(offset).limit(page_size)
-    output = []
-    async for visit in all_visit_paginated:
-        d = {}
-        d["visit_id"] = str(visit.id)
-        d["date"] = str(visit.date)[:10]
-        d["patient_id"] = str(visit.patient_id)
-
-        output.append(d)
-
+    cursor = DBVisit.find().skip(offset).limit(page_size)
+    visits: List[Dict[str, Any]] = []
+    async for visit in cursor:
+        visits.append({
+            "visit_id": str(visit.id),
+            "date": str(visit.date)[:10],
+            "patient_id": str(visit.patient_id),
+        })
     total_pages= ceil(total_number_of_visits / page_size)
     return {
         "TotalNumberOfVisits":total_number_of_visits,
         "total_pages":total_pages,
-        "visits":output
+        "visits":visits
     }
 
 
 
-@router.get("/all")
-async def getAllVisits():
-    all_items = DBVisit.find()
-    output=[]
-    async for visit in all_items:
-        d={}
-        d["visit_id"] = str(visit.id)
-        d["date"] = str(visit.date)[:10]
-        d["patient_id"] = str(visit.patient_id)
-        output.append(d)
-    return output
+@router.get("/all",response_model=List[Dict[str, Any]])
+async def getAllVisits()->List[Dict[str, Any]]:
+    cursor = DBVisit.find()
+    visits: List[Dict[str, Any]]=[]
+    async for visit in cursor:
+        visits.append({
+            "lab_panel_id": str(visit.id),
+            "date": str(visit.date)[:10],
+            "patient_id": str(visit.patient_id),
+        })
+    return visits
 
 
 
@@ -165,7 +164,7 @@ async def update_visit(visit_id: PyObjectId, update_data: update_visit_model):
     return existing_visit
 
 
-@router.delete("/{visit_id}")
+@router.delete("/{visit_id}", response_class=Response)
 async def delete_visit(visit_id: PyObjectId):
     if not ObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
