@@ -9,54 +9,25 @@ import {
 import { useNavigate } from "react-router-dom";
 import { createVisit } from "../utils";
 import Pagination from "../Pagination";
+import { pageListTitle, tableCreateButton } from "../../style";
 
 // Add group if tests
 // print pdf result see where it is easer
 
-interface ShowAllPatientsParams {
-  allPatients: patientInfo[];
-  setAllPatients: React.Dispatch<React.SetStateAction<patientInfo[]>>;
-  visiblePatients: patientInfo[];
-  setVisiblePatients: React.Dispatch<React.SetStateAction<patientInfo[]>>;
-  loadingPatients: boolean;
-  setLoadingPatients: React.Dispatch<React.SetStateAction<boolean>>;
-  error: string;
-  setError: React.Dispatch<React.SetStateAction<string>>;
-  searchInput: string;
-  setSearchInput: React.Dispatch<React.SetStateAction<string>>;
-  currentPage: number;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
-  totalPages: number;
-  setTotalPages: React.Dispatch<React.SetStateAction<number>>;
-  pageSize: number;
-  setPageSize: React.Dispatch<React.SetStateAction<number>>;
-  totalNumberOfPatients: number;
-  setTotalNumberOfPatients: React.Dispatch<React.SetStateAction<number>>;
-}
-
-const PatientList: React.FC<ShowAllPatientsParams> = ({
-  allPatients,
-  setAllPatients,
-  setVisiblePatients,
-  visiblePatients,
-  loadingPatients,
-  setLoadingPatients,
-  error,
-  setError,
-  // searchInput,
-  // setSearchInput,
-  currentPage,
-  setCurrentPage,
-  totalPages,
-  setTotalPages,
-  pageSize,
-  setPageSize,
-  setTotalNumberOfPatients,
-  totalNumberOfPatients,
-}: ShowAllPatientsParams) => {
+const PatientList = () => {
   const [insuranceCompanies, setInsuranceCompanies] = useState<
     insuranceCompanyParams[]
   >([]);
+  const [loadingPatients, setLoadingPatients] = useState(true);
+  const [allPatients, setAllPatients] = useState<patientInfo[]>([]);
+  // const [searchInput, setSearchInput] = useState<string>("");
+  const [visiblePatients, setVisiblePatients] =
+    useState<patientInfo[]>(allPatients);
+  const [error, setError] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalNumberOfPatients, setTotalNumberOfPatients] = useState<number>(0);
 
   useEffect(() => {
     fetchAllInsuranceCompanies()
@@ -117,13 +88,22 @@ const PatientList: React.FC<ShowAllPatientsParams> = ({
     setTotalPages,
     setError,
   ]);
+  console.log("Visible patients: ", visiblePatients);
 
   if (loadingPatients) return <div className="p-4">Loading Patient list…</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
     <div className="p-8 bg-white">
-      <h1 className="text-4xl font-semibold mb-6">Patient List</h1>
+      <div className="grid grid-cols-2">
+        <h1 className={pageListTitle}>Patients</h1>
+        <button
+          className={tableCreateButton + " ml-auto text-xl"}
+          onClick={() => navigate(`/patients/create-patient`)}
+        >
+          Create Patient
+        </button>
+      </div>
       {allPatients.length === 0 ? (
         <p> No patients found!</p>
       ) : (
@@ -148,7 +128,7 @@ const PatientList: React.FC<ShowAllPatientsParams> = ({
                     {patient.patient_id}
                   </td>
                   <td className="font-bold border rounded-b-sm px-4 py-2">
-                    {patient.name}
+                    {patient.patient_name}
                   </td>
                   <td className="border rounded-b-sm px-4 py-2">
                     {patient.gender}

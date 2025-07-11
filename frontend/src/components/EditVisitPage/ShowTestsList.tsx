@@ -10,14 +10,15 @@ import {
 } from "../utils.js";
 import { useEffect, useMemo, useState } from "react";
 import Pagination from "../Pagination.js";
+import SearchTest from "./SearchTest.js";
 
 interface TestsList {
   addError: string;
   setAddError: React.Dispatch<React.SetStateAction<string>>;
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
-  // searchInput:string;
-  // setSearchInput:React.Dispatch<React.SetStateAction<string>>;
+  searchInput: string;
+  setSearchInput: React.Dispatch<React.SetStateAction<string>>;
   // allTests: labTest[];
   visibleTests: labTest[];
   setVisibleTests: React.Dispatch<React.SetStateAction<labTest[]>>;
@@ -40,6 +41,8 @@ const ShowTestsList: React.FC<TestsList> = ({
   addError,
   setAddError,
   show,
+  searchInput,
+  setSearchInput,
   setShow,
   // searchInput,setSearchInput,
   // allTests,
@@ -145,12 +148,12 @@ const ShowTestsList: React.FC<TestsList> = ({
             {addError && (
               <p className="mb-2 text-sm text-red-600">{addError}</p>
             )}
-            {/* <SearchTest
-                searchInput={searchInput}
-                setSearchInput={setSearchInput}
-                allTests={allTests}
-                setVisibleTests={setVisibleTests}
-                /> */}
+            <SearchTest
+              searchInput={searchInput}
+              setSearchInput={setSearchInput}
+              allTests={visibleTests}
+              setVisibleTests={setVisibleTests}
+            />
             <div className="flex-1 overflow-y-auto mt-4 border border-black">
               <table className="w-full border border-black border-collapse text-center">
                 <AddResultHead />

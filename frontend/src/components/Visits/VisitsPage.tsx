@@ -99,7 +99,7 @@ const Visits: React.FC = () => {
 
   const patientNameById = useMemo(() => {
     return patientsData.reduce<Record<string, string>>((map, c) => {
-      map[c.patient_id] = c.name;
+      map[c.patient_id] = c.patient_name;
       return map;
     }, {});
   }, [patientsData]);
@@ -160,10 +160,9 @@ const Visits: React.FC = () => {
                       {TotalPriceByVisitId[v.visit_id]} $
                     </td>
                     <td className="border rounded-b-sm  px-4 py-2">
-                      {CompletedResultsByVisitId[v.visit_id]} /{" "}
+                      {CompletedResultsByVisitId[v.visit_id]} /
                       {TotalTestsResultsByVisitId[v.visit_id]}
                     </td>
-
                     <td className="border rounded-b-sm  px-4 py-2">
                       <button
                         className="mt-4 p-2 h-fit w-fit rounded-sm text-center bg-blue-400 hover:bg-green-600"
@@ -175,7 +174,20 @@ const Visits: React.FC = () => {
                     <td className="border rounded-b-sm  px-4 py-2">
                       <button
                         className="mt-4 p-2 h-fit w-fit rounded-sm text-center bg-blue-400 hover:bg-green-600"
-                        onClick={() => navigate(`/visits/${v.visit_id}`)}
+                        onClick={() => {
+                          const patient = patientsData.find(
+                            (p) => p.patient_id === v.patient_id
+                          )!;
+                          navigate(`/visits/${v.visit_id}`, {
+                            state: {
+                              patientData: {
+                                ...patient,
+                                insurance_company_id:
+                                  companyById[patient.insurance_company_id],
+                              },
+                            },
+                          });
+                        }}
                       >
                         Edit Visit
                       </button>

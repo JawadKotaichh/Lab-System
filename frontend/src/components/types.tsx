@@ -46,7 +46,7 @@ export type CreateLabPanelParams = {
 
 export type patientInfo = {
   patient_id: string;
-  name: string;
+  patient_name: string;
   gender: string;
   DOB: string;
   phone_number: string;
@@ -149,7 +149,6 @@ export type optionsMenuPages = {
 export interface MenuParams {
   isMenuOpen: boolean;
   setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  options: optionsMenuPages[];
 }
 
 // Create Pages Params

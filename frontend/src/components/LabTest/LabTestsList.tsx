@@ -16,9 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import api from "../../api";
 import {
-  labPanelMainPageURL,
   labTestApiURL,
-  labTestCategoryMainPageURL,
   labTestCreatePageURL,
   labTestEditPageURL,
 } from "../data";
@@ -39,12 +37,6 @@ const LabTestsList = () => {
   const navigate = useNavigate();
   const handleCreateLabTest = () => {
     navigate(labTestCreatePageURL);
-  };
-  const handleGoToLabPanels = () => {
-    navigate(labPanelMainPageURL);
-  };
-  const handleGoToLabCategories = () => {
-    navigate(labTestCategoryMainPageURL);
   };
   const handleEditLabTest = (insurance_company_id: string) => {
     navigate(`${labTestEditPageURL}${insurance_company_id}`);
@@ -99,19 +91,16 @@ const LabTestsList = () => {
 
   return (
     <div className="p-8 bg-white">
-      <h1 className={pageListTitle}>Lab Tests List</h1>
-      <button
-        className={tableCreateButton}
-        onClick={() => handleGoToLabPanels()}
-      >
-        Go to Lab Panels
-      </button>
-      <button
-        className={tableCreateButton}
-        onClick={() => handleGoToLabCategories()}
-      >
-        Go to Lab Categories
-      </button>
+      <div className="grid grid-cols-2">
+        <h1 className={pageListTitle}>Lab Tests List</h1>
+        <button
+          className={tableCreateButton + " ml-auto text-xl"}
+          onClick={() => handleCreateLabTest()}
+        >
+          Create Lab Test
+        </button>
+      </div>
+
       {totalNumberOfLabTests === 0 ? (
         <p> No lab tests found!</p>
       ) : (
@@ -172,12 +161,6 @@ const LabTestsList = () => {
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
       />
-      <button
-        className={tableCreateButton}
-        onClick={() => handleCreateLabTest()}
-      >
-        Create Lab Test
-      </button>
     </div>
   );
 };
