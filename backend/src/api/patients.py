@@ -8,47 +8,47 @@ from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
+from typing import Any, Dict, List
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-@router.get("/page/{page_size}/{page_number}")
+@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
 async def get_patients_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
     total_number_of_patients = await DBPatient.find_all().count()
-    all_patient_paginated = DBPatient.find().skip(offset).limit(page_size)
-    output = []
-    async for patient in all_patient_paginated:
-        d = {}
-        d["patient_id"] = str(patient.id)
-        d["patient_name"] = patient.name
-        d["gender"] = patient.gender
-        d["DOB"] = patient.DOB
-        d["phone_number"] = patient.phone_number
-        d["insurance_company_id"]=patient.insurance_company_id
-        output.append(d)
-
+    cursor = DBPatient.find().skip(offset).limit(page_size)
+    patients : List[Dict[str, Any]] = []
+    async for patient in cursor:
+        patients.append({
+            "patient_id": str(patient.id),
+            "patient_name": patient.name,
+            "gender": patient.gender,
+            "DOB":patient.DOB,
+            "phone_number":patient.phone_number,
+            "insurance_company_id":str(patient.insurance_company_id),
+        })
     total_pages= ceil(total_number_of_patients / page_size)
     return {
         "TotalNumberOfPatients":total_number_of_patients,
         "total_pages":total_pages,
-        "patients":output
+        "patients":patients
     }
 
-@router.get("/all")
-async def getAllPatients():
-    all_patients = DBPatient.find()
-    output = []
-    async for patient in all_patients:
-        d = {}
-        d["patient_id"] = str(patient.id)
-        d["patient_name"] = patient.name
-        d["gender"] = patient.gender
-        d["DOB"] = patient.DOB
-        d["phone_number"] = patient.phone_number
-        d["insurance_company_id"]=patient.insurance_company_id
-        output.append(d)
-    return output
+@router.get("/all",response_model=List[Dict[str,Any]])
+async def getAllPatients()->List[Dict[str,Any]]:
+    cursor = DBPatient.find()
+    patients:List[Dict[str,Any]]=[]
+    async for patient in cursor:
+        patients.append({
+            "patient_id": str(patient.id),
+            "patient_name": patient.name,
+            "gender": patient.gender,
+            "DOB":patient.DOB,
+            "phone_number":patient.phone_number,
+            "insurance_company_id":patient.insurance_company_id,
+        })
+    return patients
 
 @router.post(
     "/",
@@ -57,7 +57,6 @@ async def getAllPatients():
     summary="Create a new Patient",
 )
 async def create_patient(data: Patient):
-    print("I was called")
     db_patient = DBPatient(
         name=data.name, gender=data.gender, DOB=data.DOB, phone_number=data.phone_number,insurance_company_id=data.insurance_company_id
     )
@@ -68,7 +67,7 @@ async def create_patient(data: Patient):
     return new_patient
 
 
-@router.get("/{patient_id}")
+@router.get("/{patient_id}",response_model=Dict[str, Any])
 async def get_patient(patient_id: str):
     
     if not ObjectId.is_valid(patient_id):
@@ -77,7 +76,7 @@ async def get_patient(patient_id: str):
     
     if not patient:
         raise HTTPException(404, f"Patient {patient_id} not found")
-    output = {}
+    output: Dict[str, Any] = {}
     output["patient_id"] = str(patient.id)
     output["patient_name"] = patient.name
     output["gender"] = patient.gender
@@ -121,7 +120,7 @@ async def update_patient(patient_id: str, update_data: update_patient_model):
     return existing_patient
 
 
-@router.delete("/{patient_id}")
+@router.delete("/{patient_id}", response_class=Response)
 async def delete_patient(patient_id: str):
     if not ObjectId.is_valid(patient_id):
         raise HTTPException(400, "Invalid patient ID")

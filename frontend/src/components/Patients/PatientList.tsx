@@ -37,11 +37,19 @@ const PatientList = () => {
 
   const navigate = useNavigate();
 
-  const handleNewVisit = async (patient_id: string) => {
+  const handleNewVisit = async (patient: patientInfo) => {
     try {
-      const resp = await createVisit(patient_id);
+      const resp = await createVisit(patient.patient_id);
       const newVisit = resp.data;
-      navigate(`/visits/${newVisit._id}`);
+      navigate(`/visits/${newVisit._id}`, {
+        state: {
+          patientData: {
+            ...patient,
+            insurance_company_id:
+              insuranceCompanyById[patient.insurance_company_id],
+          },
+        },
+      });
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
@@ -153,7 +161,7 @@ const PatientList = () => {
                   <td className="border rounded-b-sm  px-4 py-2">
                     <button
                       className="p-2 h-fit w-fit rounded-sm bg-blue-400 hover:bg-green-600"
-                      onClick={() => handleNewVisit(patient.patient_id)}
+                      onClick={() => handleNewVisit(patient)}
                     >
                       New Visit
                     </button>

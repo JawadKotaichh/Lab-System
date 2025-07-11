@@ -7,6 +7,8 @@ from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
+from typing import Any, Dict, List
+from math import ceil
 
 router = APIRouter(prefix="/insurance_company", tags=["insurance_company"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
@@ -21,26 +23,39 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
         -> Add arrow up and down and sort
     Add phone number to the visit page
 """
-@router.get("/page",response_model=list[Insurance_company])
+@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
 async def get_insurance_company_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size
-    all_insurance_companies_paginated = DBInsurance_company.find().skip(offset).limit(page_size)
-    insurance_companies_list = []
-    async for insurance_company in all_insurance_companies_paginated:
-        insurance_companies_list.append(insurance_company)
-    return insurance_companies_list
+    total_number_of_insurance_companies = await DBInsurance_company.find_all().count()
+    cursor = DBInsurance_company.find().skip(offset).limit(page_size)
+    insurance_companies: List[Dict[str, Any]] = []
+    async for insurance_company in cursor:
+        insurance_companies.append({
+            "insurance_company_id": str(insurance_company.id),
+            "insurance_company_name": insurance_company.insurance_company_name,
+            "rate":insurance_company.rate,
+        })
 
-@router.get("/all")
-async def getAllInsuranceCompany():
-    all_insurance_companies = DBInsurance_company.find()
-    output = []
-    async for insurance_company in all_insurance_companies:
-        d = {}
-        d["insurance_company_id"] = str(insurance_company.id)
-        d["insurance_company_name"] = insurance_company.insurance_company_name
-        d["rate"] = insurance_company.rate
-        output.append(d)
-    return output
+    total_pages = ceil(total_number_of_insurance_companies / page_size)
+    result= {
+        "TotalNumberOfLabPanels":total_number_of_insurance_companies,
+        "total_pages":total_pages,
+        "insurance_companies":insurance_companies
+    }
+    return result
+
+
+@router.get("/all",response_model=List[Dict[str, Any]])
+async def getAllInsuranceCompany()->List[Dict[str, Any]]:
+    cursor = DBInsurance_company.find()
+    all_insurance_companies: List[Dict[str, Any]] = []
+    async for insurance_company in cursor:
+        all_insurance_companies.append({
+            "insurance_company_id": str(insurance_company.id),
+            "insurance_company_name": insurance_company.insurance_company_name,
+            "rate": insurance_company.rate,
+        })
+    return all_insurance_companies
 
 @router.post(
     "/",
@@ -58,7 +73,7 @@ async def create_insurance_company(data: Insurance_company):
     return new_insurance_company
 
 
-@router.get("/{insurance_company_id}")
+@router.get("/{insurance_company_id}",response_model= Dict[str, Any] )
 async def get_insurance_company(insurance_company_id: str):
     
     if not ObjectId.is_valid(insurance_company_id):
@@ -67,7 +82,8 @@ async def get_insurance_company(insurance_company_id: str):
     
     if not insurance_company:
         raise HTTPException(404, f"Insurance_company {insurance_company_id} not found")
-    output = {}
+    
+    output : Dict[str, Any] = {}
     output["insurance_company_id"] = str(insurance_company.id)
     output["insurance_company_name"] = insurance_company.insurance_company_name
     output["rate"] = insurance_company.rate
@@ -99,7 +115,7 @@ async def update_Insurance_company(insurance_company_id: str, update_data: updat
     return existing_insurance_company
 
 
-@router.delete("/{insurance_company_id}")
+@router.delete("/{insurance_company_id}", response_class=Response)
 async def delete_insurance_company(insurance_company_id: str):
     if not ObjectId.is_valid(insurance_company_id):
         raise HTTPException(400, "Invalid insurance_company ID")
