@@ -63,7 +63,7 @@ const ShowResultsList: React.FC<ShowResultsListParams> = ({
   };
 
   return (
-    <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
+    <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-10">
       <EditVistHead />
       <tbody>
         {results.map((r) => (
