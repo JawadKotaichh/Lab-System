@@ -11,7 +11,16 @@ from fastapi_pagination.ext.beanie import apaginate
 router = APIRouter(prefix="/insurance_company", tags=["insurance_company"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-
+"""
+    Take offset instead of page number
+    Class Filters : 
+        -> Patient filter w I specify for example name and phone number
+        -> Lab test : name, nssf id, category 
+        -> Visit: 
+    Class Sorting:
+        -> Add arrow up and down and sort
+    Add phone number to the visit page
+"""
 @router.get("/page",response_model=list[Insurance_company])
 async def get_insurance_company_with_page_size(page_number:int,page_size:int):
     offset = (page_number - 1) * page_size

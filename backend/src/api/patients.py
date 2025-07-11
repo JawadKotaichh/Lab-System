@@ -79,7 +79,7 @@ async def get_patient(patient_id: str):
         raise HTTPException(404, f"Patient {patient_id} not found")
     output = {}
     output["patient_id"] = str(patient.id)
-    output["name"] = patient.name
+    output["patient_name"] = patient.name
     output["gender"] = patient.gender
     output["DOB"] = patient.DOB
     output["phone_number"] = patient.phone_number
