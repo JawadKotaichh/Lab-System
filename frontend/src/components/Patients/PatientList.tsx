@@ -108,6 +108,14 @@ const PatientList = () => {
         <p> No patients found!</p>
       ) : (
         <>
+          <Pagination
+            TotalNumberOfPaginatedItems={totalNumberOfPatients}
+            setPageSize={setPageSize}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+          />
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
             <thead className="bg-gray-100 border-b border-black sticky top-0 z-10">
               <tr>
@@ -164,14 +172,6 @@ const PatientList = () => {
               ))}
             </tbody>
           </table>
-          <Pagination
-            TotalNumberOfPaginatedItems={totalNumberOfPatients}
-            setPageSize={setPageSize}
-            pageSize={pageSize}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            setCurrentPage={setCurrentPage}
-          />
           {/* <SearchPatient
                 searchInput={searchInput}
                 setSearchInput={setSearchInput}
