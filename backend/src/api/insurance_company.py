@@ -21,7 +21,6 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
         -> Visit: 
     Class Sorting:
         -> Add arrow up and down and sort
-    Add phone number to the visit page
 """
 @router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
 async def get_insurance_company_with_page_size(page_number:int,page_size:int):
@@ -38,7 +37,7 @@ async def get_insurance_company_with_page_size(page_number:int,page_size:int):
 
     total_pages = ceil(total_number_of_insurance_companies / page_size)
     result= {
-        "TotalNumberOfLabPanels":total_number_of_insurance_companies,
+        "TotalNumberOfInsuranceCompanies":total_number_of_insurance_companies,
         "total_pages":total_pages,
         "insurance_companies":insurance_companies
     }

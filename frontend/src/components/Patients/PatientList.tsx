@@ -96,7 +96,6 @@ const PatientList = () => {
     setTotalPages,
     setError,
   ]);
-  console.log("Visible patients: ", visiblePatients);
 
   if (loadingPatients) return <div className="p-4">Loading Patient list…</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;

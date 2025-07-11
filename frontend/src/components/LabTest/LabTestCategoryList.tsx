@@ -78,6 +78,23 @@ const LabTestCategoryList = () => {
         <p> No insurance companies found!</p>
       ) : (
         <>
+          <div className="flex justify-between items-center mb-4">
+            <Pagination
+              TotalNumberOfPaginatedItems={totalNumberOfLabTestCategories}
+              setPageSize={setPageSize}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
+            <button
+              className={tableCreateButton}
+              onClick={() => handleCreateLabTestCategory()}
+            >
+              Create Lab Test Category
+            </button>
+          </div>
+
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center">
             <thead className={tableHead}>
               <tr>
@@ -119,20 +136,6 @@ const LabTestCategoryList = () => {
           </table>
         </>
       )}
-      <Pagination
-        TotalNumberOfPaginatedItems={totalNumberOfLabTestCategories}
-        setPageSize={setPageSize}
-        pageSize={pageSize}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
-      />
-      <button
-        className={tableCreateButton}
-        onClick={() => handleCreateLabTestCategory()}
-      >
-        Create Lab Test Category
-      </button>
     </div>
   );
 };
