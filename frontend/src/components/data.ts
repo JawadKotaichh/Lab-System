@@ -22,7 +22,7 @@ const InsuranceCreatePageURL = "/create-insurance-company";
 const listOfAttributesPatient = [
   {
     subItem: "Patient Name",
-    attributeName: "name",
+    attributeName: "patient_name",
     typeOfInput: "string",
     icon: "User",
     placeHolder: "Enter patient name",
