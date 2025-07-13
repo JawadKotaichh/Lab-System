@@ -43,6 +43,10 @@ export type CreateLabPanelParams = {
   panel_name: string;
   list_of_test_type_ids: string[];
 };
+export interface InsuranceFilters {
+  insurance_company_name?: string;
+  rate?: string;
+}
 
 export type patientInfo = {
   patient_id: string;
@@ -133,8 +137,8 @@ export interface PaginationParams {
   totalPages: number;
   pageSize: number;
   TotalNumberOfPaginatedItems: number;
-  setPageSize: React.Dispatch<React.SetStateAction<number>>;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
 }
 export type VisitsInfo = {
   visit_id: string;

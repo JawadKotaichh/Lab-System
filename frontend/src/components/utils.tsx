@@ -3,9 +3,9 @@ import type {
   CreateLabPanelParams,
   CreateLabTestParams,
   insuranceCompanyParams,
+  InsuranceFilters,
   labTestCategoryParams,
   LabTestResult,
-  paginatedInsuranceCompany,
   paginatedlabPanel,
   paginatedlabTest,
   paginatedPatientInfo,
@@ -63,10 +63,11 @@ const fetchLabPanelsPaginated = async (
 
 const fetchInsuranceCompaniesPaginated = async (
   page_number: number,
-  page_size: number
-): Promise<paginatedInsuranceCompany> => {
+  page_size: number,
+  filters: InsuranceFilters = {}
+) => {
   const url = `${InsuranceApiURL}page/${page_size}/${page_number}`;
-  const response = await api.get(url);
+  const response = await api.get(url, { params: filters });
   return response.data;
 };
 
