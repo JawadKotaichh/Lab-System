@@ -6,7 +6,6 @@ import Visits from "./components/Visits/VisitsPage";
 import MaintenanceMenu from "./components/MaintenanceMenu";
 import EditPatientPage from "./components/Patients/EditPatient";
 import EditVisitPage from "./components/EditVisitPage/EditVisitPage";
-import InsuranceCompanyList from "./components/InsuranceCompany/InsuranceCompanyList";
 import EditInsuranceCompany from "./components/InsuranceCompany/EditInsuranceCompany";
 import EditLabTest from "./components/LabTest/EditLabTest";
 import LabTestsList from "./components/LabTest/LabTestsList";
@@ -15,7 +14,7 @@ import EditLabPanel from "./components/LabTest/EditLabPanel";
 import EditLabTestCategory from "./components/LabTest/EditLabTestCategory";
 import LabTestCategoryList from "./components/LabTest/LabTestCategoryList";
 import PatientList from "./components/Patients/PatientList";
-// import EditLabTestTypePage from './components/Pages/EditLabTestPage/EditLabTestPage';
+import InsuranceCompanyTable from "./components/InsuranceCompany/InsuranceCompanyTable";
 
 type NavItem = {
   to: string;
@@ -77,7 +76,7 @@ const App: React.FC = () => {
           <Route path="/patients" element={<PatientList />} />
           <Route
             path="/insurance-companies"
-            element={<InsuranceCompanyList />}
+            element={<InsuranceCompanyTable />}
           />
           <Route
             path="/create-insurance-company"
