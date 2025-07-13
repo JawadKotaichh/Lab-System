@@ -22,3 +22,6 @@ export const tableCreateButton = "p-2 h-fit w-fit rounded-sm bg-blue-400 hover:b
 export const pageListTitle = "text-4xl font-semibold mb-6";
 export const stateStyle = "text-red-400";
 export const iconStyle = "w-4 h-4 text-gray-500 text-center";
+
+
+export const resetFilterButton  = "ml-5 hover:bg-blue-500 rounded-sm w-15 border h-9";

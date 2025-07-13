@@ -9,6 +9,7 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from typing import Any, Dict, List
 from math import ceil
+from fastapi import Query
 
 router = APIRouter(prefix="/insurance_company", tags=["insurance_company"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
@@ -23,10 +24,17 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
         -> Add arrow up and down and sort
 """
 @router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
-async def get_insurance_company_with_page_size(page_number:int,page_size:int):
+async def get_insurance_company_with_page_size(page_number:int,page_size:int, insurance_company_name:str | None = Query(None),
+    rate: str | None = Query(None)):
     offset = (page_number - 1) * page_size
-    total_number_of_insurance_companies = await DBInsurance_company.find_all().count()
-    cursor = DBInsurance_company.find().skip(offset).limit(page_size)
+    mongo_filter: dict[str, Any] = {}
+    if insurance_company_name:
+        mongo_filter["insurance_company_name"] = {"$regex": insurance_company_name, "$options": "i"}
+    if rate:
+        mongo_filter["rate"] =  {"$regex": rate, "$options": "i"}
+    
+    total_number_of_insurance_companies = await DBInsurance_company.find(mongo_filter).count()
+    cursor = DBInsurance_company.find(mongo_filter).skip(offset).limit(page_size)
     insurance_companies: List[Dict[str, Any]] = []
     async for insurance_company in cursor:
         insurance_companies.append({
