@@ -1,18 +1,15 @@
 from fastapi import APIRouter, HTTPException, status
 from ..models import insurance_company as DBInsurance_company
 from ..schemas.schema_Insurance_Company import Insurance_company, update_insurance_company
-from pydantic.functional_validators import BeforeValidator
-from typing_extensions import Annotated
-from bson import ObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from typing import Any, Dict, List
 from math import ceil
 from fastapi import Query
+from beanie import PydanticObjectId
 
 router = APIRouter(prefix="/insurance_company", tags=["insurance_company"])
-PyObjectId = Annotated[str, BeforeValidator(str)]
 
 """
     Take offset instead of page number
@@ -83,9 +80,9 @@ async def create_insurance_company(data: Insurance_company):
 @router.get("/{insurance_company_id}",response_model= Dict[str, Any] )
 async def get_insurance_company(insurance_company_id: str):
     
-    if not ObjectId.is_valid(insurance_company_id):
+    if not PydanticObjectId.is_valid(insurance_company_id):
         raise HTTPException(400, "Invalid insurance_company ID")
-    insurance_company = await DBInsurance_company.get(ObjectId(insurance_company_id))
+    insurance_company = await DBInsurance_company.get(PydanticObjectId(insurance_company_id))
     
     if not insurance_company:
         raise HTTPException(404, f"Insurance_company {insurance_company_id} not found")
@@ -105,10 +102,10 @@ async def get_all_insurance_companies():
 
 @router.put("/{insurance_company_id}", response_model=DBInsurance_company)
 async def update_Insurance_company(insurance_company_id: str, update_data: update_insurance_company):
-    if not ObjectId.is_valid(insurance_company_id):
+    if not PydanticObjectId.is_valid(insurance_company_id):
         raise HTTPException(400, "Invalid insurance_company ID")
 
-    existing_insurance_company = await DBInsurance_company.find_one(DBInsurance_company.id == ObjectId(insurance_company_id))
+    existing_insurance_company = await DBInsurance_company.find_one(DBInsurance_company.id == PydanticObjectId(insurance_company_id))
     if existing_insurance_company is None:
         raise HTTPException(404, f"insurance_company {insurance_company_id} not found")
 
@@ -124,10 +121,10 @@ async def update_Insurance_company(insurance_company_id: str, update_data: updat
 
 @router.delete("/{insurance_company_id}", response_class=Response)
 async def delete_insurance_company(insurance_company_id: str):
-    if not ObjectId.is_valid(insurance_company_id):
+    if not PydanticObjectId.is_valid(insurance_company_id):
         raise HTTPException(400, "Invalid insurance_company ID")
     insurance_company_to_be_deleted = await DBInsurance_company.find_one(
-        DBInsurance_company.id == ObjectId(insurance_company_id)
+        DBInsurance_company.id == PydanticObjectId(insurance_company_id)
     )
     if insurance_company_to_be_deleted is None:
         raise HTTPException(404, f"insurance_company {insurance_company_id} not found")

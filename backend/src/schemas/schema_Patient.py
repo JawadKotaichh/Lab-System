@@ -45,7 +45,7 @@ class update_patient_model(BaseModel):
             "example": {
                 "name": "Jawad Kotaich",
                 "gender": "Male",
-                "DOB": datetime(1995, 1, 15),
+                "DOB": "1995-01-15T00:00:00",
                 "phone_number": "02345678",
                 "insurance_company_id": "684e9e724cd8de425cec0af7",
             }

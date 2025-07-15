@@ -12,6 +12,7 @@ import type {
   paginatedTestCategoryInfo,
   paginatedVisitInfo,
   patientInfo,
+  patientsFilters,
   VisitsInfo,
 } from "./types.js";
 import api from "../api.js";
@@ -48,7 +49,6 @@ const fetchLabPanel = async (
 ): Promise<CreateLabPanelParams> => {
   const url = `${labPanelApiURL}/${lab_panel_id}`;
   const response = await api.get(url);
-  console.log("Fetched Data: ", response.data);
   return response.data;
 };
 
@@ -119,30 +119,31 @@ const fetchAllLabTestTypeCategories = async (): Promise<
 
 const fetchPatientsPaginated = async (
   page_number: number,
-  page_size: number
+  page_size: number,
+  filters: patientsFilters = {}
 ): Promise<paginatedPatientInfo> => {
-  const url = `/patients/page/${page_size}/${page_number}`;
-  const response = await api.get(url);
+  const url = `${PatientsApiURL}page/${page_size}/${page_number}`;
+  const response = await api.get(url, { params: filters });
   return response.data;
 };
 
-const fetchPatientsPaginatedTest = async (
-  pageNumber: number,
-  pageSize: number,
-  filters: {
-    name?: string;
-    gender?: string;
-    insurance_company_id?: string;
-  } = {}
-): Promise<paginatedPatientInfo> => {
-  const response = await api.get(
-    `${PatientsApiURL}page/${pageSize}/${pageNumber}`,
-    {
-      params: filters,
-    }
-  );
-  return response.data;
-};
+// const fetchPatientsPaginatedTest = async (
+//   pageNumber: number,
+//   pageSize: number,
+//   filters: {
+//     name?: string;
+//     gender?: string;
+//     insurance_company_id?: string;
+//   } = {}
+// ): Promise<paginatedPatientInfo> => {
+//   const response = await api.get(
+//     `${PatientsApiURL}page/${pageSize}/${pageNumber}`,
+//     {
+//       params: filters,
+//     }
+//   );
+//   return response.data;
+// };
 
 const fetchLabTestCategoryPaginated = async (
   page_number: number,
@@ -202,4 +203,3 @@ export { fetchVisitsPaginated };
 export { fetchInsuranceCompany };
 export { fetchLabTest };
 export { fetchInsuranceCompaniesPaginated };
-export { fetchPatientsPaginatedTest };
