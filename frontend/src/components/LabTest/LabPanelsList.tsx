@@ -164,7 +164,7 @@ const LabPanelsList = () => {
                         <tr>
                           <React.Fragment key={id}>
                             <td className={tableItem}>{t.nssf_id}</td>
-                            <td className={tableItem}>{t.lab_test_name}</td>
+                            <td className={tableItem}>{t.name}</td>
                             <td className={tableItem}>
                               {labTestCategoryById[t.lab_test_category_id]}
                             </td>

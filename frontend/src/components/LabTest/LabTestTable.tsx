@@ -8,8 +8,8 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type { patientInfo } from "../types";
-import { fetchPatientsPaginated } from "../utils";
+import type { labTest } from "../types";
+import { fetchLabTestTypePaginated } from "../utils";
 import {
   pageListTitle,
   tableCreateButton,
@@ -18,11 +18,12 @@ import {
 } from "../../style";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../Pagination";
-import { getPatientsColumns } from "../tableData";
+import { getLabTestColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
+import { handleCreateLabTest } from "../Function";
 
-const PatientTable = () => {
-  const [data, setData] = useState<patientInfo[]>([]);
+const LabTestTable = () => {
+  const [data, setData] = useState<labTest[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
@@ -49,7 +50,7 @@ const PatientTable = () => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
 
-  const PatientsCols = getPatientsColumns(
+  const labTestCols = getLabTestColumns(
     navigate,
     showFilters,
     toggleFilter,
@@ -58,7 +59,7 @@ const PatientTable = () => {
 
   const table = useReactTable({
     data,
-    columns: PatientsCols,
+    columns: labTestCols,
     pageCount: totalPages,
     state: { pagination, columnFilters, sorting },
     manualPagination: true,
@@ -84,14 +85,14 @@ const PatientTable = () => {
           },
           {}
         );
-        const res = await fetchPatientsPaginated(
+        const res = await fetchLabTestTypePaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
           filters
         );
-        setData(res.patients);
+        setData(res.lab_tests);
         setTotalPages(res.total_pages);
-        setTotalNumberOfPaginatedItems(res.TotalNumberOfPatients);
+        setTotalNumberOfPaginatedItems(res.TotalNumberOfTests);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -102,17 +103,17 @@ const PatientTable = () => {
     loadPage();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters]);
 
-  if (loading) return <div>Loading Patients...</div>;
+  if (loading) return <div>Loading Lab Tests...</div>;
 
   return (
     <div className="p-8 bg-white">
       <div className="grid grid-cols-2">
-        <h1 className={pageListTitle}>Patients List</h1>
+        <h1 className={pageListTitle}>Lab Test List</h1>
         <button
           className={`${tableCreateButton} ml-auto text-xl`}
-          onClick={() => navigate(`/patients/create-patient`)}
+          onClick={() => handleCreateLabTest(navigate)}
         >
-          Create Patient
+          Create Lab Test
         </button>
       </div>
       {error && <div className="text-red-600">{error}</div>}
@@ -129,10 +130,10 @@ const PatientTable = () => {
         loading={loading}
         tableHeadStyle={tableHead}
         cellStyle={tableItem}
-        noDataMessage="No patients found"
+        noDataMessage="No lab tests found"
       />
     </div>
   );
 };
 
-export default PatientTable;
+export default LabTestTable;

@@ -1,37 +1,52 @@
+import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
-import { InsuranceApiURL, PatientsApiURL } from "./data";
+import { InsuranceApiURL, labTestApiURL, labTestCreatePageURL, PatientsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
 
-interface deleteInsuranceCompanyParams {
-    insurance_company_id:string;
+interface deleteElement {
+    elementID:string;
     setError:Dispatch<SetStateAction<string>>;
     
 }
-  const handleDeleteInsuranceCompany = ({insurance_company_id,setError}:deleteInsuranceCompanyParams) => {
+  const handleDeleteInsuranceCompany = ({elementID,setError}:deleteElement) => {
     if (
       !window.confirm("Are you sure you want to delete this insurance company?")
     )
       return;
     api
-      .delete(`${InsuranceApiURL}${insurance_company_id}`)
+      .delete(`${InsuranceApiURL}${elementID}`)
       .then(() => window.location.reload())
       .catch((err: Error) => setError(err.message));
   };
-  
-interface deletePatientParams {
-    patient_id:string;
-    setError:Dispatch<SetStateAction<string>>;
-    
-}
-  const handleDeletePatient = ({patient_id,setError}:deletePatientParams) => {
+
+  const handleDeletePatient = ({elementID,setError}:deleteElement) => {
     if (
       !window.confirm("Are you sure you want to delete this patient?")
     )
       return;
     api
-      .delete(`${PatientsApiURL}${patient_id}`)
+      .delete(`${PatientsApiURL}${elementID}`)
       .then(() => window.location.reload())
       .catch((err: Error) => setError(err.message));
   };
-  export {handleDeleteInsuranceCompany};  
-  export {handleDeletePatient};
+
+const handleDeleteLabTest = ({elementID,setError}:deleteElement) => {
+    if (!window.confirm("Are you sure you want to delete this lab test?")) {
+      return;
+    }
+    try {
+      api.delete(`${labTestApiURL}/${elementID}`);
+      window.location.reload();
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+const handleCreateLabTest = (navigate: NavigateFunction) => {
+    navigate(labTestCreatePageURL);
+  };
+export{handleDeleteLabTest};
+export{handleCreateLabTest};
+export {handleDeleteInsuranceCompany};  
+export {handleDeletePatient};
