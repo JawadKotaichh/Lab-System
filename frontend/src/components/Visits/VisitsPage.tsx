@@ -140,7 +140,7 @@ const Visits: React.FC = () => {
     }, {});
   }, [insuranceCompanies]);
 
-  const insuranceCompanyById = useMemo(() => {
+  const patientIdToInsuranceCompany = useMemo(() => {
     return patientsData.reduce<Record<string, string>>((map, p) => {
       map[p.patient_id] = companyById[p.insurance_company_id];
       return map;
@@ -171,7 +171,7 @@ const Visits: React.FC = () => {
                       {patientNameById[v.patient_id]}
                     </td>
                     <td className="border rounded-b-sm  px-4 py-2">
-                      {insuranceCompanyById[v.patient_id]}
+                      {patientIdToInsuranceCompany[v.patient_id]}
                     </td>
                     <td className="border rounded-b-sm  px-4 py-2">
                       {TotalPriceByVisitId[v.visit_id]} $

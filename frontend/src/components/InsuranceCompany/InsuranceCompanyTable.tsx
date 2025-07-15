@@ -132,7 +132,7 @@ const InsuranceCompanyTable = () => {
         tableHeadStyle={tableHead}
         cellStyle={tableItem}
         noDataMessage="No insurance companies found"
-      />{" "}
+      />
     </div>
   );
 };

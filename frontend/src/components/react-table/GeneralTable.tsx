@@ -17,7 +17,7 @@ const GenericTable = <TData,>({
   tableHeadStyle,
   cellStyle = "px-4 py-2",
 }: GenericTableProps<TData>) => (
-  <div>
+  <div className="max-h-screen max-w-screen">
     <table className={tableStyle}>
       <thead className={tableHeadStyle}>
         {table.getHeaderGroups().map((headerGroup) => (
