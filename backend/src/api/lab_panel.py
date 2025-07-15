@@ -2,9 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from ..models import lab_test_type as DBLab_test_type
 from ..models import lab_panel as DBLab_panel
 from ..schemas.schema_Lab_Panel import Lab_Panel,update_Lab_Panel_model
-from pydantic.functional_validators import BeforeValidator
-from typing_extensions import Annotated
-from bson import ObjectId
+from beanie import PydanticObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
@@ -15,7 +13,6 @@ router = APIRouter(
     prefix="/lab_panel",
     tags=["lab_panel"],
 )
-PyObjectId = Annotated[str, BeforeValidator(str)]
 
 @router.post(
     "/",
@@ -25,7 +22,7 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 )
 async def create_lab_panel(data: Lab_Panel):
     for lab_test_type_id in data.list_of_test_type_ids:
-        if DBLab_test_type.find_one(DBLab_test_type.id == ObjectId(lab_test_type_id)) is None:
+        if DBLab_test_type.find_one(DBLab_test_type.id == PydanticObjectId(lab_test_type_id)) is None:
             raise HTTPException(400, "Invalid lab_test_type ID")
     db_Lab_panel = DBLab_panel(
         panel_name = data.panel_name,
@@ -71,12 +68,12 @@ async def getAllLabPanels() -> List[Dict[str, Any]]:
 
 @router.get("/{lab_panel_id}",response_model=Dict[str, Any])
 async def getLabPanel(lab_panel_id:str):
-    if not ObjectId.is_valid(lab_panel_id):
+    if not PydanticObjectId.is_valid(lab_panel_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid lab_panel_id ID"
         )
-    lab_panel = await DBLab_panel.get(ObjectId(lab_panel_id))
+    lab_panel = await DBLab_panel.get(PydanticObjectId(lab_panel_id))
     if not lab_panel:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Panel not found")
 
@@ -93,9 +90,9 @@ async def getLabPanel(lab_panel_id:str):
 
 @router.get("/{lab_panel_id}", response_model=DBLab_panel)
 async def get_lab_panel(lab_panel_id: str):
-    if not ObjectId.is_valid(lab_panel_id):
+    if not PydanticObjectId.is_valid(lab_panel_id):
         raise HTTPException(400, "Invalid lab_panel_id ID")
-    Lab_panel = await DBLab_panel.get(ObjectId(lab_panel_id))
+    Lab_panel = await DBLab_panel.get(PydanticObjectId(lab_panel_id))
     if not Lab_panel:
         raise HTTPException(404, f"Lab_panel {lab_panel_id} not found")
     return Lab_panel
@@ -114,11 +111,11 @@ async def get_all_lab_panels():
 async def update_lab_panel(
     lab_panel_id: str, update_data: update_Lab_Panel_model
 ):
-    if not ObjectId.is_valid(lab_panel_id):
+    if not PydanticObjectId.is_valid(lab_panel_id):
         raise HTTPException(400, "Invalid lab_panel ID")
 
     existing_Lab_panel = await DBLab_panel.find_one(
-        DBLab_panel.id == ObjectId(lab_panel_id)
+        DBLab_panel.id == PydanticObjectId(lab_panel_id)
     )
     if existing_Lab_panel is None:
         raise HTTPException(404, f"Lab_panel {lab_panel_id} not found")
@@ -135,9 +132,9 @@ async def update_lab_panel(
 
 @router.delete("/{lab_panel_id}", response_class=Response)
 async def delete_lab_panel(lab_panel_id: str):
-    if not ObjectId.is_valid(lab_panel_id):
+    if not PydanticObjectId.is_valid(lab_panel_id):
         raise HTTPException(400, "Invalid lab_panel ID")
-    lab_panel_to_be_deleted = await DBLab_panel.get(ObjectId(lab_panel_id))
+    lab_panel_to_be_deleted = await DBLab_panel.get(PydanticObjectId(lab_panel_id))
     if not lab_panel_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

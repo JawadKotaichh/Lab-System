@@ -1,9 +1,9 @@
 import React from "react";
 import { tableHandleButton, tableDeleteButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
-import type { insuranceCompanyParams } from "./types";
+import type { insuranceCompanyParams, patientInfo } from "./types";
 import { InsuranceEditPageURL } from "./data";
-import { handleDeleteInsuranceCompany } from "./Function";
+import { handleDeleteInsuranceCompany, handleDeletePatient } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -71,6 +71,139 @@ export function getInsuranceCompanyColumns(
               onClick={() =>
                 handleDeleteInsuranceCompany({
                   insurance_company_id: company.insurance_company_id,
+                  setError,
+                })
+              }
+            >
+              Delete
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
+}
+
+export function getPatientsColumns(
+  navigate: NavigateFunction,
+  showFilters: Record<string, boolean>,
+  toggleFilter: (id: string) => void,
+  setError: React.Dispatch<React.SetStateAction<string>>
+): ColumnDef<patientInfo>[] {
+  return [
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <ColumnFilter
+          column={column}
+          placeholder="Search name…"
+          label="Name"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "gender",
+      header: ({ column }) => (
+        <ColumnFilter
+          column={column}
+          placeholder="Search gender..."
+          label="Gender"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+          options={[
+            { value: "Male", label: "Male" },
+            { value: "Female", label: "Female" },
+          ]}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "DOB",
+      cell: ({ getValue }) => {
+        const iso = getValue<string>() ?? "";
+        return iso.split("T")[0];
+      },
+      header: ({ column }) => (
+        <ColumnFilter
+          inputType="date"
+          column={column}
+          placeholder="Search DOB…"
+          label="DOB"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "insurance_company_name",
+      header: ({ column }) => (
+        <ColumnFilter
+          column={column}
+          placeholder="Search insurance company..."
+          label="Insurance Company"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "phone_number",
+      header: ({ column }) => (
+        <ColumnFilter
+          column={column}
+          placeholder="Search phone number..."
+          label="Phone Number"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      id: "actions",
+      enableSorting: false,
+      header: () => <div className="text-xl mt-4 text-center">Actions</div>,
+      cell: ({ row }) => {
+        const { patient_id } = row.original;
+        return (
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() => navigate(`/patients/edit-patient/${patient_id}`)}
+            >
+              Edit
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
+                handleDeletePatient({
+                  patient_id: patient_id,
                   setError,
                 })
               }

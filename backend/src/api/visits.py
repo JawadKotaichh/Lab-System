@@ -4,9 +4,7 @@ from typing import Optional
 from ..models import Visit as DBVisit
 from ..models import Patient as DBPatient
 from ..schemas.schema_Visit import Visit, update_visit_model
-from pydantic.functional_validators import BeforeValidator
-from typing_extensions import Annotated
-from bson import ObjectId
+from beanie import PydanticObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
@@ -15,14 +13,19 @@ from typing import Any, Dict, List
 
 
 router = APIRouter(prefix="/visits", tags=["visits"])
-PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 @router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
-async def get_visits_with_page_size(page_number:int,page_size:int):
+async def get_visits_with_page_size(page_number:int,page_size:int, date: str | None = Query(None),patient_id:str | None=Query(None) ):
     offset = (page_number - 1) * page_size
-    total_number_of_visits = await DBVisit.find_all().count()
-    cursor = DBVisit.find().skip(offset).limit(page_size)
+    mongo_filter: dict[str, Any] = {}
+    if date:
+        mongo_filter["date"] = {"$regex": date, "$options": "i"}
+    if patient_id:
+        mongo_filter["patient_id"] = {"$regex": patient_id, "$options": "i"}
+
+    total_number_of_visits = await DBVisit.find(mongo_filter).count()
+    cursor = DBVisit.find(mongo_filter).skip(offset).limit(page_size)
     visits: List[Dict[str, Any]] = []
     async for visit in cursor:
         visits.append({
@@ -53,8 +56,8 @@ async def getAllVisits()->List[Dict[str, Any]]:
 
 
 
-@router.get("/{visit_id}/patient_name")
-async def get_patient_name(visit_id: PyObjectId):
+@router.get("/{visit_id}/name")
+async def get_patient_name(visit_id: PydanticObjectId):
     visit = await DBVisit.get(visit_id)
     if not visit:
         raise HTTPException(status_code=404, detail="Visit not found")
@@ -101,9 +104,9 @@ async def get_visits_by_date_range(
     status_code=status.HTTP_201_CREATED,
     summary="Create a new visit",
 )
-async def create_visit(patient_id: PyObjectId, data: Visit):
+async def create_visit(patient_id: PydanticObjectId, data: Visit):
     
-    if not ObjectId.is_valid(patient_id):
+    if not PydanticObjectId.is_valid(patient_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid patient ID",
@@ -113,7 +116,7 @@ async def create_visit(patient_id: PyObjectId, data: Visit):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Patient ID in the visit is not the same as the one given!",
         )
-    patient = await DBPatient.get(ObjectId(patient_id))
+    patient = await DBPatient.get(PydanticObjectId(patient_id))
     if not patient:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -125,10 +128,10 @@ async def create_visit(patient_id: PyObjectId, data: Visit):
 
 
 @router.get("/{visit_id}", response_model=DBVisit)
-async def get_visit(visit_id: PyObjectId):
-    if not ObjectId.is_valid(visit_id):
+async def get_visit(visit_id: PydanticObjectId):
+    if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
-    Visit = await DBVisit.get(ObjectId(visit_id))
+    Visit = await DBVisit.get(PydanticObjectId(visit_id))
     if not Visit:
         raise HTTPException(404, f"Visit {visit_id} not found")
     return Visit
@@ -141,16 +144,16 @@ async def get_all_visits():
 
 
 @router.put("/{visit_id}", response_model=DBVisit)
-async def update_visit(visit_id: PyObjectId, update_data: update_visit_model):
-    if not ObjectId.is_valid(visit_id):
+async def update_visit(visit_id: PydanticObjectId, update_data: update_visit_model):
+    if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
-    if not ObjectId.is_valid(update_data.patient_id):
+    if not PydanticObjectId.is_valid(update_data.patient_id):
         raise HTTPException(400, "Invalid Visit ID")
 
-    existing_visit = await DBVisit.find_one(DBVisit.id == ObjectId(visit_id))
+    existing_visit = await DBVisit.find_one(DBVisit.id == PydanticObjectId(visit_id))
     if existing_visit is None:
         raise HTTPException(404, f"Visit {visit_id} not found")
-    patient = await DBPatient.get(ObjectId(update_data.patient_id))
+    patient = await DBPatient.get(PydanticObjectId(update_data.patient_id))
     if patient is None:
         raise HTTPException(404, f"Visit {visit_id} not found")
 
@@ -165,10 +168,10 @@ async def update_visit(visit_id: PyObjectId, update_data: update_visit_model):
 
 
 @router.delete("/{visit_id}", response_class=Response)
-async def delete_visit(visit_id: PyObjectId):
-    if not ObjectId.is_valid(visit_id):
+async def delete_visit(visit_id: PydanticObjectId):
+    if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
-    visit_to_be_deleted = await DBVisit.get(ObjectId(visit_id))
+    visit_to_be_deleted = await DBVisit.get(PydanticObjectId(visit_id))
     if not visit_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

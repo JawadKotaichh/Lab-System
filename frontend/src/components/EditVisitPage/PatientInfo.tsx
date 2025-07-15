@@ -21,7 +21,7 @@ const PatientInfo: React.FC<PatientCardParams> = ({
         <div className={inputFormAttributeListItem}>
           <label className={patientInfoCardItem}>
             <span className="font-bold">Patient Name:</span>
-            <span>{patientData.patient_name}</span>
+            <span>{patientData.name}</span>
           </label>
         </div>
         <div className={inputFormAttributeListItem}>
