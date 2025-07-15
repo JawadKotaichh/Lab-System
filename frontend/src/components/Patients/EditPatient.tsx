@@ -29,7 +29,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<patientInfo>({
     patient_id: `${patient_id}`,
-    patient_name: "",
+    name: "",
     DOB: "",
     gender: "",
     phone_number: "",
@@ -81,7 +81,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
   const handleSave = async () => {
     if (
       data.DOB == "" ||
-      data.patient_name == "" ||
+      data.name == "" ||
       data.gender == "" ||
       data.phone_number == "" ||
       data.insurance_company_id == ""

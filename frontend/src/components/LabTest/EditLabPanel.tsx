@@ -118,7 +118,6 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const handleAddButton = () => setShow(true);
 
   const handleSave = async () => {
-    console.log("Lab Panel Name: ", data.panel_name);
     if (!data.panel_name || data.list_of_test_type_ids.length === 0) {
       setState("Please insert all the required fields!");
       return;
