@@ -85,6 +85,7 @@ const fetchAllInsuranceCompanies = async (): Promise<
 };
 const fetchPatient = async (patient_id: string): Promise<patientInfo> => {
   const response = await api.get(`/patients/${patient_id}`);
+  console.log(":FEtch patient response: ", response.data);
   return response.data;
 };
 const fetchInsuranceCompany = async (
