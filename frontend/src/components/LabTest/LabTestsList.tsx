@@ -38,8 +38,8 @@ const LabTestsList = () => {
   const handleCreateLabTest = () => {
     navigate(labTestCreatePageURL);
   };
-  const handleEditLabTest = (insurance_company_id: string) => {
-    navigate(`${labTestEditPageURL}${insurance_company_id}`);
+  const handleEditLabTest = (lab_test_id: string) => {
+    navigate(`${labTestEditPageURL}${lab_test_id}`);
   };
   const handleDeleteLabTest = (insurance_company_id: string) => {
     if (!window.confirm("Are you sure you want to delete this lab test?")) {
@@ -130,7 +130,7 @@ const LabTestsList = () => {
               {availableLabTests.map((lt) => (
                 <tr key={lt.lab_test_id} className="border rounded-sm">
                   <td className={tableItem}>{lt.nssf_id}</td>
-                  <td className={tableItem}>{lt.lab_test_name}</td>
+                  <td className={tableItem}>{lt.name}</td>
                   <td className={tableItem}>
                     {labTestCategoryById[lt.lab_test_category_id]}
                   </td>
