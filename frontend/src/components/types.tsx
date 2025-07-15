@@ -47,14 +47,22 @@ export interface InsuranceFilters {
   insurance_company_name?: string;
   rate?: string;
 }
+export interface patientsFilters {
+  name?: string;
+  gender?: string;
+  insurance_company_id?: string;
+  phone_number?: string;
+  DOB?: string;
+}
 
 export type patientInfo = {
   patient_id: string;
-  patient_name: string;
+  name: string;
   gender: string;
   DOB: string;
   phone_number: string;
   insurance_company_id: string;
+  insurance_company_name?: string;
 };
 
 export type PatientParams = {

@@ -21,7 +21,7 @@ class Patient(Document):
     gender: str = Field(...)
     DOB: datetime = Field(...)
     phone_number: str = Field(...)
-    insurance_company_id: str = Field(...)
+    insurance_company_id: PydanticObjectId = Field(...)
 
     class Settings:
         name = "patients"

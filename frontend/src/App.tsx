@@ -13,8 +13,8 @@ import LabPanelsList from "./components/LabTest/LabPanelsList";
 import EditLabPanel from "./components/LabTest/EditLabPanel";
 import EditLabTestCategory from "./components/LabTest/EditLabTestCategory";
 import LabTestCategoryList from "./components/LabTest/LabTestCategoryList";
-import PatientList from "./components/Patients/PatientList";
 import InsuranceCompanyTable from "./components/InsuranceCompany/InsuranceCompanyTable";
+import PatientTable from "./components/Patients/PatientTable";
 
 type NavItem = {
   to: string;
@@ -73,7 +73,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/visits" element={<Visits />} />
           <Route path="/visits/:visit_id" element={<EditVisitPage />} />
-          <Route path="/patients" element={<PatientList />} />
+          <Route path="/patients" element={<PatientTable />} />
           <Route
             path="/insurance-companies"
             element={<InsuranceCompanyTable />}

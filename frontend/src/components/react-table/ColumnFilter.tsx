@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDebounce } from "./Debounce";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  RefreshCcw,
-  Filter,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Filter } from "lucide-react";
 import type { Column } from "@tanstack/react-table";
 
 export function ColumnFilter<TData, TValue>({
@@ -15,12 +9,16 @@ export function ColumnFilter<TData, TValue>({
   label,
   showFilter,
   toggleShowFilter,
+  options,
+  inputType = "text",
 }: {
   column: Column<TData, TValue>;
   placeholder: string;
   label: string;
   showFilter: boolean;
   toggleShowFilter: () => void;
+  inputType?: string;
+  options?: { value: string; label: string }[];
 }) {
   const initial = (column.getFilterValue() as string) ?? "";
   const [draft, setDraft] = useState(initial);
@@ -80,26 +78,47 @@ export function ColumnFilter<TData, TValue>({
 
         <button
           type="button"
-          className="text-gray-500 cursor-pointer"
+          className={
+            column.getFilterValue()
+              ? "text-blue-500 cursor-pointer"
+              : "text-gray-500 cursor-pointer"
+          }
           onClick={() => {
             setDraft("");
             column.setFilterValue(undefined);
           }}
           aria-label="Reset filter"
         >
-          <RefreshCcw className="w-5 h-5" />
+          X
         </button>
       </div>
 
       {showFilter && (
         <div className="mt-2 flex items-center p-2">
-          <input
-            type="text"
-            className="border rounded p-1 h-9 flex-1 text-center"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder={placeholder}
-          />
+          {options ? (
+            <select
+              className="border rounded p-1 flex-1 text-center h-9"
+              value={(column.getFilterValue() as string) ?? ""}
+              onChange={(e) =>
+                column.setFilterValue(e.target.value || undefined)
+              }
+            >
+              <option value="">All</option>
+              {options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type={inputType}
+              className="border rounded p-1 h-9 flex-1 text-center"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={placeholder}
+            />
+          )}
         </div>
       )}
     </div>

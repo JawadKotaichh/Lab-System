@@ -111,7 +111,6 @@ const EditLabTest: React.FC<EditLabTestProps> = ({
       return;
     }
     try {
-      console.log("Data before save is: ", data);
       if (lab_test_id) {
         api.put(labTestApiURL + lab_test_id, data);
       } else {
