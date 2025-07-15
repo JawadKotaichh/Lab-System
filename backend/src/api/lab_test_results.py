@@ -35,7 +35,7 @@ async def get_completed_and_total_results( visit_id: str):
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Patient {visit.patient_id} not found",
         )
-    insurance_company = await DBInsurance_company.find_one(DBInsurance_company.id==PydanticObjectId(patient.insurance_company_id))
+    insurance_company = await DBInsurance_company.find_one(DBInsurance_company.id==patient.insurance_company_id)
     if not insurance_company:
         raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
