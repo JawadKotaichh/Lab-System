@@ -8,7 +8,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type { insuranceCompanyParams, patientInfo } from "../types";
+import type { patientInfo } from "../types";
 import { fetchPatientsPaginated } from "../utils";
 import {
   pageListTitle,
@@ -20,12 +20,6 @@ import { useNavigate } from "react-router-dom";
 import Pagination from "../Pagination";
 import { getPatientsColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
-import api from "../../api";
-
-interface Option {
-  value: string;
-  label: string;
-}
 
 const PatientTable = () => {
   const [data, setData] = useState<patientInfo[]>([]);
@@ -44,9 +38,6 @@ const PatientTable = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
-  const [, setInsuranceOptions] = useState<Option[]>([]);
-  const [, setInsuranceCompanies] = useState<insuranceCompanyParams[]>([]);
-
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const toggleFilter = (colId: string) =>
     setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
@@ -58,20 +49,6 @@ const PatientTable = () => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
 
-  useEffect(() => {
-    async function loadInsurance() {
-      const resp = await api.get("/insurance_company/all");
-      setInsuranceCompanies(resp.data);
-      const list: { id: string; insurance_company_name: string }[] = resp.data;
-      setInsuranceOptions(
-        list.map((ic) => ({
-          value: ic.id,
-          label: ic.insurance_company_name,
-        }))
-      );
-    }
-    loadInsurance();
-  }, []);
   const PatientsCols = getPatientsColumns(
     navigate,
     showFilters,

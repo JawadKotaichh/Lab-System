@@ -4,9 +4,10 @@ from typing import List
 
 # TODO: take the database name from env variables
 
-from beanie import Document,PydanticObjectId
+from beanie import Document, PydanticObjectId
 
 from typing import Union
+
 
 class Visit(Document):
     patient_id: PydanticObjectId = Field(...)
@@ -28,8 +29,8 @@ class Patient(Document):
 
 
 class lab_test_type(Document):
-    nssf_id: str = Field(...)
-    lab_test_category_id : str = Field(...)
+    nssf_id: int = Field(...)
+    lab_test_category_id: PydanticObjectId = Field(...)
     name: str = Field(...)
     unit: str = Field(...)
     price: int = Field(...)
@@ -48,19 +49,25 @@ class lab_test_result(Document):
     class Settings:
         name = "lab_tests_results"
 
+
 class insurance_company(Document):
-    insurance_company_name : str = Field(...) 
-    rate:str = Field(...)
+    insurance_company_name: str = Field(...)
+    rate: str = Field(...)
+
     class Settings:
         name = "insurance_company"
 
+
 class lab_test_category(Document):
-    lab_test_category_name : str = Field(...) 
+    lab_test_category_name: str = Field(...)
+
     class Settings:
         name = "lab_test_category"
 
+
 class lab_panel(Document):
     panel_name: str = Field(...)
-    list_of_test_type_ids : List[PydanticObjectId] = Field(...)
+    list_of_test_type_ids: List[PydanticObjectId] = Field(...)
+
     class Settings:
         name = "lab_panel"

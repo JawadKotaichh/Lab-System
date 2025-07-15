@@ -103,7 +103,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({
       data.lab_test_category_id == "" ||
       data.unit == "" ||
       data.price == 0 ||
-      data.nssf_id == "" ||
+      data.nssf_id == 0 ||
       data.lower_bound == "" ||
       data.upper_bound == ""
     ) {

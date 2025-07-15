@@ -22,7 +22,7 @@ const SearchTest: React.FC<SearchForATest> = ({
       return;
     }
     const filtered_tests = allTests.filter((t) =>
-      t.lab_test_name.toLowerCase().includes(test.toLowerCase())
+      t.name.toLowerCase().includes(test.toLowerCase())
     );
     setVisibleTests(filtered_tests);
   }

@@ -121,7 +121,7 @@ const AddTestToPanel: React.FC<TestsList> = ({
                         {test.nssf_id}
                       </td>
                       <td className="border font-bold px-4 py-2">
-                        {test.lab_test_name}
+                        {test.name}
                       </td>
                       <td className="border rounded-b-sm px-4 py-2">
                         {test.unit}

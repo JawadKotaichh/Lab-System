@@ -71,7 +71,7 @@ const ShowResultsList: React.FC<ShowResultsListParams> = ({
             <td className="border rounded-b-sm px-4 py-2">
               {classById[r.lab_test_category_id]}
             </td>
-            <td className="border rounded-b-sm px-4 py-2">{r.lab_test_name}</td>
+            <td className="border rounded-b-sm px-4 py-2">{r.name}</td>
             <td className="border rounded-b-sm  px-4 py-2">
               <input
                 className="h-8 text-center"
