@@ -1,5 +1,5 @@
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, status,Query
+from fastapi import APIRouter, HTTPException, status, Query
 from ..models import lab_test_type as DBLab_test_type
 from ..models import lab_test_category as DBlab_test_category
 from ..schemas.schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
@@ -15,8 +15,18 @@ router = APIRouter(
     tags=["lab_test_type"],
 )
 
-@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
-async def get_Lab_test_type_with_page_size(page_number:int,page_size:int, name:str | None = Query(None), price:int | None = Query(None), unit:str | None = Query(None), lower_bound:str | None = Query(None), upper_bound:str | None = Query(None)):
+
+@router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
+async def get_Lab_test_type_with_page_size(
+    page_number: int,
+    page_size: int,
+    name: str | None = Query(None),
+    price: int | None = Query(None),
+    unit: str | None = Query(None),
+    lower_bound: str | None = Query(None),
+    upper_bound: str | None = Query(None),
+    nssf_id: int | None = Query(None),
+):
     offset = (page_number - 1) * page_size
     mongo_filter: dict[str, Any] = {}
     if name:
@@ -24,71 +34,118 @@ async def get_Lab_test_type_with_page_size(page_number:int,page_size:int, name:s
     if unit:
         mongo_filter["unit"] = {"$regex": unit, "$options": "i"}
     if price:
-        mongo_filter["price"]= {"$regex": price, "$options": "i"}
-    if lower_bound:
-        mongo_filter["lower_bound"]= {"$regex": lower_bound, "$options": "i"}
-    if upper_bound:
-        mongo_filter["upper_bound"]= {"$regex": upper_bound, "$options": "i"}
+        expr = {
+            "$expr": {
+                "$regexMatch": {
+                    "input": {"$toString": "$price"},
+                    "regex": str(price),
+                }
+            }
+        }
+        mongo_filter = {"$and": [mongo_filter, expr]}
+    if nssf_id:
+        expr = {
+            "$expr": {
+                "$regexMatch": {
+                    "input": {"$toString": "$nssf_id"},
+                    "regex": str(nssf_id),
+                }
+            }
+        }
+        mongo_filter = {"$and": [mongo_filter, expr]}
 
-    
+    if lower_bound:
+        mongo_filter["lower_bound"] = {"$regex": lower_bound, "$options": "i"}
+    if upper_bound:
+        mongo_filter["upper_bound"] = {"$regex": upper_bound, "$options": "i"}
+
     total_number_of_lab_test_type = await DBLab_test_type.find(mongo_filter).count()
     cursor = DBLab_test_type.find(mongo_filter).skip(offset).limit(page_size)
-    lab_tests: List[Dict[str, Any]] = []
+    lab_tests: List[Lab_test_type] = []
+
     async for test in cursor:
-        lab_tests.append({
-            "lab_test_id": str(test.id),
-            "lab_test_category_id": test.lab_test_category_id,
-            "lab_test_name": test.name,
-            "nssf_id":test.nssf_id,
-            "unit":test.unit,
-            "price":test.price,
-            "upper_bound":test.upper_bound,
-            "lower_bound":test.lower_bound,
-        })
+        db_category = await DBlab_test_category.find_one(
+            DBlab_test_category.id == test.lab_test_category_id
+        )
+        if db_category is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Lab Test Type {test.lab_test_category_id} not found",
+            )
+
+        lab_test = Lab_test_type(
+            lab_test_category_name=db_category.lab_test_category_name,
+            nssf_id=test.nssf_id,
+            lab_test_category_id=str(test.lab_test_category_id),
+            name=test.name,
+            unit=test.unit,
+            price=test.price,
+            lower_bound=test.lower_bound,
+            upper_bound=test.upper_bound,
+        )
+        lab_tests.append(lab_test)
+
     total_pages = ceil(total_number_of_lab_test_type / page_size)
-    result= {
-        "TotalNumberOfTests":total_number_of_lab_test_type,
-        "total_pages":total_pages,
-        "lab_tests":lab_tests
+    result = {
+        "TotalNumberOfTests": total_number_of_lab_test_type,
+        "total_pages": total_pages,
+        "lab_tests": lab_tests,
     }
     return result
 
 
-
-@router.get("/all",response_model=List[Dict[str, Any]])
-async def getAllTestTypes()->List[Dict[str, Any]]:
+@router.get("/all", response_model=List[Lab_test_type])
+async def getAllTestTypes() -> List[Lab_test_type]:
     cursor = DBLab_test_type.find()
-    lab_tests: List[Dict[str, Any]] = []
+    lab_tests: List[Lab_test_type] = []
     async for test in cursor:
-        lab_tests.append({
-            "lab_test_id": str(test.id),
-            "lab_test_category_id": test.lab_test_category_id,
-            "lab_test_name": test.name,
-            "nssf_id":test.nssf_id,
-            "unit":test.unit,
-            "price":test.price,
-            "upper_bound":test.upper_bound,
-            "lower_bound":test.lower_bound,
-        })
+        db_category = await DBlab_test_category.find_one(
+            DBlab_test_category.id == test.lab_test_category_id
+        )
+        if db_category is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Lab Test Type {test.lab_test_category_id} not found",
+            )
+        lab_test = Lab_test_type(
+            lab_test_category_name=db_category.lab_test_category_name,
+            nssf_id=test.nssf_id,
+            lab_test_category_id=str(test.lab_test_category_id),
+            name=test.name,
+            unit=test.unit,
+            price=test.price,
+            lower_bound=test.lower_bound,
+            upper_bound=test.upper_bound,
+        )
+        lab_tests.append(lab_test)
     return lab_tests
 
 
-@router.get("/{lab_test_type_id}",response_model=Dict[str, Any])
-async def getLabTestType(lab_test_type_id:str):
-    lab_test = await DBLab_test_type.get(PydanticObjectId(lab_test_type_id))
-    if not lab_test:
+@router.get("/{lab_test_type_id}", response_model=Lab_test_type)
+async def getLabTestType(lab_test_type_id: str):
+    db_lab_test = await DBLab_test_type.get(PydanticObjectId(lab_test_type_id))
+    if not db_lab_test:
         raise HTTPException(status_code=404, detail="Lab Test Type not found")
-    d: Dict[str, Any] = {}
-    d["lab_test_id"] = str(lab_test_type_id)
-    d["lab_test_category_id"]=str(lab_test.lab_test_category_id)
-    d["name"] = lab_test.name
-    d["nssf_id"] = lab_test.nssf_id
-    d["unit"] = lab_test.unit
-    d["price"] = lab_test.price
-    d["upper_bound"] = lab_test.upper_bound
-    d["lower_bound"] = lab_test.lower_bound
+    db_category = await DBlab_test_category.find_one(
+        DBlab_test_category.id == db_lab_test.lab_test_category_id
+    )
+    if db_category is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Lab Test Type {db_lab_test.lab_test_category_id} not found",
+        )
+    lab_test = Lab_test_type(
+        lab_test_category_name=db_category.lab_test_category_name,
+        unit=db_lab_test.unit,
+        nssf_id=db_lab_test.nssf_id,
+        lab_test_category_id=str(db_lab_test.lab_test_category_id),
+        name=db_lab_test.name,
+        price=db_lab_test.price,
+        upper_bound=db_lab_test.upper_bound,
+        lower_bound=db_lab_test.lower_bound,
+    )
+    return lab_test
 
-    return d
 
 @router.post(
     "/",
@@ -97,11 +154,16 @@ async def getLabTestType(lab_test_type_id:str):
     summary="Create a new lab test type",
 )
 async def create_lab_test_type(data: Lab_test_type):
-    if DBlab_test_category.find_one(DBlab_test_category.id == PydanticObjectId(data.lab_test_category_id)) is None:
+    if (
+        DBlab_test_category.find_one(
+            DBlab_test_category.id == PydanticObjectId(data.lab_test_category_id)
+        )
+        is None
+    ):
         raise HTTPException(400, "Invalid lab_test_category ID")
     db_Lab_test_type = DBLab_test_type(
         nssf_id=data.nssf_id,
-        lab_test_category_id=data.lab_test_category_id,
+        lab_test_category_id=str(data.lab_test_category_id),
         name=data.name,
         unit=data.unit,
         price=data.price,
@@ -122,13 +184,10 @@ async def get_lab_test_type(lab_test_type_id: str):
     return Lab_test_type
 
 
-
 @router.get("/", response_model=Page[DBLab_test_type])
 async def get_all_lab_test_type():
-    all_items =  DBLab_test_type.find()
+    all_items = DBLab_test_type.find()
     return await apaginate(all_items)
-
-
 
 
 @router.put("/{lab_test_type_id}", response_model=DBLab_test_type)
@@ -169,7 +228,9 @@ async def update_lab_test_type(
 async def delete_lab_test_type(lab_test_type_id: str):
     if not PydanticObjectId.is_valid(lab_test_type_id):
         raise HTTPException(400, "Invalid lab_test_type ID")
-    lab_test_type_to_be_deleted = await DBLab_test_type.get(PydanticObjectId(lab_test_type_id))
+    lab_test_type_to_be_deleted = await DBLab_test_type.get(
+        PydanticObjectId(lab_test_type_id)
+    )
     if not lab_test_type_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
