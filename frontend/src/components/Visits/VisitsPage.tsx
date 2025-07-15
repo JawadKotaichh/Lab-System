@@ -97,7 +97,6 @@ const Visits: React.FC = () => {
       fetchPatients();
     }
   }, [visibleVisits, error]);
-  console.log("patientsData: ", patientsData);
 
   const patientNameById = useMemo(() => {
     return patientsData.reduce<Record<string, string>>((map, c) => {
@@ -105,7 +104,6 @@ const Visits: React.FC = () => {
       return map;
     }, {});
   }, [patientsData]);
-  console.log("patientNameById: ", patientNameById);
 
   const phoneNumberById = useMemo(() => {
     return patientsData.reduce<Record<string, string>>((map, c) => {
