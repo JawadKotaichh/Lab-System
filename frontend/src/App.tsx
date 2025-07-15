@@ -8,13 +8,13 @@ import EditPatientPage from "./components/Patients/EditPatient";
 import EditVisitPage from "./components/EditVisitPage/EditVisitPage";
 import EditInsuranceCompany from "./components/InsuranceCompany/EditInsuranceCompany";
 import EditLabTest from "./components/LabTest/EditLabTest";
-import LabTestsList from "./components/LabTest/LabTestsList";
 import LabPanelsList from "./components/LabTest/LabPanelsList";
 import EditLabPanel from "./components/LabTest/EditLabPanel";
 import EditLabTestCategory from "./components/LabTest/EditLabTestCategory";
 import LabTestCategoryList from "./components/LabTest/LabTestCategoryList";
 import InsuranceCompanyTable from "./components/InsuranceCompany/InsuranceCompanyTable";
 import PatientTable from "./components/Patients/PatientTable";
+import LabTestTable from "./components/LabTest/LabTestTable";
 
 type NavItem = {
   to: string;
@@ -94,7 +94,7 @@ const App: React.FC = () => {
             path="/edit-insurance-company/:insurance_company_id"
             element={<EditInsuranceCompany title="Edit Insurance Company" />}
           />
-          <Route path="/lab-tests" element={<LabTestsList />} />
+          <Route path="/lab-tests" element={<LabTestTable />} />
           <Route
             path="/edit-lab-test/:lab_test_id"
             element={<EditLabTest title="Edit Lab Test" />}

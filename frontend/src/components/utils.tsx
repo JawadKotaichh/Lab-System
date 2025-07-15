@@ -5,6 +5,7 @@ import type {
   insuranceCompanyParams,
   InsuranceFilters,
   labTestCategoryParams,
+  labTestFilters,
   LabTestResult,
   paginatedlabPanel,
   paginatedlabTest,
@@ -156,12 +157,14 @@ const fetchLabTestCategoryPaginated = async (
 
 const fetchLabTestTypePaginated = async (
   page_number: number,
-  page_size: number
+  page_size: number,
+  filters: labTestFilters = {}
 ): Promise<paginatedlabTest> => {
   const url = `/lab_test_type/page/${page_size}/${page_number}`;
-  const response = await api.get(url);
+  const response = await api.get(url, { params: filters });
   return response.data;
 };
+
 const fetchAllVisits = async (): Promise<VisitsInfo[]> => {
   const url = `/visits/all`;
   const response = await api.get(url);
