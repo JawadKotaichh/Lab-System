@@ -1,11 +1,21 @@
 import React from "react";
 import { tableHandleButton, tableDeleteButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
-import type { insuranceCompanyParams, labTest, patientInfo } from "./types";
-import { InsuranceEditPageURL, labTestEditPageURL } from "./data";
+import type {
+  insuranceCompanyParams,
+  labTest,
+  labTestCategoryParams,
+  patientInfo,
+} from "./types";
+import {
+  InsuranceEditPageURL,
+  labTestCategoryEditPageURL,
+  labTestEditPageURL,
+} from "./data";
 import {
   handleDeleteInsuranceCompany,
   handleDeleteLabTest,
+  handleDeleteLabTestCategory,
   handleDeletePatient,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
@@ -366,6 +376,64 @@ export function getLabTestColumns(
               onClick={() =>
                 handleDeleteLabTest({
                   elementID: lab_test_id,
+                  setError,
+                })
+              }
+            >
+              Delete
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
+}
+
+export function getLabTestCategoryColumns(
+  navigate: NavigateFunction,
+  showFilters: Record<string, boolean>,
+  toggleFilter: (id: string) => void,
+  setError: React.Dispatch<React.SetStateAction<string>>
+): ColumnDef<labTestCategoryParams>[] {
+  return [
+    {
+      accessorKey: "lab_test_category_name",
+      header: ({ column }) => (
+        <ColumnFilter
+          column={column}
+          placeholder="Search name…"
+          label="Category Name"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      id: "actions",
+      enableSorting: false,
+      header: () => <div className="text-xl mt-4 text-center">Actions</div>,
+      cell: ({ row }) => {
+        const { lab_test_category_id } = row.original;
+        return (
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() =>
+                navigate(`${labTestCategoryEditPageURL}${lab_test_category_id}`)
+              }
+            >
+              Edit
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
+                handleDeleteLabTestCategory({
+                  elementID: lab_test_category_id,
                   setError,
                 })
               }
