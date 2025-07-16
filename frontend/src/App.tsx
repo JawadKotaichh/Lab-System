@@ -8,13 +8,13 @@ import EditPatientPage from "./components/Patients/EditPatient";
 import EditVisitPage from "./components/EditVisitPage/EditVisitPage";
 import EditInsuranceCompany from "./components/InsuranceCompany/EditInsuranceCompany";
 import EditLabTest from "./components/LabTest/EditLabTest";
-import LabPanelsList from "./components/LabTest/LabPanelsList";
-import EditLabPanel from "./components/LabTest/EditLabPanel";
-import EditLabTestCategory from "./components/LabTest/EditLabTestCategory";
-import LabTestCategoryList from "./components/LabTest/LabTestCategoryList";
+import EditLabTestCategory from "./components/LabCategory/EditLabTestCategory";
 import InsuranceCompanyTable from "./components/InsuranceCompany/InsuranceCompanyTable";
 import PatientTable from "./components/Patients/PatientTable";
 import LabTestTable from "./components/LabTest/LabTestTable";
+import EditLabPanel from "./components/LabPanel/EditLabPanel";
+import LabPanelsList from "./components/LabPanel/LabPanelsList";
+import LabTestCategoryTable from "./components/LabCategory/LabTestCategoryTable";
 
 type NavItem = {
   to: string;
@@ -116,7 +116,10 @@ const App: React.FC = () => {
             path="/edit-lab-panel/:lab_panel_id"
             element={<EditLabPanel title="Edit Lab Panel" />}
           />
-          <Route path="lab-test-categories" element={<LabTestCategoryList />} />
+          <Route
+            path="lab-test-categories"
+            element={<LabTestCategoryTable />}
+          />
           <Route
             path="/edit-lab-test-category/:lab_test_category_id"
             element={<EditLabTestCategory title="Edit Lab Test Category" />}

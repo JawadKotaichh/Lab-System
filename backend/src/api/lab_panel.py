@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from ..models import lab_test_type as DBLab_test_type
 from ..models import lab_panel as DBLab_panel
 from ..models import lab_test_category as DBLab_test_category
@@ -45,10 +45,17 @@ async def create_lab_panel(data: Lab_Panel):
 
 
 @router.get("/page/{page_size}/{page_number}", response_model=LabPanelPaginatedResponse)
-async def get_Lab_panel_with_page_size(page_number: int, page_size: int):
+async def get_Lab_panel_with_page_size(
+    page_size: int, page_number: int, panel_name: str | None = Query(None)
+):
     offset = (page_number - 1) * page_size
-    total_number_of_lab_panel = await DBLab_panel.find_all().count()
-    cursor = DBLab_panel.find().skip(offset).limit(page_size)
+    mongo_filter = {}
+    if panel_name:
+        mongo_filter["panel_name"] = {"$regex": panel_name, "$options": "i"}
+
+    total_number_of_lab_panel = await DBLab_panel.find(mongo_filter).count()
+
+    cursor = DBLab_panel.find(mongo_filter).skip(offset).limit(page_size)
     listOfpanels: List[LabPanelResponse] = []
 
     async for panel in cursor:

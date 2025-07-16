@@ -17,10 +17,11 @@ import {
   labPanelEditPageURL,
 } from "../data";
 import Pagination from "../Pagination";
+import SearchLabPanel from "./SearchLabPanel";
 
 const LabPanelsList = () => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -53,7 +54,6 @@ const LabPanelsList = () => {
     setLoading(true);
     fetchLabPanelsPaginated(currentPage, pageSize)
       .then((panelData) => {
-        console.log("Fetched Lab Panels: ", panelData.lab_panels);
         setAvailableLabPanels(panelData.lab_panels);
         setTotalPages(panelData.total_pages);
         setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
@@ -61,8 +61,6 @@ const LabPanelsList = () => {
       .catch((err) => setError(err.message || err.toString()))
       .finally(() => setLoading(false));
   }, [currentPage, pageSize]);
-
-  console.log("availableLabPanels: ", availableLabPanels);
 
   if (loading) return <div className="p-4">Loading lab panels...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
@@ -90,6 +88,15 @@ const LabPanelsList = () => {
               Create Lab Panel
             </button>
           </div>
+          <SearchLabPanel
+            pageSize={pageSize}
+            setAvailableLabPanels={setAvailableLabPanels}
+            setError={setError}
+            currentPage={currentPage}
+            setTotalPages={setTotalPages}
+            setTotalNumberOfLabPanels={setTotalNumberOfLabPanels}
+            setLoading={setLoading}
+          />
 
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
             <tbody>

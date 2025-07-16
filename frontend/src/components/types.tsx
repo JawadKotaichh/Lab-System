@@ -48,6 +48,9 @@ export interface InsuranceFilters {
   insurance_company_name?: string;
   rate?: string;
 }
+export interface labPanelFilter {
+  panel_name?: string;
+}
 export interface labTestFilters {
   nssf_id?: number;
   name?: string;
@@ -55,6 +58,9 @@ export interface labTestFilters {
   unit?: string;
   lower_bound?: string;
   upper_bound?: string;
+}
+export interface lab_test_category_filters {
+  lab_test_category_name?: string;
 }
 export interface patientsFilters {
   name?: string;
