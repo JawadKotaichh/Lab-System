@@ -4,6 +4,8 @@ import type {
   CreateLabTestParams,
   insuranceCompanyParams,
   InsuranceFilters,
+  lab_test_category_filters,
+  labPanelFilter,
   labTestCategoryParams,
   labTestFilters,
   LabTestResult,
@@ -55,10 +57,11 @@ const fetchLabPanel = async (
 
 const fetchLabPanelsPaginated = async (
   page_number: number,
-  page_size: number
+  page_size: number,
+  filters: labPanelFilter = {}
 ): Promise<paginatedlabPanel> => {
   const url = `${labPanelApiURL}/page/${page_size}/${page_number}`;
-  const response = await api.get(url);
+  const response = await api.get(url, { params: filters });
   return response.data;
 };
 
@@ -148,10 +151,11 @@ const fetchPatientsPaginated = async (
 
 const fetchLabTestCategoryPaginated = async (
   page_number: number,
-  page_size: number
+  page_size: number,
+  filters: lab_test_category_filters
 ): Promise<paginatedTestCategoryInfo> => {
   const url = `${labTestCategoryApiURL}page/${page_size}/${page_number}`;
-  const response = await api.get(url);
+  const response = await api.get(url, { params: filters });
   return response.data;
 };
 

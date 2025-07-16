@@ -1,6 +1,6 @@
 import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
-import { InsuranceApiURL, labTestApiURL, labTestCreatePageURL, PatientsApiURL } from "./data";
+import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
 
 interface deleteElement {
@@ -46,7 +46,28 @@ const handleDeleteLabTest = ({elementID,setError}:deleteElement) => {
 const handleCreateLabTest = (navigate: NavigateFunction) => {
     navigate(labTestCreatePageURL);
   };
+const handleDeleteLabTestCategory = ({elementID,setError}:deleteElement) => {
+    if (
+      !window.confirm("Are you sure you want to delete this lab test category?")
+    ) {
+      return;
+    }
+    try {
+      api.delete(`${labTestCategoryApiURL}${elementID}`);
+      window.location.reload();
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+  const handleCreateLabTestCategory = (navigate: NavigateFunction) => {
+    navigate(labTestCategoryCreatePageURL);
+  };
+
 export{handleDeleteLabTest};
 export{handleCreateLabTest};
 export {handleDeleteInsuranceCompany};  
 export {handleDeletePatient};
+export{handleDeleteLabTestCategory};
+export{handleCreateLabTestCategory};
