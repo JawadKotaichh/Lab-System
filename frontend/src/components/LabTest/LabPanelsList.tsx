@@ -1,10 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import type { labPanel, labTest, labTestCategoryParams } from "../types";
-import {
-  fetchAllLabTestTypeCategories,
-  fetchLabPanelsPaginated,
-  fetchLabTestTypePaginated,
-} from "../utils";
+import React, { useEffect, useState } from "react";
+import type { labPanel } from "../types";
+import { fetchLabPanelsPaginated } from "../utils";
 import {
   pageListTitle,
   tableCreateButton,
@@ -31,13 +27,7 @@ const LabPanelsList = () => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [totalNumberOfLabPanels, setTotalNumberOfLabPanels] =
     useState<number>(0);
-
-  const [labTestCategories, setLabTestCategories] = useState<
-    labTestCategoryParams[]
-  >([]);
   const navigate = useNavigate();
-  const [labTests, setLabTests] = useState<Record<string, labTest>>({});
-
   const handleCreateLabPanel = () => {
     navigate(labPanelCreatePageURL);
   };
@@ -61,32 +51,18 @@ const LabPanelsList = () => {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      fetchLabPanelsPaginated(currentPage, pageSize),
-      fetchLabTestTypePaginated(1, 100),
-      fetchAllLabTestTypeCategories(),
-    ])
-      .then(([panelData, testData, categoryData]) => {
+    fetchLabPanelsPaginated(currentPage, pageSize)
+      .then((panelData) => {
+        console.log("Fetched Lab Panels: ", panelData.lab_panels);
         setAvailableLabPanels(panelData.lab_panels);
         setTotalPages(panelData.total_pages);
         setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
-
-        const map: Record<string, labTest> = {};
-        testData.lab_tests.forEach((t) => (map[t.lab_test_id] = t));
-        setLabTests(map);
-
-        setLabTestCategories(categoryData);
       })
       .catch((err) => setError(err.message || err.toString()))
       .finally(() => setLoading(false));
   }, [currentPage, pageSize]);
 
-  const labTestCategoryById = useMemo(() => {
-    return labTestCategories.reduce<Record<string, string>>((map, c) => {
-      map[c.lab_test_category_id] = c.lab_test_category_name;
-      return map;
-    }, {});
-  }, [labTestCategories]);
+  console.log("availableLabPanels: ", availableLabPanels);
 
   if (loading) return <div className="p-4">Loading lab panels...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
@@ -118,12 +94,9 @@ const LabPanelsList = () => {
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
             <tbody>
               {availableLabPanels.map((lp) => (
-                <React.Fragment key={lp.lab_panel_id}>
+                <React.Fragment key={lp.id}>
                   <tr className="border">
-                    <td
-                      colSpan={1 + lp.list_of_test_type_ids.length * 6}
-                      className="px-4 py-2"
-                    >
+                    <td colSpan={1 + 8 * 6} className="px-4 py-2">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-xl text-left">
                           {lp.panel_name}
@@ -131,15 +104,13 @@ const LabPanelsList = () => {
                         <div className="flex space-x-2">
                           <button
                             className={tableHandleButton}
-                            onClick={() => handleEditLabPanel(lp.lab_panel_id)}
+                            onClick={() => handleEditLabPanel(lp.id)}
                           >
                             Edit
                           </button>
                           <button
                             className={tableDeleteButton}
-                            onClick={() =>
-                              handleDeleteLabPanel(lp.lab_panel_id)
-                            }
+                            onClick={() => handleDeleteLabPanel(lp.id)}
                           >
                             Delete
                           </button>
@@ -157,21 +128,20 @@ const LabPanelsList = () => {
                     <th className={tableItemPanel}>Upper Bound</th>
                   </tr>
 
-                  {lp.list_of_test_type_ids.map((id) => {
-                    const t = labTests[id]!;
+                  {lp.lab_tests.map((test) => {
                     return (
                       <>
                         <tr>
-                          <React.Fragment key={id}>
-                            <td className={tableItem}>{t.nssf_id}</td>
-                            <td className={tableItem}>{t.name}</td>
+                          <React.Fragment key={test.lab_test_id}>
+                            <td className={tableItem}>{test.nssf_id}</td>
+                            <td className={tableItem}>{test.name}</td>
                             <td className={tableItem}>
-                              {labTestCategoryById[t.lab_test_category_id]}
+                              {test.lab_test_category_name}
                             </td>
-                            <td className={tableItem}>{t.unit}</td>
-                            <td className={tableItem}>{t.price}</td>
-                            <td className={tableItem}>{t.lower_bound}</td>
-                            <td className={tableItem}>{t.upper_bound}</td>
+                            <td className={tableItem}>{test.unit}</td>
+                            <td className={tableItem}>{test.price}</td>
+                            <td className={tableItem}>{test.lower_bound}</td>
+                            <td className={tableItem}>{test.upper_bound}</td>
                           </React.Fragment>
                         </tr>
                       </>

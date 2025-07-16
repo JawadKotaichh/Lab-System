@@ -27,9 +27,9 @@ export type labTest = {
   lower_bound: string;
 };
 export type labPanel = {
-  lab_panel_id: string;
+  id: string;
   panel_name: string;
-  list_of_test_type_ids: string[];
+  lab_tests: labTest[];
 };
 export type CreateLabTestParams = {
   lab_test_category_id: string;
