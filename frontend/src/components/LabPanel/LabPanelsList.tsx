@@ -29,6 +29,8 @@ const LabPanelsList = () => {
   const [totalNumberOfLabPanels, setTotalNumberOfLabPanels] =
     useState<number>(0);
   const navigate = useNavigate();
+  const [searchInput, setSearchInput] = useState<string>("");
+
   const handleCreateLabPanel = () => {
     navigate(labPanelCreatePageURL);
   };
@@ -89,6 +91,8 @@ const LabPanelsList = () => {
             </button>
           </div>
           <SearchLabPanel
+            searchInput={searchInput}
+            setSearchInput={setSearchInput}
             pageSize={pageSize}
             setAvailableLabPanels={setAvailableLabPanels}
             setError={setError}

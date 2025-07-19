@@ -137,6 +137,11 @@ const labTestCategoryMainPageURL = "/lab-test-categories";
 const labTestCategoryEditPageURL="/edit-lab-test-category/";
 const labTestCategoryCreatePageURL="/create-lab-test-category";
 
+// Visits
+export const visitsApiURL = "/visits/";
+export const visitsMainPageURL = "/visits";
+export const visitEditPageURL="/visits/";
+export const visitCreatePageURL="/create-visit";
 
 export{labTestCategoryMainPageURL};
 export{labTestCategoryEditPageURL};

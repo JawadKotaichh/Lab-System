@@ -60,7 +60,7 @@ async def get_completed_and_total_results(visit_id: str):
             totalPrice += lab_test.price
         if item.result != "":
             completed += 1
-    FinalTotalPrice = totalPrice * (float(insurance_company.rate))
+    FinalTotalPrice = totalPrice * (insurance_company.rate)
     output: Dict[str, Any] = {
         "visit_id": str(visit_id),
         "countOfCompletedResults": completed,

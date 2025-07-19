@@ -30,7 +30,7 @@ async def get_insurance_company_with_page_size(
     page_number: int,
     page_size: int,
     insurance_company_name: str | None = Query(None),
-    rate: str | None = Query(None),
+    rate: float | None = Query(None),
 ):
     offset = (page_number - 1) * page_size
     mongo_filter: dict[str, Any] = {}
@@ -39,8 +39,17 @@ async def get_insurance_company_with_page_size(
             "$regex": insurance_company_name,
             "$options": "i",
         }
+
     if rate:
-        mongo_filter["rate"] = {"$regex": rate, "$options": "i"}
+        expr = {
+            "$expr": {
+                "$regexMatch": {
+                    "input": {"$toString": "$price"},
+                    "regex": str(rate),
+                }
+            }
+        }
+        mongo_filter = {"$and": [mongo_filter, expr]}
 
     total_number_of_insurance_companies = await DBInsurance_company.find(
         mongo_filter

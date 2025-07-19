@@ -6,17 +6,21 @@ import type {
   labTest,
   labTestCategoryParams,
   patientInfo,
+  visitData,
 } from "./types";
 import {
   InsuranceEditPageURL,
   labTestCategoryEditPageURL,
   labTestEditPageURL,
+  visitEditPageURL,
 } from "./data";
 import {
   handleDeleteInsuranceCompany,
   handleDeleteLabTest,
   handleDeleteLabTestCategory,
   handleDeletePatient,
+  handleDeleteVisit,
+  handleNewVisit,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -32,6 +36,7 @@ export function getInsuranceCompanyColumns(
       accessorKey: "insurance_company_name",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search name…"
           label="Name"
@@ -49,6 +54,7 @@ export function getInsuranceCompanyColumns(
       accessorKey: "rate",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search rate…"
           label="Rate"
@@ -109,6 +115,7 @@ export function getPatientsColumns(
       accessorKey: "name",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search name…"
           label="Name"
@@ -126,6 +133,7 @@ export function getPatientsColumns(
       accessorKey: "gender",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search gender..."
           label="Gender"
@@ -151,6 +159,7 @@ export function getPatientsColumns(
       },
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           inputType="date"
           column={column}
           placeholder="Search DOB…"
@@ -169,6 +178,7 @@ export function getPatientsColumns(
       accessorKey: "insurance_company_name",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search insurance company..."
           label="Insurance Company"
@@ -186,6 +196,7 @@ export function getPatientsColumns(
       accessorKey: "phone_number",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search phone number..."
           label="Phone Number"
@@ -204,7 +215,24 @@ export function getPatientsColumns(
       enableSorting: false,
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
-        const { patient_id } = row.original;
+        const {
+          name,
+          insurance_company_id,
+          gender,
+          DOB,
+          phone_number,
+          patient_id,
+          insurance_company_name,
+        } = row.original;
+        const patient = {
+          patient_id,
+          name,
+          gender,
+          DOB,
+          phone_number,
+          insurance_company_id,
+          insurance_company_name,
+        };
         return (
           <div className="flex gap-2 justify-center">
             <button
@@ -224,6 +252,19 @@ export function getPatientsColumns(
             >
               Delete
             </button>
+            <button
+              className={tableHandleButton + " w-fit"}
+              onClick={() =>
+                handleNewVisit(
+                  insurance_company_name,
+                  patient,
+                  navigate,
+                  setError
+                )
+              }
+            >
+              New Visit
+            </button>
           </div>
         );
       },
@@ -242,6 +283,7 @@ export function getLabTestColumns(
       accessorKey: "name",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search name…"
           label="Lab Test"
@@ -259,6 +301,7 @@ export function getLabTestColumns(
       accessorKey: "nssf_id",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search Nssf Id..."
           label="NSSF ID"
@@ -276,6 +319,7 @@ export function getLabTestColumns(
       accessorKey: "lab_test_category_name",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search lab category"
           label="Category"
@@ -293,6 +337,7 @@ export function getLabTestColumns(
       accessorKey: "unit",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search unit..."
           label="Unit"
@@ -310,6 +355,7 @@ export function getLabTestColumns(
       accessorKey: "price",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search price..."
           label="Price"
@@ -327,6 +373,7 @@ export function getLabTestColumns(
       accessorKey: "lower_bound",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search lower boound..."
           label="Lower Bound"
@@ -344,6 +391,7 @@ export function getLabTestColumns(
       accessorKey: "upper_bound",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search upper bound..."
           label="Upper Bound"
@@ -400,6 +448,7 @@ export function getLabTestCategoryColumns(
       accessorKey: "lab_test_category_name",
       header: ({ column }) => (
         <ColumnFilter
+          withFilter={true}
           column={column}
           placeholder="Search name…"
           label="Category Name"
@@ -434,6 +483,203 @@ export function getLabTestCategoryColumns(
               onClick={() =>
                 handleDeleteLabTestCategory({
                   elementID: lab_test_category_id,
+                  setError,
+                })
+              }
+            >
+              Delete
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
+}
+
+export function getVisitsColumns(
+  navigate: NavigateFunction,
+  showFilters: Record<string, boolean>,
+  toggleFilter: (id: string) => void,
+  setError: React.Dispatch<React.SetStateAction<string>>
+): ColumnDef<visitData>[] {
+  return [
+    {
+      accessorKey: "visit_date",
+      cell: ({ getValue }) => {
+        const iso = getValue<string>() ?? "";
+        return iso.split("T")[0];
+      },
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          inputType="date"
+          column={column}
+          placeholder="Search visit date…"
+          label="Visit Date"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "patient.name",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          column={column}
+          placeholder="Search patient name..."
+          label="Patient Name"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "insurance_company_name",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          column={column}
+          placeholder="Search insurrance company"
+          label="Insurance Company"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "patient.phone_number",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          column={column}
+          inputType="tel"
+          placeholder="Search phone number..."
+          label="Phone Number"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "total_price",
+      cell: ({ row }) => `${row.original.total_price} $ `,
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          placeholder="Search price..."
+          label="Total Price"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+        const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+        return a - b;
+      },
+    },
+    {
+      accessorKey: "total_price_with_insurance",
+      cell: ({ row }) => `${row.original.total_price_with_insurance} $ `,
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          placeholder="Search price..."
+          label="Price With Insurance"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+        const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+        return a - b;
+      },
+    },
+    {
+      accessorKey: "completed_tests_results",
+      cell: ({ row }) =>
+        `${row.original.completed_tests_results} / ${row.original.total_tests_results}`,
+      sortingFn: (rowA, rowB) => {
+        const a =
+          rowA.original.completed_tests_results /
+          rowA.original.total_tests_results;
+        const b =
+          rowB.original.completed_tests_results /
+          rowB.original.total_tests_results;
+        return a - b;
+      },
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          inputType="number"
+          placeholder="Search Completed..."
+          label="Completed / Total"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+    },
+    {
+      id: "actions",
+      enableSorting: false,
+      header: () => <div className="text-xl mt-4 text-center">Actions</div>,
+      cell: ({ row }) => {
+        const { visit_id, patient, insurance_company_name } = row.original;
+        return (
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() => {
+                console.log(patient);
+
+                navigate(`${visitEditPageURL}${visit_id}`, {
+                  state: {
+                    patientData: {
+                      ...patient,
+                      insurance_company_name: insurance_company_name,
+                    },
+                  },
+                });
+              }}
+            >
+              Edit
+            </button>
+            <button
+              className={tableHandleButton + " w-fit"}
+              onClick={() => navigate(`/visits/${visit_id}`)}
+            >
+              Preview Result
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
+                handleDeleteVisit({
+                  elementID: visit_id,
                   setError,
                 })
               }

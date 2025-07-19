@@ -98,6 +98,7 @@ const ShowTestsList: React.FC<TestsList> = ({
   ]);
 
   const handleAdd = async (lab_test_id: string) => {
+    console.log("I entered!");
     console.log(results.some((r) => r.lab_test_type_id == lab_test_id));
     if (results.some((r) => r.lab_test_type_id === lab_test_id)) {
       setAddError("This test already exists.");
@@ -184,7 +185,13 @@ const ShowTestsList: React.FC<TestsList> = ({
                       <td className="border rounded-b-sm  px-4 py-2">
                         <button
                           className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-green-500"
-                          onClick={() => handleAdd(test.lab_test_id)}
+                          onClick={() => {
+                            handleAdd(test.lab_test_id);
+                            console.log(
+                              "ID of the lab test: ",
+                              test.lab_test_id
+                            );
+                          }}
                         >
                           Add
                         </button>

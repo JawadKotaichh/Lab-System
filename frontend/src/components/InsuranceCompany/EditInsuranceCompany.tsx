@@ -27,7 +27,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
   const { insurance_company_id } = useParams();
   const [data, setData] = useState<CreateInsuranceCompanyParams>({
     insurance_company_name: "",
-    rate: "",
+    rate: 0,
   });
   useEffect(() => {
     if (insurance_company_id) {
@@ -53,7 +53,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
     }));
   };
   const handleSave = async () => {
-    if (data.insurance_company_name == "" || data.rate == "") {
+    if (data.insurance_company_name == "" || data.rate == 0) {
       setState("Please insert all the reuqired fields!");
       return;
     }
