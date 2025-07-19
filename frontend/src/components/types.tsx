@@ -46,7 +46,7 @@ export type CreateLabPanelParams = {
 };
 export interface InsuranceFilters {
   insurance_company_name?: string;
-  rate?: string;
+  rate?: number;
 }
 export interface labPanelFilter {
   panel_name?: string;
@@ -69,6 +69,11 @@ export interface patientsFilters {
   phone_number?: string;
   DOB?: string;
 }
+export interface visitFilters {
+  name?: string;
+  insurance_company_name?: string;
+  date?: string;
+}
 
 export type patientInfo = {
   patient_id: string;
@@ -77,7 +82,7 @@ export type patientInfo = {
   DOB: string;
   phone_number: string;
   insurance_company_id: string;
-  insurance_company_name?: string;
+  insurance_company_name: string;
 };
 
 export type PatientParams = {
@@ -106,11 +111,11 @@ export interface CreateLabTestType {
 export interface insuranceCompanyParams {
   insurance_company_id: string;
   insurance_company_name: string;
-  rate: string;
+  rate: number;
 }
 export interface CreateInsuranceCompanyParams {
   insurance_company_name: string;
-  rate: string;
+  rate: number;
 }
 export interface CreateLabTestCategoryParams {
   lab_test_category_id: string;
@@ -135,10 +140,20 @@ export type paginatedTestCategoryInfo = {
   TotalNumberOfLabTestCategories: number;
   lab_test_categories: labTestCategoryParams[];
 };
-export type paginatedVisitInfo = {
+export type paginatedVisitData = {
+  visitsData: visitData[];
   total_pages: number;
   TotalNumberOfVisits: number;
-  visits: VisitsInfo[];
+};
+export type visitData = {
+  visit_id: string;
+  visit_date: string;
+  patient: patientInfo;
+  completed_tests_results: number;
+  total_tests_results: number;
+  total_price: number;
+  total_price_with_insurance: number;
+  insurance_company_name: string;
 };
 export type paginatedlabTest = {
   total_pages: number;
