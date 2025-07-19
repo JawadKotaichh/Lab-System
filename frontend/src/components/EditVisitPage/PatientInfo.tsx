@@ -45,7 +45,7 @@ const PatientInfo: React.FC<PatientCardParams> = ({
         <div className={inputFormAttributeListItem}>
           <label className={patientInfoCardItem}>
             <span className="font-bold">Insurance Company:</span>
-            <span>{patientData.insurance_company_id}</span>
+            <span>{patientData.insurance_company_name}</span>
           </label>
         </div>
       </div>

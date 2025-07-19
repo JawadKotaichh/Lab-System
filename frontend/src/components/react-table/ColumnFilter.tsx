@@ -11,6 +11,7 @@ export function ColumnFilter<TData, TValue>({
   toggleShowFilter,
   options,
   inputType = "text",
+  withFilter,
 }: {
   column: Column<TData, TValue>;
   placeholder: string;
@@ -19,6 +20,7 @@ export function ColumnFilter<TData, TValue>({
   toggleShowFilter: () => void;
   inputType?: string;
   options?: { value: string; label: string }[];
+  withFilter: boolean;
 }) {
   const initial = (column.getFilterValue() as string) ?? "";
   const [draft, setDraft] = useState(initial);
@@ -37,20 +39,24 @@ export function ColumnFilter<TData, TValue>({
   return (
     <div>
       <div className="flex items-center justify-center mt-4">
-        <span className="text-xl">{label}</span>
+        <span className="text-base whitespace-nowrap">{label}</span>
 
-        <button
-          type="button"
-          className="ml-2 p-1 cursor-pointer"
-          onClick={toggleShowFilter}
-          aria-label={showFilter ? "Hide filter" : "Show filter"}
-        >
-          <Filter
-            className={`w-5 h-5 transition-colors ${
-              showFilter ? "text-blue-600" : "text-gray-500"
-            }`}
-          />
-        </button>
+        {withFilter && (
+          <>
+            <button
+              type="button"
+              className="ml-2 p-1 cursor-pointer"
+              onClick={toggleShowFilter}
+              aria-label={showFilter ? "Hide filter" : "Show filter"}
+            >
+              <Filter
+                className={`w-5 h-5 transition-colors ${
+                  showFilter ? "text-blue-600" : "text-gray-500"
+                }`}
+              />
+            </button>
+          </>
+        )}
 
         <button
           type="button"

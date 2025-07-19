@@ -1,5 +1,4 @@
 import type {
-  CompletedResultsInfo,
   CreateLabPanelParams,
   CreateLabTestParams,
   insuranceCompanyParams,
@@ -13,9 +12,10 @@ import type {
   paginatedlabTest,
   paginatedPatientInfo,
   paginatedTestCategoryInfo,
-  paginatedVisitInfo,
+  paginatedVisitData,
   patientInfo,
   patientsFilters,
+  visitFilters,
   VisitsInfo,
 } from "./types.js";
 import api from "../api.js";
@@ -131,24 +131,6 @@ const fetchPatientsPaginated = async (
   return response.data;
 };
 
-// const fetchPatientsPaginatedTest = async (
-//   pageNumber: number,
-//   pageSize: number,
-//   filters: {
-//     name?: string;
-//     gender?: string;
-//     insurance_company_id?: string;
-//   } = {}
-// ): Promise<paginatedPatientInfo> => {
-//   const response = await api.get(
-//     `${PatientsApiURL}page/${pageSize}/${pageNumber}`,
-//     {
-//       params: filters,
-//     }
-//   );
-//   return response.data;
-// };
-
 const fetchLabTestCategoryPaginated = async (
   page_number: number,
   page_size: number,
@@ -175,20 +157,13 @@ const fetchAllVisits = async (): Promise<VisitsInfo[]> => {
   return response.data;
 };
 
-const fetchNumberOfCompletedResultsAndTotal = async (
-  visit_id: string
-): Promise<CompletedResultsInfo> => {
-  const url = `/lab_tests_results/completed/${visit_id}`;
-  const response = await api.get(url);
-  return response.data;
-};
-
 const fetchVisitsPaginated = async (
   page_number: number,
-  page_size: number
-): Promise<paginatedVisitInfo> => {
+  page_size: number,
+  filters: visitFilters = {}
+): Promise<paginatedVisitData> => {
   const url = `/visits/page/${page_size}/${page_number}`;
-  const response = await api.get(url);
+  const response = await api.get(url, { params: filters });
   return response.data;
 };
 
@@ -196,7 +171,6 @@ export { fetchLabTestCategory };
 export { fetchLabPanel };
 export { fetchLabTestCategoryPaginated };
 export { fetchLabPanelsPaginated };
-export { fetchNumberOfCompletedResultsAndTotal };
 export { fetchLabTestResults };
 export { fetchAllLabTest };
 export { fetchAllPatients };

@@ -1,59 +1,173 @@
-from fastapi import APIRouter, HTTPException, status,Query
+from fastapi import APIRouter, HTTPException, status, Query
 from datetime import date, datetime, time
 from typing import Optional
 from ..models import Visit as DBVisit
 from ..models import Patient as DBPatient
-from ..schemas.schema_Visit import Visit, update_visit_model
+from ..models import lab_test_result as DBLab_test_result
+from ..schemas.schema_Visit import (
+    PaginatedVisitDataList,
+    Visit,
+    update_visit_model,
+    VisitData,
+)
 from beanie import PydanticObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
 from typing import Any, Dict, List
-
+from ..schemas.schema_Patient import Patient
+from ..models import lab_test_type as DBLab_test_type
+from ..models import insurance_company as DBInsurance_company
 
 router = APIRouter(prefix="/visits", tags=["visits"])
 
 
-@router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
-async def get_visits_with_page_size(page_number:int,page_size:int, date: str | None = Query(None),patient_id:str | None=Query(None) ):
+@router.get("/page/{page_size}/{page_number}", response_model=PaginatedVisitDataList)
+async def get_visits_with_page_size(
+    page_number: int,
+    page_size: int,
+    visit_date: Optional[str] = Query(
+        None, description="Filter visits by date prefix YYYY-MM-DD"
+    ),
+    patient_name: Optional[str] = Query(
+        None, description="Filter by patient name substring"
+    ),
+    insurance_company_name: Optional[str] = Query(
+        None, description="Filter by insurance company name substring"
+    ),
+    patient_phone_number: Optional[str] = Query(
+        None, description="Filter by insurance company name substring"
+    ),
+):
     offset = (page_number - 1) * page_size
-    mongo_filter: dict[str, Any] = {}
-    if date:
-        mongo_filter["date"] = {"$regex": date, "$options": "i"}
-    if patient_id:
-        mongo_filter["patient_id"] = {"$regex": patient_id, "$options": "i"}
+    mongo_filter_visits: Dict[str, Any] = {}
+    mongo_filter_patients: Dict[str, Any] = {}
 
-    total_number_of_visits = await DBVisit.find(mongo_filter).count()
-    cursor = DBVisit.find(mongo_filter).skip(offset).limit(page_size)
+    if patient_name:
+        mongo_filter_patients["name"] = {"$regex": patient_name, "$options": "i"}
+    if insurance_company_name:
+        ins_coll = DBInsurance_company.get_motor_collection()
+        ins_cursor = ins_coll.find(
+            {
+                "insurance_company_name": {
+                    "$regex": insurance_company_name,
+                    "$options": "i",
+                }
+            },
+            {"_id": 1},
+        )
+        matching_cos = await ins_cursor.to_list(length=None)
+        if not matching_cos:
+            return PaginatedVisitDataList(
+                visitsData=[], total_pages=0, TotalNumberOfVisits=0
+            )
+        co_ids = [doc["_id"] for doc in matching_cos]
+        mongo_filter_patients["insurance_company_id"] = {"$in": co_ids}
+    if patient_phone_number:
+        mongo_filter_patients["phone_number"] = {
+            "$regex": patient_phone_number,
+            "$options": "i",
+        }
+    if mongo_filter_patients:
+        pat_coll = DBPatient.get_motor_collection()
+        pat_cursor = pat_coll.find(mongo_filter_patients, {"_id": 1})
+        matching_patients = await pat_cursor.to_list(length=None)
+        if not matching_patients:
+            return PaginatedVisitDataList(
+                visitsData=[], total_pages=0, TotalNumberOfVisits=0
+            )
+        patient_ids = [doc["_id"] for doc in matching_patients]
+        mongo_filter_visits["patient_id"] = {"$in": patient_ids}
+
+    if visit_date:
+        mongo_filter_visits["date"] = {"$regex": f"^{visit_date}"}
+
+    total_number_of_visits = await DBVisit.find(mongo_filter_visits).count()
+    cursor = DBVisit.find(mongo_filter_visits).skip(offset).limit(page_size)
+
+    visits: List[VisitData] = []
+    async for visit in cursor:
+        if not PydanticObjectId.is_valid(visit.id):
+            raise HTTPException(status_code=400, detail="Invalid Visit ID")
+        db_visit = await DBVisit.get(PydanticObjectId(visit.id))
+        if not db_visit:
+            raise HTTPException(status_code=404, detail=f"Visit {visit.id} not found")
+
+        db_patient = await DBPatient.get(PydanticObjectId(db_visit.patient_id))
+        if not db_patient:
+            raise HTTPException(
+                status_code=404, detail=f"Patient {db_visit.patient_id} not found"
+            )
+
+        patient = Patient(
+            name=db_patient.name,
+            gender=db_patient.gender,
+            DOB=db_patient.DOB,
+            phone_number=db_patient.phone_number,
+            insurance_company_id=str(db_patient.insurance_company_id),
+            patient_id=str(db_patient.id),
+        )
+
+        total_tests_results = 0
+        completed_tests_results = 0
+        total_price = 0.0
+        async for test_result in DBLab_test_result.find(
+            DBLab_test_result.visit_id == PydanticObjectId(visit.id)
+        ):
+            total_tests_results += 1
+            lab_test = await DBLab_test_type.get(
+                PydanticObjectId(test_result.lab_test_type_id)
+            )
+            if lab_test:
+                total_price += lab_test.price
+            if test_result.result:
+                completed_tests_results += 1
+
+        insurance_company = await DBInsurance_company.get(
+            db_patient.insurance_company_id
+        )
+        if not insurance_company:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Insurance Company {db_patient.insurance_company_id} not found",
+            )
+        total_price_with_insurance = total_price * insurance_company.rate
+
+        visits.append(
+            VisitData(
+                total_price=total_price,
+                total_price_with_insurance=total_price_with_insurance,
+                patient=patient,
+                visit_id=str(visit.id),
+                visit_date=db_visit.date,
+                completed_tests_results=completed_tests_results,
+                total_tests_results=total_tests_results,
+                insurance_company_name=insurance_company.insurance_company_name,
+            )
+        )
+
+    total_pages = ceil(total_number_of_visits / page_size)
+    return PaginatedVisitDataList(
+        visitsData=visits,
+        total_pages=total_pages,
+        TotalNumberOfVisits=total_number_of_visits,
+    )
+
+
+@router.get("/all", response_model=List[Dict[str, Any]])
+async def getAllVisits() -> List[Dict[str, Any]]:
+    cursor = DBVisit.find()
     visits: List[Dict[str, Any]] = []
     async for visit in cursor:
-        visits.append({
-            "visit_id": str(visit.id),
-            "date": str(visit.date)[:10],
-            "patient_id": str(visit.patient_id),
-        })
-    total_pages= ceil(total_number_of_visits / page_size)
-    return {
-        "TotalNumberOfVisits":total_number_of_visits,
-        "total_pages":total_pages,
-        "visits":visits
-    }
-
-
-
-@router.get("/all",response_model=List[Dict[str, Any]])
-async def getAllVisits()->List[Dict[str, Any]]:
-    cursor = DBVisit.find()
-    visits: List[Dict[str, Any]]=[]
-    async for visit in cursor:
-        visits.append({
-            "lab_panel_id": str(visit.id),
-            "date": str(visit.date)[:10],
-            "patient_id": str(visit.patient_id),
-        })
+        visits.append(
+            {
+                "visit_id": str(visit.id),
+                "date": str(visit.date)[:10],
+                "patient_id": str(visit.patient_id),
+            }
+        )
     return visits
-
 
 
 @router.get("/{visit_id}/name")
@@ -61,25 +175,26 @@ async def get_patient_name(visit_id: PydanticObjectId):
     visit = await DBVisit.get(visit_id)
     if not visit:
         raise HTTPException(status_code=404, detail="Visit not found")
-    patient  = await DBPatient.get(visit.patient_id)
+    patient = await DBPatient.get(visit.patient_id)
     if patient is not None:
-        return {"patient_id": visit.patient_id, "name": patient.name,"visit_id":visit_id}
+        return {
+            "patient_id": visit.patient_id,
+            "name": patient.name,
+            "visit_id": visit_id,
+        }
     else:
         raise HTTPException(status_code=404, detail="Patient not found")
+
 
 @router.get("/", response_model=Page[DBVisit])
 async def get_visits_by_date_range(
     start_date: Optional[date] = Query(
-        None, 
-        description="Include visits with date >= this (YYYY-MM-DD)"
+        None, description="Include visits with date >= this (YYYY-MM-DD)"
     ),
     end_date: Optional[date] = Query(
-        None, 
-        description="Include visits with date <= this (YYYY-MM-DD)"
+        None, description="Include visits with date <= this (YYYY-MM-DD)"
     ),
 ):
-
-
     query: dict = {}
 
     if start_date or end_date:
@@ -98,6 +213,7 @@ async def get_visits_by_date_range(
     cursor = DBVisit.find(query)
     return await apaginate(cursor)
 
+
 @router.post(
     "/{patient_id}",
     response_model=DBVisit,
@@ -105,13 +221,12 @@ async def get_visits_by_date_range(
     summary="Create a new visit",
 )
 async def create_visit(patient_id: PydanticObjectId, data: Visit):
-    
     if not PydanticObjectId.is_valid(patient_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid patient ID",
         )
-    if  data.patient_id != patient_id:
+    if data.patient_id != str(patient_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Patient ID in the visit is not the same as the one given!",
@@ -127,20 +242,73 @@ async def create_visit(patient_id: PydanticObjectId, data: Visit):
     return new_visit
 
 
-@router.get("/{visit_id}", response_model=DBVisit)
+@router.get("/{visit_id}", response_model=VisitData)
 async def get_visit(visit_id: PydanticObjectId):
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
-    Visit = await DBVisit.get(PydanticObjectId(visit_id))
-    if not Visit:
+    db_visit = await DBVisit.get(PydanticObjectId(visit_id))
+    if not db_visit:
         raise HTTPException(404, f"Visit {visit_id} not found")
-    return Visit
+    db_patient = await DBPatient.find_one(
+        DBPatient.id == PydanticObjectId(db_visit.patient_id)
+    )
+    if not db_patient:
+        raise HTTPException(404, f"Visit {db_visit.patient_id} not found")
+    patient = Patient(
+        name=db_patient.name,
+        gender=db_patient.gender,
+        DOB=db_patient.DOB,
+        phone_number=db_patient.phone_number,
+        insurance_company_id=db_patient.insurance_company_id,
+        patient_id=str(db_patient.id),
+    )
+    all_lab_test_results = DBLab_test_result.find(
+        DBLab_test_result.visit_id == PydanticObjectId(visit_id)
+    )
+    if not all_lab_test_results:
+        raise HTTPException(
+            404, f"Lab result of patient {db_visit.patient_id} not found"
+        )
+
+    total_tests_results = 0
+    completed_tests_results = 0
+    total_price = 0
+
+    async for test_result in all_lab_test_results:
+        total_tests_results += 1
+        lab_test = await DBLab_test_type.find_one(
+            DBLab_test_type.id == PydanticObjectId(test_result.lab_test_type_id)
+        )
+        if lab_test is not None:
+            total_price += lab_test.price
+        if test_result.result != "":
+            completed_tests_results += 1
+    insurance_company = await DBInsurance_company.find_one(
+        DBInsurance_company.id == db_patient.insurance_company_id
+    )
+    if not insurance_company:
+        raise HTTPException(
+            404, f"Insurance Company of patient {db_patient.id} not found"
+        )
+    total_price_with_insurance = total_price * insurance_company.rate
+    insurance_company_name = insurance_company.insurance_company_name
+    visit_data = VisitData(
+        total_price=total_price,
+        total_price_with_insurance=total_price_with_insurance,
+        patient=patient,
+        visit_id=str(visit_id),
+        visit_date=db_visit.date,
+        completed_tests_results=completed_tests_results,
+        total_tests_results=total_tests_results,
+        insurance_company_name=insurance_company_name,
+    )
+    return visit_data
 
 
 @router.get("/", response_model=Page[DBVisit])
 async def get_all_visits():
-    all_items =  DBVisit.find()
-    return  await apaginate(all_items)
+    all_items = DBVisit.find()
+    return await apaginate(all_items)
 
 
 @router.put("/{visit_id}", response_model=DBVisit)
