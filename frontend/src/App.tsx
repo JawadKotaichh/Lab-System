@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Routes, Route, Link, NavLink, useMatch } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./App.css";
-import Visits from "./components/Visits/VisitsPage";
 import MaintenanceMenu from "./components/MaintenanceMenu";
 import EditPatientPage from "./components/Patients/EditPatient";
 import EditVisitPage from "./components/EditVisitPage/EditVisitPage";
@@ -15,6 +14,7 @@ import LabTestTable from "./components/LabTest/LabTestTable";
 import EditLabPanel from "./components/LabPanel/EditLabPanel";
 import LabPanelsList from "./components/LabPanel/LabPanelsList";
 import LabTestCategoryTable from "./components/LabCategory/LabTestCategoryTable";
+import VisitsTable from "./components/Visits/VisitsTable";
 
 type NavItem = {
   to: string;
@@ -71,7 +71,7 @@ const App: React.FC = () => {
 
       <main>
         <Routes>
-          <Route path="/visits" element={<Visits />} />
+          <Route path="/visits" element={<VisitsTable />} />
           <Route path="/visits/:visit_id" element={<EditVisitPage />} />
           <Route path="/patients" element={<PatientTable />} />
           <Route
