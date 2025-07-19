@@ -52,7 +52,7 @@ class lab_test_result(Document):
 
 class insurance_company(Document):
     insurance_company_name: str = Field(...)
-    rate: str = Field(...)
+    rate: float = Field(...)
 
     class Settings:
         name = "insurance_company"
