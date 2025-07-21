@@ -74,6 +74,7 @@ async def get_Lab_test_type_with_page_size(
             )
 
         lab_test = Lab_test_type(
+            lab_test_id=str(test.id),
             lab_test_category_name=db_category.lab_test_category_name,
             nssf_id=test.nssf_id,
             lab_test_category_id=str(test.lab_test_category_id),

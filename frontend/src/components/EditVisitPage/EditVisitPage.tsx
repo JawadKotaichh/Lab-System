@@ -1,36 +1,78 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams, type Params } from "react-router-dom";
-import ShowTestsList from "./ShowTestsList.js";
+import { useLocation, useParams } from "react-router-dom";
 
-import ShowResultsList from "./ShowResultsList.js";
-import type { labTest, LabTestResult } from "../types.js";
-import { fetchAllLabTest, fetchLabTestResults } from "../utils.js";
+import type { visitResult } from "../types.js";
 import api from "../../api.js";
 import PatientInfo from "./PatientInfo.js";
+import type { PaginationState } from "@tanstack/react-table";
+import { labTestResultApiURL } from "../data.js";
+import AddResultTable from "./AddResultTable.js";
+import TestResultsList from "./TestResultsList.js";
+import { fetchLabTestResultsPaginated } from "../utils.js";
+import Pagination from "../Pagination.js";
 
 const EditVisitPage: React.FC = () => {
   const location = useLocation();
   const { patientData } = location.state || {};
-  const { visit_id } = useParams<Params>();
-  const [results, setResults] = useState<LabTestResult[]>([]);
+  const { visit_id } = useParams<{ visit_id: string }>();
+  const [results, setResults] = useState<visitResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingTests, setLoadingTests] = useState(true);
+  // const [loadingTests, setLoadingTests] = useState(true);
   const [error, setError] = useState<string>("");
-  const [show, setShow] = useState<boolean>(false);
-  const [allTests, setAllTests] = useState<labTest[]>([]);
+  // const [showPanels, setShowPanels] = useState<boolean>(false);
+  const [showTestsTable, setShowTestsTable] = useState<boolean>(false);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
   const [addError, setAddError] = useState<string>("");
-  const [searchInput, setSearchInput] = useState<string>("");
-  const [visibleTests, setVisibleTests] = useState<labTest[]>(allTests);
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
   const [totalNumberOfTests, setTotalNumberOfTests] = useState<number>(0);
+  const showAdd = true;
+  const handleSetPage = (page: number) => {
+    setPagination((old) => ({ ...old, pageIndex: page - 1 }));
+  };
+  const handleSetPageSize = (size: number) => {
+    setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
+  };
+
+  useEffect(() => {
+    const loadPage = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        // const filters = columnFilters.reduce<Record<string, string>>(
+        //   (acc, f) => {
+        //     acc[f.id] = String(f.value);
+        //     return acc;
+        //   },
+        //   {}
+        // );
+        if (!visit_id) return;
+        const res = await fetchLabTestResultsPaginated(
+          visit_id,
+          pagination.pageIndex + 1,
+          pagination.pageSize
+        );
+        setResults(res.list_of_results);
+        setTotalPages(res.total_pages);
+        setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPage();
+  }, [pagination.pageIndex, pagination.pageSize, visit_id]);
 
   const handleSaveAll = async () => {
     try {
       await Promise.all(
         results.map((item) => {
-          const url = `/lab_tests_results/${item.lab_test_result_id}`;
+          const url = `${labTestResultApiURL}/${item.lab_test_result_id}`;
           api.put(url, null, { params: { result: item.result } });
         })
       );
@@ -42,40 +84,12 @@ const EditVisitPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (!visit_id) return;
-
-    setLoading(true);
-    fetchLabTestResults(visit_id)
-      .then((data) => {
-        setResults(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message || "Failed to load");
-        setLoading(false);
-      });
-  }, [visit_id]);
-
-  useEffect(() => {
-    setLoadingTests(true);
-    fetchAllLabTest()
-      .then((data) => {
-        setAllTests(data);
-        setLoadingTests(false);
-      })
-      .catch((err) => {
-        setError(err.message || "Failed to load");
-        setLoadingTests(false);
-      });
-  }, []);
-  useEffect(() => {
-    setVisibleTests(allTests);
-  }, [allTests]);
-
   if (loading) return <div className="p-4">Loading lab results…</div>;
-  if (loadingTests) return <div className="p-4">Loading lab tests</div>;
+  // if (loadingTests) return <div className="p-4">Loading lab tests</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (!visit_id) {
+    return <div className="p-4 text-red-600">Error: no visit selected.</div>;
+  }
 
   return (
     <div className="p-8 bg-white">
@@ -83,10 +97,16 @@ const EditVisitPage: React.FC = () => {
       <PatientInfo patientData={patientData}></PatientInfo>
       <button
         className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
-        onClick={() => setShow(true)}
+        onClick={() => setShowTestsTable(true)}
       >
         Add result
       </button>
+      {/* <button
+        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
+        onClick={() => setShowPanels(true)}
+      >
+        Add lab panel
+      </button> */}
       <button
         className="p-2 h-10 w-20 rounded-sm border bg-blue-400 hover:bg-green-500"
         onClick={() => handleSaveAll()}
@@ -96,7 +116,7 @@ const EditVisitPage: React.FC = () => {
       {results.length === 0 ? (
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
-        <ShowResultsList
+        <TestResultsList
           setError={setError}
           results={results}
           setResults={setResults}
@@ -104,29 +124,27 @@ const EditVisitPage: React.FC = () => {
         />
       )}
 
-      <ShowTestsList
-        TotalNumberOfTests={totalNumberOfTests}
+      <AddResultTable
+        showAdd={showAdd}
         addError={addError}
-        setAddError={setAddError}
-        show={show}
-        setShow={setShow}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        // allTests={allTests}
-        visibleTests={visibleTests}
-        setVisibleTests={setVisibleTests}
+        visit_id={visit_id}
+        showTestsTable={showTestsTable}
         results={results}
         setResults={setResults}
-        visit_id={visit_id!}
+        setAddError={setAddError}
+        setShowTestsTable={setShowTestsTable}
         error={error}
         setError={setError}
-        pageSize={pageSize}
-        setPageSize={setPageSize}
+        //showTestsTable={showTestsTable}
+        // setShowPanelsTable={setShowPanelsTable}
+      />
+      <Pagination
+        TotalNumberOfPaginatedItems={totalNumberOfTests}
+        currentPage={pagination.pageIndex + 1}
         totalPages={totalPages}
-        setTotalPages={setTotalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        setTotalNumberOfTests={setTotalNumberOfTests}
+        setCurrentPage={handleSetPage}
+        pageSize={pagination.pageSize}
+        setPageSize={handleSetPageSize}
       />
     </div>
   );

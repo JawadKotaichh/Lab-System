@@ -56,6 +56,7 @@ const SearchLabPanel = ({
     setTotalNumberOfLabPanels,
     setError,
     debouncedFilters,
+    searchInput,
   ]);
 
   return (
