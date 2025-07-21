@@ -2,8 +2,9 @@ import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
 import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
-import { createVisit } from "./utils";
-import type { patientInfo } from "./types";
+import { createVisit, fetchLabTestResultsPaginated } from "./utils";
+import type { patientInfo, visitResult } from "./types";
+import type { PaginationState } from "@tanstack/react-table";
 
 interface deleteElement {
     elementID:string;
@@ -92,6 +93,54 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
           },
         },
       });
+    } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+  interface addLabTestParams {
+    pagination: PaginationState;
+    setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
+    visit_id: string;
+    lab_test_id:string;
+    results: visitResult[];
+    setResults: React.Dispatch<React.SetStateAction<visitResult[]>>;
+    setAddError: React.Dispatch<React.SetStateAction<string>>;
+    showTestsTable: boolean;
+    setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
+    setError: React.Dispatch<React.SetStateAction<string>>;
+    setTotalPages: React.Dispatch<React.SetStateAction<number>>;
+    setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
+  }
+  export const handleAddLabTest = async ({setTotalNumberOfTests,setTotalPages,pagination,setResults,setError,lab_test_id,results,setAddError,setShowTestsTable,visit_id,
+  }:addLabTestParams) => {
+    console.log(results.some((r) => r.lab_test_type_id == lab_test_id));
+    if (results.some((r) => r.lab_test_type_id === lab_test_id)) {
+      setAddError("This test already exists.");
+      alert("This test already exists.");
+      setShowTestsTable(false);
+      setAddError("");
+      return;
+    }
+    setAddError("");
+    const url = `/lab_tests_results/${visit_id}`;
+    try {
+      await api.post(url, {
+        lab_test_type_id: lab_test_id,
+        visit_id,
+        result: "",
+      });
+      const updated = await fetchLabTestResultsPaginated(
+        visit_id,
+        pagination.pageIndex + 1,        
+        pagination.pageSize
+      );
+      setResults(updated.list_of_results);
+      setShowTestsTable(false);
+      setTotalPages(updated.total_pages);
+      setTotalNumberOfTests(updated.TotalNumberOfLabTestResults);
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {

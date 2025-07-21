@@ -15,7 +15,7 @@ const Pagination = ({
     }
   };
   return (
-    <div className="bottom-0 right-0 ml-2 mt-5 mb-5 flex gap-4 items-center">
+    <div className="bottom-0 right-0 mt-5 mb-5 flex gap-4 items-center">
       <button
         className="border rounded-sm w-20 px-2 py-1 hover:bg-green-500"
         disabled={currentPage === 1}
