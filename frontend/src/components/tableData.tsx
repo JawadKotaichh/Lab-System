@@ -642,7 +642,7 @@ export function getVisitsColumns(
     },
     {
       accessorKey: "total_price",
-      cell: ({ row }) => `${row.original.total_price} $ `,
+      cell: ({ row }) => `${row.original.total_price.toFixed(2)} $ `,
       header: ({ column }) => (
         <ColumnFilter
           withFilter={false}
@@ -661,7 +661,8 @@ export function getVisitsColumns(
     },
     {
       accessorKey: "total_price_with_insurance",
-      cell: ({ row }) => `${row.original.total_price_with_insurance} $ `,
+      cell: ({ row }) =>
+        `${row.original.total_price_with_insurance.toFixed(2)} $ `,
       header: ({ column }) => (
         <ColumnFilter
           withFilter={false}
