@@ -7,6 +7,7 @@ from ..models import Patient as DBPatient
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import insurance_company as DBInsurance_company
 from ..models import lab_test_category as DBLab_test_category
+from ..models import lab_panel as DBLab_panel
 from ..schemas.schema_Lab_Test_Result import (
     Lab_test_result,
     paginatedVisitResults,
@@ -23,6 +24,109 @@ router = APIRouter(
     prefix="/lab_tests_results",
     tags=["lab_tests_results"],
 )
+
+
+@router.post(
+    "/{visit_id}/{lab_panel_id}",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new lab test result panel for a patient in a visit",
+)
+async def create_lab_panel_result(visit_id: str, lab_panel_id: str):
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid visit ID",
+        )
+    db_lab_panel = await DBLab_panel.find_one(
+        DBLab_panel.id == PydanticObjectId(lab_panel_id)
+    )
+    if not db_lab_panel:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lab Test Panel id {lab_panel_id} not found",
+        )
+
+    list_of_test_type_ids = db_lab_panel.list_of_test_type_ids
+    test_ids_pydantic = [
+        PydanticObjectId(t) for t in db_lab_panel.list_of_test_type_ids
+    ]
+
+    existing = await DBLab_test_result.find(
+        {
+            "visit_id": PydanticObjectId(visit_id),
+            "lab_test_type_id": {"$in": test_ids_pydantic},
+        }
+    ).to_list()
+
+    if existing:
+        dup_ids = {str(r.lab_test_type_id) for r in existing}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Some of these tests are already recorded for visit {visit_id}: {', '.join(dup_ids)}",
+        )
+
+    for test_id in list_of_test_type_ids:
+        if not PydanticObjectId.is_valid(test_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid lab test type ID",
+            )
+        db_lab_test_result = DBLab_test_result(
+            lab_test_type_id=PydanticObjectId(test_id),
+            visit_id=PydanticObjectId(visit_id),
+            result="",
+        )
+        new_lab_test_result = await db_lab_test_result.insert()
+        if not new_lab_test_result:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Error Creation Lab test Results for lab test id {test_id} for lab panel {lab_panel_id}",
+            )
+
+
+@router.post(
+    "/{visit_id}",
+    response_model=DBLab_test_result,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new lab test result for a patient in a visit",
+)
+async def create_lab_test_result(visit_id: str, data: Lab_test_result):
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid visit ID",
+        )
+
+    visit = await DBVisit.get(PydanticObjectId(visit_id))
+    if not visit:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Visit {visit_id} not found",
+        )
+    if not PydanticObjectId.is_valid(data.lab_test_type_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lab test type {data.lab_test_type_id} not found",
+        )
+    test = await DBLab_test_type.get(PydanticObjectId(data.lab_test_type_id))
+    if not test:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Test type {data.lab_test_type_id} not found",
+        )
+    visit_corresponds_to_patient = DBVisit.find(DBVisit.id == visit_id)
+    if not visit_corresponds_to_patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Visit {visit_id} is not found",
+        )
+    db_lab_test_result = DBLab_test_result(
+        lab_test_type_id=PydanticObjectId(data.lab_test_type_id),
+        visit_id=PydanticObjectId(visit_id),
+        result=data.result,
+    )
+    new_lab_test_result = await db_lab_test_result.insert()
+    return new_lab_test_result
 
 
 @router.get("/completed/{visit_id}", response_model=Dict[str, Any])
@@ -145,52 +249,6 @@ async def get_Lab_test_results_with_page_size(
         total_pages=total_pages,
     )
     return output
-
-
-@router.post(
-    "/{visit_id}",
-    response_model=DBLab_test_result,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a new lab test result for a patient in a visit",
-)
-async def create_lab_test_result(visit_id: str, data: Lab_test_result):
-    print(data)
-    if not PydanticObjectId.is_valid(visit_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid visit_id ID",
-        )
-
-    visit = await DBVisit.get(PydanticObjectId(visit_id))
-    if not visit:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Visit {visit_id} not found",
-        )
-    if not PydanticObjectId.is_valid(data.lab_test_type_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Lab test type {data.lab_test_type_id} not found",
-        )
-    test = await DBLab_test_type.get(PydanticObjectId(data.lab_test_type_id))
-    if not test:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Test type {data.lab_test_type_id} not found",
-        )
-    visit_corresponds_to_patient = DBVisit.find(DBVisit.id == visit_id)
-    if not visit_corresponds_to_patient:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Visit {visit_id} is not found",
-        )
-    db_lab_test_result = DBLab_test_result(
-        lab_test_type_id=PydanticObjectId(data.lab_test_type_id),
-        visit_id=PydanticObjectId(visit_id),
-        result=data.result,
-    )
-    new_lab_test_result = await db_lab_test_result.insert()
-    return new_lab_test_result
 
 
 @router.put("/{lab_test_result_id}")
