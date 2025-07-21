@@ -1,13 +1,17 @@
 from math import ceil
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status  # ,Query
 from ..models import lab_test_result as DBLab_test_result
 from ..models import Visit as DBVisit
 from ..models import lab_test_type as DBLab_test_type
 from ..models import Patient as DBPatient
+from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import insurance_company as DBInsurance_company
+from ..models import lab_test_category as DBLab_test_category
 from ..schemas.schema_Lab_Test_Result import (
     Lab_test_result,
+    paginatedVisitResults,
     update_lab_test_result_model,
+    visitResult,
 )
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -70,43 +74,76 @@ async def get_completed_and_total_results(visit_id: str):
     return output
 
 
-@router.get("/page/{page_size}/{page_number}", response_model=List[Dict[str, Any]])
-async def get_Lab_panel_with_page_size(
-    page_number: int,
+@router.get(
+    "/page/{visit_id}/{page_size}/{page_number}", response_model=paginatedVisitResults
+)
+async def get_Lab_test_results_with_page_size(
+    visit_id: str,
     page_size: int,
-    visit_id: str | None = Query(None),
-    result: str | None = Query(None),
-    lab_test_type_id: str | None = Query(None),
+    page_number: int,
+    # result: str | None = Query(None),
+    # lab_test_type_id: str | None = Query(None),
 ):
     offset = (page_number - 1) * page_size
-    mongo_filter: dict[str, Any] = {}
+    mongo_filter_lab_test_results: dict[str, Any] = {}
     if visit_id:
-        mongo_filter["visit_id"] = {"$regex": visit_id, "$options": "i"}
-    if result:
-        mongo_filter["result"] = {"$regex": result, "$options": "i"}
-    if lab_test_type_id:
-        mongo_filter["lab_test_type_id"] = {"$regex": lab_test_type_id, "$options": "i"}
+        mongo_filter_lab_test_results["visit_id"] = PydanticObjectId(visit_id)
+    # if result:
+    #     mongo_filter["result"] = {"$regex": result, "$options": "i"}
+    # if lab_test_type_id:
+    #     mongo_filter["lab_test_type_id"] = {"$regex": lab_test_type_id, "$options": "i"}
+    total_number_of_lab_test_results = await DBLab_test_result.find(
+        mongo_filter_lab_test_results
+    ).count()
+    cursor = (
+        DBLab_test_result.find(mongo_filter_lab_test_results)
+        .skip(offset)
+        .limit(page_size)
+    )
 
-    total_number_of_labtest_results = await DBLab_test_result.find(mongo_filter).count()
-    cursor = DBLab_test_result.find(mongo_filter).skip(offset).limit(page_size)
-
-    test_results: List[Dict[str, Any]] = []
+    visits: List[visitResult] = []
     async for test_result in cursor:
-        test_results.append(
-            {
-                "lab_test_result_id": str(test_result.id),
-                "lab_test_type_id": str(test_result.lab_test_type_id),
-                "visit_id": str(test_result.visit_id),
-                "result": test_result.result,
-            }
+        db_lab_test_type = await DBLab_test_type.find_one(
+            DBLab_test_type.id == PydanticObjectId(test_result.lab_test_type_id)
         )
-
-    total_pages = ceil(total_number_of_labtest_results / page_size)
-    output = {
-        "TotalNumberOfLabTestResults": total_number_of_labtest_results,
-        "total_pages": total_pages,
-        "test_results": test_results,
-    }
+        if db_lab_test_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid lab test type ID",
+            )
+        lab_test_type_category = await DBLab_test_category.find_one(
+            DBLab_test_category.id == db_lab_test_type.lab_test_category_id
+        )
+        if lab_test_type_category is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid lab test category ID",
+            )
+        lab_test_type = Lab_test_type(
+            name=db_lab_test_type.name,
+            nssf_id=db_lab_test_type.nssf_id,
+            lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
+            unit=db_lab_test_type.unit,
+            lower_bound=db_lab_test_type.lower_bound,
+            upper_bound=db_lab_test_type.upper_bound,
+            price=db_lab_test_type.price,
+            lab_test_category_name=lab_test_type_category.lab_test_category_name,
+        )
+        lab_test_type_id = db_lab_test_type.id
+        current_visit_result = visitResult(
+            lab_test_result_id=str(test_result.id),
+            lab_test_type=lab_test_type,
+            result=test_result.result,
+            lab_test_type_id=str(lab_test_type_id),
+        )
+        visits.append(current_visit_result)
+    total_pages = ceil(total_number_of_lab_test_results / page_size)
+    output = paginatedVisitResults(
+        visit_id=str(visit_id),
+        list_of_results=visits,
+        TotalNumberOfLabTestResults=total_number_of_lab_test_results,
+        total_pages=total_pages,
+    )
     return output
 
 
@@ -117,6 +154,7 @@ async def get_Lab_panel_with_page_size(
     summary="Create a new lab test result for a patient in a visit",
 )
 async def create_lab_test_result(visit_id: str, data: Lab_test_result):
+    print(data)
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
