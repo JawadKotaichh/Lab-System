@@ -116,7 +116,6 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
   }
   export const handleAddLabTest = async ({setTotalNumberOfTests,setTotalPages,pagination,setResults,setError,lab_test_id,results,setAddError,setShowTestsTable,visit_id,
   }:addLabTestParams) => {
-    console.log(results.some((r) => r.lab_test_type_id == lab_test_id));
     if (results.some((r) => r.lab_test_type_id === lab_test_id)) {
       setAddError("This test already exists.");
       alert("This test already exists.");
