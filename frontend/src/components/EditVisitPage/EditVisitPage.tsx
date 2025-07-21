@@ -6,10 +6,12 @@ import api from "../../api.js";
 import PatientInfo from "./PatientInfo.js";
 import type { PaginationState } from "@tanstack/react-table";
 import { labTestResultApiURL } from "../data.js";
-import AddResultTable from "./AddResultTable.js";
 import TestResultsList from "./TestResultsList.js";
 import { fetchLabTestResultsPaginated } from "../utils.js";
 import Pagination from "../Pagination.js";
+import AddTestResultTable from "./AddTestResultTable.js";
+import LabPanelsTable from "./LabPanelsTable.js";
+// import LabPanelsTable from "./LabPanelsTable.js";
 
 const EditVisitPage: React.FC = () => {
   const location = useLocation();
@@ -19,7 +21,7 @@ const EditVisitPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   // const [loadingTests, setLoadingTests] = useState(true);
   const [error, setError] = useState<string>("");
-  // const [showPanels, setShowPanels] = useState<boolean>(false);
+  const [showPanelsTable, setShowPanelsTable] = useState<boolean>(false);
   const [showTestsTable, setShowTestsTable] = useState<boolean>(false);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -99,14 +101,14 @@ const EditVisitPage: React.FC = () => {
         className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
         onClick={() => setShowTestsTable(true)}
       >
-        Add result
+        Add test result
       </button>
-      {/* <button
+      <button
         className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
-        onClick={() => setShowPanels(true)}
+        onClick={() => setShowPanelsTable(true)}
       >
         Add lab panel
-      </button> */}
+      </button>
       <button
         className="p-2 h-10 w-20 rounded-sm border bg-blue-400 hover:bg-green-500"
         onClick={() => handleSaveAll()}
@@ -120,11 +122,9 @@ const EditVisitPage: React.FC = () => {
           setError={setError}
           results={results}
           setResults={setResults}
-          visit_id={visit_id!}
         />
       )}
-
-      <AddResultTable
+      <AddTestResultTable
         showAdd={showAdd}
         addError={addError}
         visit_id={visit_id}
@@ -138,6 +138,12 @@ const EditVisitPage: React.FC = () => {
         //showTestsTable={showTestsTable}
         // setShowPanelsTable={setShowPanelsTable}
       />
+      <LabPanelsTable
+        showPanelsTable={showPanelsTable}
+        setShowPanelsTable={setShowPanelsTable}
+        visit_id={visit_id}
+      />
+
       <Pagination
         TotalNumberOfPaginatedItems={totalNumberOfTests}
         currentPage={pagination.pageIndex + 1}
