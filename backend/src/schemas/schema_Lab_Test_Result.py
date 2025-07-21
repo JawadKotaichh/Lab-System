@@ -1,11 +1,13 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import ConfigDict, BaseModel, Field
-
-from beanie import PydanticObjectId
+from ..schemas.schema_Lab_Test_Type import Lab_test_type
 
 
 class Lab_test_result(BaseModel):
-    lab_test_type_id: PydanticObjectId = Field(..., description="Which test type this result refers to")    
+    lab_test_type_id: str = Field(
+        ..., description="Which test type this result refers to"
+    )
+    visit_id: str = Field(...)
     result: str = Field(...)
 
     model_config = ConfigDict(
@@ -21,9 +23,23 @@ class Lab_test_result(BaseModel):
     )
 
 
+class visitResult(BaseModel):
+    lab_test_result_id: str
+    lab_test_type: Lab_test_type
+    lab_test_type_id: str
+    result: str
+
+
+class paginatedVisitResults(BaseModel):
+    visit_id: str
+    list_of_results: List[visitResult]
+    TotalNumberOfLabTestResults: int
+    total_pages: int
+
+
 class update_lab_test_result_model(BaseModel):
-    lab_test_type_id: Optional[PydanticObjectId] = None
-    visit_id: Optional[PydanticObjectId] = None
+    lab_test_type_id: Optional[str] = None
+    visit_id: Optional[str] = None
     result: Optional[str] = None
 
     model_config = ConfigDict(

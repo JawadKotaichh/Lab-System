@@ -7,12 +7,12 @@ import type {
   labPanelFilter,
   labTestCategoryParams,
   labTestFilters,
-  LabTestResult,
   paginatedlabPanel,
   paginatedlabTest,
   paginatedPatientInfo,
   paginatedTestCategoryInfo,
   paginatedVisitData,
+  paginatedVisitResults,
   patientInfo,
   patientsFilters,
   visitFilters,
@@ -24,13 +24,16 @@ import {
   InsuranceApiURL,
   labPanelApiURL,
   labTestCategoryApiURL,
+  labTestResultApiURL,
   PatientsApiURL,
 } from "./data.js";
 
-const fetchLabTestResults = async (
-  visit_id: string
-): Promise<LabTestResult[]> => {
-  const url = `/lab_tests_results/all/${visit_id}`;
+const fetchLabTestResultsPaginated = async (
+  visit_id: string,
+  page_number: number,
+  page_size: number
+): Promise<paginatedVisitResults> => {
+  const url = `${labTestResultApiURL}/page/${visit_id}/${page_size}/${page_number}`;
   const response = await api.get(url);
   return response.data;
 };
@@ -171,7 +174,6 @@ export { fetchLabTestCategory };
 export { fetchLabPanel };
 export { fetchLabTestCategoryPaginated };
 export { fetchLabPanelsPaginated };
-export { fetchLabTestResults };
 export { fetchAllLabTest };
 export { fetchAllPatients };
 export { fetchPatient };
@@ -184,3 +186,4 @@ export { fetchVisitsPaginated };
 export { fetchInsuranceCompany };
 export { fetchLabTest };
 export { fetchInsuranceCompaniesPaginated };
+export { fetchLabTestResultsPaginated };
