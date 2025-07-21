@@ -37,7 +37,7 @@ interface TestsList {
   setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const AddResultTable: React.FC<TestsList> = ({
+const AddTestResultTable: React.FC<TestsList> = ({
   addError,
   visit_id,
   showTestsTable,
@@ -223,4 +223,4 @@ const AddResultTable: React.FC<TestsList> = ({
   );
 };
 
-export default AddResultTable;
+export default AddTestResultTable;

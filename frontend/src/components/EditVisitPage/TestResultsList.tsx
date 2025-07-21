@@ -1,18 +1,17 @@
 import EditVistHead from "./EditVisitHead.js";
 import type { visitResult } from "../types.js";
 import api from "../../api.js";
+import { labTestResultApiURL } from "../data.js";
 
 interface ShowResultsListParams {
   results: visitResult[];
   setResults: React.Dispatch<React.SetStateAction<visitResult[]>>;
-  visit_id: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const TestResultsList: React.FC<ShowResultsListParams> = ({
   results,
   setResults,
-  visit_id,
   setError,
 }: ShowResultsListParams) => {
   const handleChange = async (
@@ -29,12 +28,10 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   };
 
   const handleDelete = async (lab_test_result_id: string) => {
-    const url = `visits/${visit_id}/lab_tests_results/${lab_test_result_id}`;
+    const url = `${labTestResultApiURL}/${lab_test_result_id}`;
     try {
       await api.delete(url);
-      setResults((prev) =>
-        prev.filter((r) => r.lab_test_result_id !== lab_test_result_id)
-      );
+      window.location.reload();
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
