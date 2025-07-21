@@ -4,6 +4,7 @@ from typing import Union
 
 
 class Lab_test_type(BaseModel):
+    lab_test_id: Optional[str] = Field(default=None)
     nssf_id: int = Field(...)
     lab_test_category_id: str = Field(...)
     lab_test_category_name: Optional[str] = Field(default=None)
