@@ -7,6 +7,7 @@ import type {
   labTestCategoryParams,
   patientInfo,
   visitData,
+  visitResult,
 } from "./types";
 import {
   InsuranceEditPageURL,
@@ -15,6 +16,7 @@ import {
   visitEditPageURL,
 } from "./data";
 import {
+  handleAddLabTest,
   handleDeleteInsuranceCompany,
   handleDeleteLabTest,
   handleDeleteLabTestCategory,
@@ -23,7 +25,7 @@ import {
   handleNewVisit,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 
 export function getInsuranceCompanyColumns(
   navigate: NavigateFunction,
@@ -276,7 +278,18 @@ export function getLabTestColumns(
   navigate: NavigateFunction,
   showFilters: Record<string, boolean>,
   toggleFilter: (id: string) => void,
-  setError: React.Dispatch<React.SetStateAction<string>>
+  setError: React.Dispatch<React.SetStateAction<string>>,
+  showAdd: boolean,
+  pagination?: PaginationState,
+  setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>,
+  visit_id?: string,
+  results?: visitResult[],
+  setResults?: React.Dispatch<React.SetStateAction<visitResult[]>>,
+  setAddError?: React.Dispatch<React.SetStateAction<string>>,
+  showTestsTable?: boolean,
+  setShowTestsTable?: React.Dispatch<React.SetStateAction<boolean>>,
+  setTotalPages?: React.Dispatch<React.SetStateAction<number>>,
+  setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>
 ): ColumnDef<labTest>[] {
   return [
     {
@@ -411,6 +424,52 @@ export function getLabTestColumns(
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
         const { lab_test_id } = row.original;
+        console.log("lab_Test_id: ", lab_test_id);
+
+        if (showAdd) {
+          console.log("lab_Test_id: ", lab_test_id);
+          return (
+            <div className="flex gap-2 justify-center">
+              <button
+                className={tableHandleButton}
+                onClick={() => {
+                  if (
+                    !pagination ||
+                    !setPagination ||
+                    !visit_id ||
+                    !setAddError ||
+                    !results ||
+                    !setShowTestsTable ||
+                    !setTotalNumberOfTests ||
+                    !setResults ||
+                    !showTestsTable ||
+                    !setTotalPages
+                  ) {
+                    return setError?.(
+                      "Cannot add test, one of the parameters is not given"
+                    );
+                  }
+                  handleAddLabTest({
+                    pagination,
+                    setPagination,
+                    visit_id,
+                    setAddError,
+                    results,
+                    setShowTestsTable,
+                    setTotalNumberOfTests,
+                    setError,
+                    setResults,
+                    showTestsTable,
+                    setTotalPages,
+                    lab_test_id,
+                  });
+                }}
+              >
+                Add
+              </button>
+            </div>
+          );
+        }
         return (
           <div className="flex gap-2 justify-center">
             <button

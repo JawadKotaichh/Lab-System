@@ -5,14 +5,21 @@ export type Params = {
 
 export type LabTestResult = {
   lab_test_type_id: string;
-  lab_test_category_id: string;
-  name: string;
   result: string;
-  unit: string;
-  price: number;
-  upper_bound: string;
-  lower_bound: string;
+};
+
+export type visitResult = {
   lab_test_result_id: string;
+  lab_test_type: labTest;
+  result: string;
+  lab_test_type_id: string;
+};
+
+export type paginatedVisitResults = {
+  visit_id: string;
+  list_of_results: visitResult[];
+  TotalNumberOfLabTestResults: number;
+  total_pages: number;
 };
 
 export type labTest = {
