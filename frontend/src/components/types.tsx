@@ -5,12 +5,15 @@ export type Params = {
 
 export type LabTestResult = {
   lab_test_type_id: string;
+  lab_panel_name?: string;
   result: string;
 };
 
 export type visitResult = {
   lab_test_result_id: string;
+  lab_panel_id?: string;
   lab_test_type: labTest;
+  lab_panel_name: string;
   result: string;
   lab_test_type_id: string;
 };
