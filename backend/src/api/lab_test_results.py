@@ -354,33 +354,21 @@ async def update_lab_test_result(
     return existing_lab_test_result
 
 
-@router.delete("/delete_panels/{visit_id}/{lab_panel_id}", response_class=Response)
-async def delete_lab_panel_result(visit_id: str, lab_panel_id: str):
-    if not PydanticObjectId.is_valid(lab_panel_id):
-        raise HTTPException(400, "Invalid lab panel ID")
-
+@router.delete("/delete_panels/{visit_id}/{lab_panel_name}", response_class=Response)
+async def delete_lab_panel_result(visit_id: str, lab_panel_name: str):
     lab_panel_to_be_deleted = await DBLab_panel.find_one(
-        DBLab_panel.id == PydanticObjectId(lab_panel_id)
+        DBLab_panel.panel_name == lab_panel_name
     )
     if not lab_panel_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Lab_test_result {lab_panel_id} not found",
+            detail=f"Lab panel {lab_panel_name} not found",
         )
-    list_of_test_type_ids = lab_panel_to_be_deleted.list_of_test_type_ids
-
-    for test_id in list_of_test_type_ids:
-        print("hiiiiii")
-        lab_test_result_to_be_deleted = await DBLab_test_result.find_one(
-            DBLab_test_result.lab_test_type_id == test_id,
-            DBLab_test_result.visit_id == PydanticObjectId(visit_id),
-        )
-        if not lab_test_result_to_be_deleted:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Lab_test_result {test_id} not found",
-            )
-        await lab_test_result_to_be_deleted.delete()
+    lab_test_results_to_be_deleted = DBLab_test_result.find(
+        DBLab_test_result.lab_panel_name == lab_panel_name,
+        DBLab_test_result.visit_id == PydanticObjectId(visit_id),
+    )
+    await lab_test_results_to_be_deleted.delete()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
