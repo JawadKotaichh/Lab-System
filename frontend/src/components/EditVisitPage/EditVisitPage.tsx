@@ -119,6 +119,7 @@ const EditVisitPage: React.FC = () => {
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
         <TestResultsList
+          visit_id={visit_id}
           setError={setError}
           results={results}
           setResults={setResults}

@@ -72,6 +72,7 @@ async def create_lab_panel_result(visit_id: str, lab_panel_id: str):
                 detail="Invalid lab test type ID",
             )
         db_lab_test_result = DBLab_test_result(
+            lab_panel_name=db_lab_panel.panel_name,
             lab_test_type_id=PydanticObjectId(test_id),
             visit_id=PydanticObjectId(visit_id),
             result="",
@@ -234,12 +235,33 @@ async def get_Lab_test_results_with_page_size(
             lab_test_category_name=lab_test_type_category.lab_test_category_name,
         )
         lab_test_type_id = db_lab_test_type.id
-        current_visit_result = visitResult(
-            lab_test_result_id=str(test_result.id),
-            lab_test_type=lab_test_type,
-            result=test_result.result,
-            lab_test_type_id=str(lab_test_type_id),
-        )
+
+        if test_result.lab_panel_name != "" and test_result.lab_panel_name is not None:
+            db_lab_panel = await DBLab_panel.find_one(
+                DBLab_panel.panel_name == test_result.lab_panel_name
+            )
+            if db_lab_panel is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Panel {test_result.lab_panel_name} not found",
+                )
+
+            current_visit_result = visitResult(
+                lab_panel_id=str(db_lab_panel.id),
+                lab_panel_name=test_result.lab_panel_name,
+                lab_test_result_id=str(test_result.id),
+                lab_test_type=lab_test_type,
+                result=test_result.result,
+                lab_test_type_id=str(lab_test_type_id),
+            )
+        else:
+            current_visit_result = visitResult(
+                lab_panel_name=test_result.lab_panel_name,
+                lab_test_result_id=str(test_result.id),
+                lab_test_type=lab_test_type,
+                result=test_result.result,
+                lab_test_type_id=str(lab_test_type_id),
+            )
         visits.append(current_visit_result)
     total_pages = ceil(total_number_of_lab_test_results / page_size)
     output = paginatedVisitResults(
@@ -330,6 +352,36 @@ async def update_lab_test_result(
     await existing_lab_test_result.replace()
 
     return existing_lab_test_result
+
+
+@router.delete("/delete_panels/{visit_id}/{lab_panel_id}", response_class=Response)
+async def delete_lab_panel_result(visit_id: str, lab_panel_id: str):
+    if not PydanticObjectId.is_valid(lab_panel_id):
+        raise HTTPException(400, "Invalid lab panel ID")
+
+    lab_panel_to_be_deleted = await DBLab_panel.find_one(
+        DBLab_panel.id == PydanticObjectId(lab_panel_id)
+    )
+    if not lab_panel_to_be_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lab_test_result {lab_panel_id} not found",
+        )
+    list_of_test_type_ids = lab_panel_to_be_deleted.list_of_test_type_ids
+
+    for test_id in list_of_test_type_ids:
+        print("hiiiiii")
+        lab_test_result_to_be_deleted = await DBLab_test_result.find_one(
+            DBLab_test_result.lab_test_type_id == test_id,
+            DBLab_test_result.visit_id == PydanticObjectId(visit_id),
+        )
+        if not lab_test_result_to_be_deleted:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Lab_test_result {test_id} not found",
+            )
+        await lab_test_result_to_be_deleted.delete()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete("/{lab_test_result_id}", response_class=Response)

@@ -3,7 +3,6 @@ import type { CreateLabPanelParams, labTest } from "../types.js";
 import { fetchLabTestTypePaginated } from "../utils.js";
 import { useEffect } from "react";
 import Pagination from "../Pagination.js";
-import AddResultHead from "../EditVisitPage/AddResultHead.js";
 
 interface TestsList {
   labTestCategoryById: Record<string, string>;
@@ -110,7 +109,18 @@ const AddTestToPanel: React.FC<TestsList> = ({
                 setPageSize={setPageSize}
               />
               <table className="w-full border border-black border-collapse text-center">
-                <AddResultHead />
+                <thead className="bg-gray-100 border-b border-black sticky top-0 z-10">
+                  <tr>
+                    <th className="border px-4 py-2">Category</th>
+                    <th className="border px-4 py-2">NSSF ID</th>
+                    <th className="border px-4 py-2">Test</th>
+                    <th className="border px-4 py-2">Unit</th>
+                    <th className="border px-4 py-2">Price</th>
+                    <th className="border px-4 py-2">Lower Bound</th>
+                    <th className="border px-4 py-2">Upper Bound</th>
+                    <th className="border px-4 py-2">Add</th>
+                  </tr>
+                </thead>{" "}
                 <tbody>
                   {visibleTests.map((test) => (
                     <tr key={test.lab_test_id}>
