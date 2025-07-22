@@ -592,7 +592,7 @@ export function getVisitsColumns(
           withFilter={true}
           column={column}
           placeholder="Search patient name..."
-          label="Patient Name"
+          label=" Name"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
         />
@@ -668,7 +668,7 @@ export function getVisitsColumns(
           withFilter={false}
           column={column}
           placeholder="Search price..."
-          label="Price With Insurance"
+          label="Price & Insurance"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
         />
@@ -715,8 +715,6 @@ export function getVisitsColumns(
             <button
               className={tableHandleButton}
               onClick={() => {
-                console.log(patient);
-
                 navigate(`${visitEditPageURL}${visit_id}`, {
                   state: {
                     patientData: {
@@ -734,6 +732,17 @@ export function getVisitsColumns(
               onClick={() => navigate(`/visits/${visit_id}`)}
             >
               Preview Result
+            </button>
+            <button
+              className={tableHandleButton}
+              onClick={() =>
+                handleDeleteVisit({
+                  elementID: visit_id,
+                  setError,
+                })
+              }
+            >
+              View Invoice
             </button>
             <button
               className={tableDeleteButton}
