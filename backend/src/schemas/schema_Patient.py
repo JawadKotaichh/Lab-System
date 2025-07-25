@@ -3,14 +3,14 @@ from pydantic import ConfigDict, BaseModel, Field
 from datetime import datetime
 
 
-
 class Patient(BaseModel):
     patient_id: Optional[str] = Field(...)
     name: str = Field(...)
     gender: str = Field(...)
     DOB: datetime = Field(...)
     phone_number: str = Field(...)
-    insurance_company_id : str = Field(...)
+    insurance_company_id: str = Field(...)
+    insurance_company_name: Optional[str] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -21,7 +21,7 @@ class Patient(BaseModel):
                 "gender": "Male",
                 "DOB": "1995-01-15T00:00:00",
                 "phone_number": "12345678",
-                "insurance_company_id" :"684e9e724cd8de425cec0af7",
+                "insurance_company_id": "684e9e724cd8de425cec0af7",
             }
         },
     )
@@ -37,7 +37,6 @@ class update_patient_model(BaseModel):
     DOB: Optional[datetime] = None
     phone_number: Optional[str] = None
     insurance_company_id: Optional[str] = None
-
 
     model_config = ConfigDict(
         populate_by_name=True,

@@ -3,6 +3,7 @@ from pydantic import ConfigDict, BaseModel, Field
 from datetime import datetime
 from ..schemas.schema_Patient import Patient
 from typing import List
+from ..schemas.schema_Lab_Test_Type import Lab_test_type
 
 
 class Visit(BaseModel):
@@ -30,6 +31,14 @@ class VisitData(BaseModel):
     total_price: float
     total_price_with_insurance: float
     insurance_company_name: str
+
+
+class visitInvoice(BaseModel):
+    listOfTests: List[Lab_test_type]
+    totalPrice: float
+    patient: Patient
+    visit_date: datetime
+    patient_insurance_company_rate: float
 
 
 class PaginatedVisitDataList(BaseModel):
