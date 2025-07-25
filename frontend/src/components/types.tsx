@@ -1,3 +1,11 @@
+export type visitInvoiceData = {
+  patient: patientInfo;
+  totalPrice: number;
+  listOfTests: labTest[];
+  visit_date: Date;
+  patient_insurance_company_rate: number;
+};
+
 export type Params = {
   patient_id: string;
   visit_id: string;

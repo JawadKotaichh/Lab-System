@@ -16,6 +16,7 @@ import type {
   patientInfo,
   patientsFilters,
   visitFilters,
+  visitInvoiceData,
   VisitsInfo,
 } from "./types.js";
 import api from "../api.js";
@@ -26,7 +27,14 @@ import {
   labTestCategoryApiURL,
   labTestResultApiURL,
   PatientsApiURL,
+  visitsApiURL,
 } from "./data.js";
+
+const fetchInvoice = async (visit_id: string): Promise<visitInvoiceData> => {
+  const url = `${visitsApiURL}${visit_id}/invoice`;
+  const response = await api.get(url);
+  return response.data;
+};
 
 const fetchLabTestResultsPaginated = async (
   visit_id: string,
@@ -187,3 +195,4 @@ export { fetchInsuranceCompany };
 export { fetchLabTest };
 export { fetchInsuranceCompaniesPaginated };
 export { fetchLabTestResultsPaginated };
+export { fetchInvoice };
