@@ -735,12 +735,7 @@ export function getVisitsColumns(
             </button>
             <button
               className={tableHandleButton}
-              onClick={() =>
-                handleDeleteVisit({
-                  elementID: visit_id,
-                  setError,
-                })
-              }
+              onClick={() => navigate(`/invoice/${visit_id}`)}
             >
               View Invoice
             </button>
