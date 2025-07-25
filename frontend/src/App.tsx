@@ -15,7 +15,7 @@ import EditLabPanel from "./components/LabPanel/EditLabPanel";
 import LabPanelsList from "./components/LabPanel/LabPanelsList";
 import LabTestCategoryTable from "./components/LabCategory/LabTestCategoryTable";
 import VisitsTable from "./components/Visits/VisitsTable";
-import Invoice from "./components/Invoice/Invoice";
+import InvoiceContainer from "./components/Invoice/InvoiceContainer";
 
 type NavItem = {
   to: string;
@@ -129,7 +129,7 @@ const App: React.FC = () => {
             path="/create-lab-test-category"
             element={<EditLabTestCategory title="Create Lab Test Category" />}
           />
-          <Route path="/invoice" element={<Invoice />} />
+          <Route path="/invoice/:visit_id" element={<InvoiceContainer />} />
           <Route path="*" element={<h2 className="p-8">Page not found</h2>} />
         </Routes>
       </main>
