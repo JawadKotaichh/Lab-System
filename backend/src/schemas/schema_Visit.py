@@ -4,6 +4,7 @@ from datetime import datetime
 from ..schemas.schema_Patient import Patient
 from typing import List
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
+from ..schemas.schema_Lab_Panel import Lab_Panel
 
 
 class Visit(BaseModel):
@@ -35,6 +36,7 @@ class VisitData(BaseModel):
 
 class visitInvoice(BaseModel):
     listOfTests: List[Lab_test_type]
+    listOfPanels: List[Lab_Panel]
     totalPrice: float
     patient: Patient
     visit_date: datetime

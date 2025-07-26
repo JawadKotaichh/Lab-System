@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import type { labTest, patientInfo } from "../types";
+import { type labPanel, type labTest, type patientInfo } from "../types";
 import { fetchInvoice } from "../utils";
 import Invoice from "./Invoice";
 
@@ -15,14 +15,17 @@ export default function InvoiceContainer() {
     useState<number>(0);
   const [error, setError] = useState<string>("");
   const version = useRef(0);
+  const [listOfPanels, setListOfPanels] = useState<labPanel[]>([]);
 
   useEffect(() => {
     fetchInvoice(visit_id!)
       .then((data) => {
+        console.log("Fetched data: ", data);
         setPatient(data.patient);
         setListOfTests(data.listOfTests);
         setVisitDate(data.visit_date);
         setTotalPrice(data.totalPrice);
+        setListOfPanels(data.listOfPanels);
         setPatientInsuranceCompanyRate(data.patient_insurance_company_rate);
         setLoading(false);
       })
@@ -41,6 +44,7 @@ export default function InvoiceContainer() {
   return (
     <div style={{ width: "100%", height: "800px" }}>
       <Invoice
+        listOfPanels={listOfPanels}
         patient_insurance_company_rate={patientInsuranceCompanyRate}
         patient={patient!}
         listOfTests={listOfTests}
