@@ -4,6 +4,7 @@ from ..models import lab_panel as DBLab_panel
 from ..models import lab_test_category as DBLab_test_category
 from ..schemas.schema_Lab_Panel import (
     Lab_Panel,
+    LabPanelResponseTestsIDs,
     update_Lab_Panel_model,
     LabPanelResponse,
     LabPanelPaginatedResponse,
@@ -98,6 +99,7 @@ async def get_Lab_panel_with_page_size(
             )
             listOfLabTest.append(lab_test)
         labPanelData = LabPanelResponse(
+            lab_panel_price=db_lab_panel.lab_panel_price,
             id=str(db_lab_panel.id),
             panel_name=db_lab_panel.panel_name,
             lab_tests=listOfLabTest,
@@ -155,8 +157,28 @@ async def getLabPanel(lab_panel_id: str):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"lab test {test_id} not found!",
             )
-        listOfLabTest.append(db_lab_test)
+        db_category = await DBLab_test_category.find_one(
+            DBLab_test_category.id == db_lab_test.lab_test_category_id
+        )
+        if db_category is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Lab Test Type {db_lab_test.lab_test_category_id} not found",
+            )
+        lab_test = Lab_test_type(
+            lab_test_id=str(db_lab_test.id),
+            lab_test_category_name=db_category.lab_test_category_name,
+            nssf_id=db_lab_test.nssf_id,
+            lab_test_category_id=str(db_lab_test.lab_test_category_id),
+            name=db_lab_test.name,
+            unit=db_lab_test.unit,
+            price=db_lab_test.price,
+            lower_bound=db_lab_test.lower_bound,
+            upper_bound=db_lab_test.upper_bound,
+        )
+        listOfLabTest.append(lab_test)
     labPanelData = LabPanelResponse(
+        lab_panel_price=db_lab_panel.lab_panel_price,
         id=str(db_lab_panel.id),
         panel_name=db_lab_panel.panel_name,
         lab_tests=listOfLabTest,
@@ -165,26 +187,30 @@ async def getLabPanel(lab_panel_id: str):
     return labPanelData
 
 
-@router.get("/{lab_panel_id}", response_model=Dict[str, Any])
+@router.get("/{lab_panel_id}/test_ids", response_model=LabPanelResponseTestsIDs)
 async def getLabPanelWithListOfIDs(lab_panel_id: str):
     if not PydanticObjectId.is_valid(lab_panel_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid lab_panel_id ID"
         )
-    lab_panel = await DBLab_panel.get(PydanticObjectId(lab_panel_id))
-    if not lab_panel:
+    db_lab_panel = await DBLab_panel.get(PydanticObjectId(lab_panel_id))
+    if not db_lab_panel:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Panel not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Panel with id: {lab_panel_id} not found",
         )
 
-    d: Dict[str, Any] = {}
-    d["lab_panel_id"] = str(lab_panel.id)
-    d["panel_name"] = lab_panel.panel_name
-    tempList: List[str] = []
-    for test_type_id in lab_panel.list_of_test_type_ids:
-        tempList.append(str(test_type_id))
-    d["list_of_test_type_ids"] = tempList
-    return d
+    testsList: List[str] = []
+    for test_type_id in db_lab_panel.list_of_test_type_ids:
+        testsList.append(str(test_type_id))
+
+    output: LabPanelResponseTestsIDs = LabPanelResponseTestsIDs(
+        id=str(db_lab_panel.id),
+        panel_name=db_lab_panel.panel_name,
+        list_of_test_type_ids=testsList,
+        lab_panel_price=db_lab_panel.lab_panel_price,
+    )
+    return output
 
 
 @router.get("/{lab_panel_id}", response_model=DBLab_panel)
@@ -218,6 +244,8 @@ async def update_lab_panel(lab_panel_id: str, update_data: update_Lab_Panel_mode
         existing_Lab_panel.panel_name = update_data.panel_name
     if update_data.list_of_test_type_ids is not None:
         existing_Lab_panel.list_of_test_type_ids = update_data.list_of_test_type_ids
+    if update_data.lab_panel_price is not None:
+        existing_Lab_panel.lab_panel_price = update_data.lab_panel_price
 
     await existing_Lab_panel.replace()
 

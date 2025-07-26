@@ -12,6 +12,8 @@ from ..schemas.schema_Visit import (
     update_visit_model,
     VisitData,
     visitInvoice,
+    visitResultData,
+    visitResultTest,
 )
 from beanie import PydanticObjectId
 from fastapi.responses import Response
@@ -113,6 +115,98 @@ async def get_invoice(visit_id: str):
         totalPrice=totalPrice,
         visit_date=visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
+    )
+    return output
+
+
+"""
+listOfTests: List[Lab_test_type]
+    listOfLabTestResults: List[Lab_test_result]
+    patient: Patient
+    visit_date: datetime
+"""
+
+
+@router.get("/{visit_id}/result", response_model=visitResultData)
+async def getResult(visit_id: str):
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(status_code=400, detail="Invalid Visit ID")
+    db_visit = await DBVisit.get(PydanticObjectId(visit_id))
+    if not db_visit:
+        raise HTTPException(status_code=400, detail=f"Visit Id:{visit_id} not found!")
+
+    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+    if not db_patient:
+        raise HTTPException(
+            status_code=400, detail=f"Patient Id:{db_visit.patient_id} not found!"
+        )
+    db_list_of_lab_tests = DBLab_test_result.find(
+        DBLab_test_result.visit_id == PydanticObjectId(visit_id)
+    )
+    if not db_list_of_lab_tests:
+        raise HTTPException(
+            status_code=400, detail=f"No test found for visit: {visit_id}!"
+        )
+
+    db_insurance_company = await DBInsurance_company.find_one(
+        DBInsurance_company.id == db_patient.insurance_company_id
+    )
+    if not db_insurance_company:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insurance Company of ID: {db_patient.insurance_company_id} not found!",
+        )
+
+    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+    if not db_patient:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Patient of ID: {db_visit.patient_id} not found!",
+        )
+    currentPatient = Patient(
+        insurance_company_name=db_insurance_company.insurance_company_name,
+        DOB=db_patient.DOB,
+        patient_id=str(db_patient.id),
+        name=db_patient.name,
+        gender=db_patient.gender,
+        phone_number=db_patient.phone_number,
+        insurance_company_id=str(db_patient.insurance_company_id),
+    )
+    visit_date = db_visit.date
+    listOfLabTestResults: List[visitResultTest] = []
+
+    async for lab_result in db_list_of_lab_tests:
+        db_lab_test_type = await DBLab_test_type.find_one(
+            DBLab_test_type.id == PydanticObjectId(lab_result.lab_test_type_id)
+        )
+        if not db_lab_test_type:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Lab test type: {lab_result.lab_test_type_id} not found!",
+            )
+        lab_test_category = await DBLab_test_category.find_one(
+            DBLab_test_category.id == db_lab_test_type.lab_test_category_id
+        )
+        if not lab_test_category:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Lab test category: {db_lab_test_type.lab_test_category_id} not found!",
+            )
+
+        current_lab_test_result = visitResultTest(
+            name=db_lab_test_type.name,
+            result=lab_result.result,
+            unit=db_lab_test_type.unit,
+            lower_bound=db_lab_test_type.lower_bound,
+            upper_bound=db_lab_test_type.upper_bound,
+            lab_test_category_name=lab_test_category.lab_test_category_name,
+            lab_panel_name=lab_result.lab_panel_name,
+        )
+        listOfLabTestResults.append(current_lab_test_result)
+    output = visitResultData(
+        patient=currentPatient,
+        visit_date=visit_date,
+        listOfLabTestResults=listOfLabTestResults,
     )
     return output
 
