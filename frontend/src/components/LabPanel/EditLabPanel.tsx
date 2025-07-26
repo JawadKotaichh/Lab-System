@@ -55,9 +55,9 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const [data, setData] = useState<CreateLabPanelParams>({
     panel_name: "",
     list_of_test_type_ids: [],
+    lab_panel_price: 0,
   });
 
-  // Load existing panel (if editing)
   useEffect(() => {
     if (!lab_panel_id) return;
     fetchLabPanel(lab_panel_id)
@@ -65,12 +65,12 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         setData({
           list_of_test_type_ids: currentPanelData.list_of_test_type_ids,
           panel_name: currentPanelData.panel_name,
+          lab_panel_price: currentPanelData.lab_panel_price,
         });
       })
       .catch((err) => setError(err.message || "Failed to load lab panel"));
   }, [lab_panel_id]);
 
-  // Load all tests & categories
   useEffect(() => {
     setLoading(true);
     Promise.all([
@@ -108,13 +108,18 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       ),
     }));
   };
-  const handleInputChange = (value: string) => {
+  const handlePanelNameChange = (value: string) => {
     setData((prev) => ({
       ...prev,
       panel_name: value,
     }));
   };
-
+  const handlePanelPriceChange = (value: number) => {
+    setData((prev) => ({
+      ...prev,
+      lab_panel_price: value,
+    }));
+  };
   const handleAddButton = () => setShow(true);
 
   const handleSave = async () => {
@@ -136,7 +141,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
 
   if (loading) return <div className="p-4">Loading lab categories...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
-
+  console.log("Data: ", data);
   return (
     <div className="p-8 bg-white">
       <h1 className={inputFormTitle}>{title}</h1>
@@ -152,7 +157,20 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
-          onChange={(e) => handleInputChange(e.target.value)}
+          onChange={(e) => handlePanelNameChange(e.target.value)}
+        />
+        <label className={inputFormAttributeListItemLabel + " p-3"}>
+          <span className="text-xl mr-5">Price: $</span>
+        </label>
+        <input
+          className={inputFormAttributeListItemInput + " w-fit"}
+          type={"number"}
+          value={data.lab_panel_price || 0}
+          placeholder={"Enter Lab Panel price"}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          onChange={(e) => handlePanelPriceChange(Number(e.target.value))}
         />
       </div>
 

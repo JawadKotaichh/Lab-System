@@ -118,6 +118,14 @@ const InsuranceCompanyTable = () => {
         </button>
       </div>
       {error && <div className="text-red-600">{error}</div>}
+
+      <GenericTable
+        table={table}
+        loading={loading}
+        tableHeadStyle={tableHead}
+        cellStyle={tableItem}
+        noDataMessage="No insurance companies found"
+      />
       <Pagination
         TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
         currentPage={currentPage}
@@ -125,13 +133,6 @@ const InsuranceCompanyTable = () => {
         setCurrentPage={handleSetPage}
         pageSize={pagination.pageSize}
         setPageSize={handleSetPageSize}
-      />
-      <GenericTable
-        table={table}
-        loading={loading}
-        tableHeadStyle={tableHead}
-        cellStyle={tableItem}
-        noDataMessage="No insurance companies found"
       />
     </div>
   );
