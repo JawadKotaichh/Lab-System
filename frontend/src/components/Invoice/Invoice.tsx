@@ -16,6 +16,7 @@ const InvoicePdf: React.FC<visitInvoiceData> = ({
   totalPrice,
   patient,
   visit_date,
+  listOfPanels,
   patient_insurance_company_rate,
 }) => (
   <Document>
@@ -66,6 +67,7 @@ const InvoicePdf: React.FC<visitInvoiceData> = ({
         </View>
       </View>
       <TestsTableInvoice
+        listOfPanels={listOfPanels}
         listOfTests={listOfTests}
         visit_date={visit_date!}
         totalPrice={totalPrice}

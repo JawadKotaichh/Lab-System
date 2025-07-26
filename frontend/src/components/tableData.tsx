@@ -659,26 +659,26 @@ export function getVisitsColumns(
         return a - b;
       },
     },
-    // {
-    //   accessorKey: "total_price_with_insurance",
-    //   cell: ({ row }) =>
-    //     `${row.original.total_price_with_insurance.toFixed(2)} $ `,
-    //   header: ({ column }) => (
-    //     <ColumnFilter
-    //       withFilter={false}
-    //       column={column}
-    //       placeholder="Search price..."
-    //       label="Price & Insurance"
-    //       showFilter={!!showFilters[column.id]}
-    //       toggleShowFilter={() => toggleFilter(column.id)}
-    //     />
-    //   ),
-    //   sortingFn: (rowA, rowB, columnId) => {
-    //     const a = parseFloat(rowA.getValue(columnId) as string) || 0;
-    //     const b = parseFloat(rowB.getValue(columnId) as string) || 0;
-    //     return a - b;
-    //   },
-    // },
+    {
+      accessorKey: "total_price_with_insurance",
+      cell: ({ row }) =>
+        `${row.original.total_price_with_insurance.toFixed(2)} $ `,
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          placeholder="Search price..."
+          label="Price & Insurance"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+        const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+        return a - b;
+      },
+    },
     {
       accessorKey: "completed_tests_results",
       cell: ({ row }) =>
