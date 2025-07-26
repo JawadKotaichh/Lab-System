@@ -99,6 +99,7 @@ async def get_Lab_panel_with_page_size(
             )
             listOfLabTest.append(lab_test)
         labPanelData = LabPanelResponse(
+            nssf_id=db_lab_panel.nssf_id,
             lab_panel_price=db_lab_panel.lab_panel_price,
             id=str(db_lab_panel.id),
             panel_name=db_lab_panel.panel_name,
@@ -178,6 +179,7 @@ async def getLabPanel(lab_panel_id: str):
         )
         listOfLabTest.append(lab_test)
     labPanelData = LabPanelResponse(
+        nssf_id=db_lab_panel.nssf_id,
         lab_panel_price=db_lab_panel.lab_panel_price,
         id=str(db_lab_panel.id),
         panel_name=db_lab_panel.panel_name,
@@ -205,6 +207,7 @@ async def getLabPanelWithListOfIDs(lab_panel_id: str):
         testsList.append(str(test_type_id))
 
     output: LabPanelResponseTestsIDs = LabPanelResponseTestsIDs(
+        nssf_id=db_lab_panel.nssf_id,
         id=str(db_lab_panel.id),
         panel_name=db_lab_panel.panel_name,
         list_of_test_type_ids=testsList,
@@ -246,6 +249,8 @@ async def update_lab_panel(lab_panel_id: str, update_data: update_Lab_Panel_mode
         existing_Lab_panel.list_of_test_type_ids = update_data.list_of_test_type_ids
     if update_data.lab_panel_price is not None:
         existing_Lab_panel.lab_panel_price = update_data.lab_panel_price
+    if update_data.nssf_id is not None:
+        existing_Lab_panel.nssf_id = update_data.nssf_id
 
     await existing_Lab_panel.replace()
 

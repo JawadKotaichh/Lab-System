@@ -67,6 +67,7 @@ class lab_test_category(Document):
 
 
 class lab_panel(Document):
+    nssf_id: int = Field(...)
     panel_name: str = Field(...)
     lab_panel_price: float = Field(...)
     list_of_test_type_ids: List[PydanticObjectId] = Field(...)

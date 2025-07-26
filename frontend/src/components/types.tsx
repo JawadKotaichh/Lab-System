@@ -1,4 +1,5 @@
 export type visitInvoiceData = {
+  listOfPanels: labPanel[];
   patient: patientInfo;
   totalPrice: number;
   listOfTests: labTest[];
@@ -59,6 +60,7 @@ export type labTest = {
   lower_bound: string;
 };
 export type labPanel = {
+  nssf_id?: number;
   id: string;
   panel_name: string;
   lab_tests: labTest[];
@@ -74,6 +76,7 @@ export type CreateLabTestParams = {
   lower_bound: string;
 };
 export type CreateLabPanelParams = {
+  nssf_id: number;
   lab_panel_price: number;
   panel_name: string;
   list_of_test_type_ids: string[];

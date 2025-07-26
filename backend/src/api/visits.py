@@ -6,6 +6,9 @@ from ..models import Patient as DBPatient
 from ..models import lab_test_result as DBLab_test_result
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import lab_test_category as DBLab_test_category
+from ..schemas.schema_Lab_Test_Result import Lab_test_result
+from ..models import lab_panel as DBLab_panel
+from ..schemas.schema_Lab_Panel import Lab_Panel
 from ..schemas.schema_Visit import (
     PaginatedVisitDataList,
     Visit,
@@ -15,6 +18,7 @@ from ..schemas.schema_Visit import (
     visitResultData,
     visitResultTest,
 )
+from collections import defaultdict
 from beanie import PydanticObjectId
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -77,10 +81,13 @@ async def get_invoice(visit_id: str):
     visit_date = db_visit.date
 
     listOfTests: List[Lab_test_type] = []
-    totalPrice = 0.0
+    listOfPanels: List[Lab_Panel] = []
+    list_of_individual_test_results: List[Lab_test_result] = []
+    panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
+
     async for lab_result in db_list_of_lab_tests:
         db_lab_test_type = await DBLab_test_type.find_one(
-            DBLab_test_type.id == PydanticObjectId(lab_result.lab_test_type_id)
+            DBLab_test_type.id == lab_result.lab_test_type_id
         )
         if not db_lab_test_type:
             raise HTTPException(
@@ -95,36 +102,56 @@ async def get_invoice(visit_id: str):
                 status_code=400,
                 detail=f"Lab test category: {db_lab_test_type.lab_test_category_id} not found!",
             )
+        if lab_result.lab_panel_name:
+            panel_to_list_of_tests[lab_result.lab_panel_name].append(lab_result)
+        else:
+            list_of_individual_test_results.append(lab_result)
+            currentLabTest = Lab_test_type(
+                name=db_lab_test_type.name,
+                lab_test_id=str(db_lab_test_type.id),
+                lab_test_category_name=category.lab_test_category_name,
+                nssf_id=db_lab_test_type.nssf_id,
+                lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
+                unit=db_lab_test_type.unit,
+                price=db_lab_test_type.price,
+                lower_bound=db_lab_test_type.lower_bound,
+                upper_bound=db_lab_test_type.upper_bound,
+            )
+            listOfTests.append(currentLabTest)
 
-        currentLabTest = Lab_test_type(
-            name=db_lab_test_type.name,
-            lab_test_id=str(db_lab_test_type.id),
-            lab_test_category_name=category.lab_test_category_name,
-            nssf_id=db_lab_test_type.nssf_id,
-            lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
-            unit=db_lab_test_type.unit,
-            price=db_lab_test_type.price,
-            lower_bound=db_lab_test_type.lower_bound,
-            upper_bound=db_lab_test_type.upper_bound,
+    totalPrice = 0.0
+
+    for individual_test in list_of_individual_test_results:
+        lab_test = await DBLab_test_type.get(
+            PydanticObjectId(individual_test.lab_test_type_id)
         )
-        listOfTests.append(currentLabTest)
-        totalPrice += currentLabTest.price
+        if lab_test:
+            totalPrice += lab_test.price
+
+    for panel_name in panel_to_list_of_tests:
+        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.panel_name == panel_name)
+        if not db_lab_panel:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid lab panel name: {panel_name}"
+            )
+        lab_panel = Lab_Panel(
+            nssf_id=db_lab_panel.nssf_id,
+            panel_name=db_lab_panel.panel_name,
+            list_of_test_type_ids=db_lab_panel.list_of_test_type_ids,
+            lab_panel_price=db_lab_panel.lab_panel_price,
+        )
+        listOfPanels.append(lab_panel)
+        totalPrice += db_lab_panel.lab_panel_price
+
     output = visitInvoice(
         listOfTests=listOfTests,
+        listOfPanels=listOfPanels,
         patient=currentPatient,
         totalPrice=totalPrice,
         visit_date=visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
     )
     return output
-
-
-"""
-listOfTests: List[Lab_test_type]
-    listOfLabTestResults: List[Lab_test_result]
-    patient: Patient
-    visit_date: datetime
-"""
 
 
 @router.get("/{visit_id}/result", response_model=visitResultData)
@@ -277,7 +304,7 @@ async def get_visits_with_page_size(
     visits: List[VisitData] = []
     async for visit in cursor:
         if not PydanticObjectId.is_valid(visit.id):
-            raise HTTPException(status_code=400, detail="Invalid Visit ID")
+            raise HTTPException(status_code=400, detail=f"Invalid Visit ID: {visit.id}")
         db_visit = await DBVisit.get(PydanticObjectId(visit.id))
         if not db_visit:
             raise HTTPException(status_code=404, detail=f"Visit {visit.id} not found")
@@ -296,21 +323,40 @@ async def get_visits_with_page_size(
             insurance_company_id=str(db_patient.insurance_company_id),
             patient_id=str(db_patient.id),
         )
+        all_test_results = DBLab_test_result.find(
+            DBLab_test_result.visit_id == PydanticObjectId(visit.id)
+        )
+        list_of_individual_test_results: List[Lab_test_result] = []
+        panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
+
+        async for test_result in all_test_results:
+            if test_result.lab_panel_name:
+                panel_to_list_of_tests[test_result.lab_panel_name].append(test_result)
+            else:
+                list_of_individual_test_results.append(test_result)
 
         total_tests_results = 0
         completed_tests_results = 0
         total_price = 0.0
-        async for test_result in DBLab_test_result.find(
-            DBLab_test_result.visit_id == PydanticObjectId(visit.id)
-        ):
+        for individual_test in list_of_individual_test_results:
             total_tests_results += 1
             lab_test = await DBLab_test_type.get(
-                PydanticObjectId(test_result.lab_test_type_id)
+                PydanticObjectId(individual_test.lab_test_type_id)
             )
             if lab_test:
                 total_price += lab_test.price
             if test_result.result:
                 completed_tests_results += 1
+
+        for panel_name in panel_to_list_of_tests:
+            db_lab_panel = await DBLab_panel.find_one(
+                DBLab_panel.panel_name == panel_name
+            )
+            if not db_lab_panel:
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid lab panel name: {panel_name}"
+                )
+            total_price += db_lab_panel.lab_panel_price
 
         insurance_company = await DBInsurance_company.get(
             db_patient.insurance_company_id
