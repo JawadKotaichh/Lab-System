@@ -54,6 +54,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const [labTests, setLabTests] = useState<Record<string, labTest>>({});
   const [data, setData] = useState<CreateLabPanelParams>({
     panel_name: "",
+    nssf_id: 0,
     list_of_test_type_ids: [],
     lab_panel_price: 0,
   });
@@ -66,6 +67,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           list_of_test_type_ids: currentPanelData.list_of_test_type_ids,
           panel_name: currentPanelData.panel_name,
           lab_panel_price: currentPanelData.lab_panel_price,
+          nssf_id: currentPanelData.nssf_id,
         });
       })
       .catch((err) => setError(err.message || "Failed to load lab panel"));
@@ -120,6 +122,9 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       lab_panel_price: value,
     }));
   };
+  const handlePanelNssfIDChange = (value: number) => {
+    setData((prev) => ({ ...prev, nssf_id: value }));
+  };
   const handleAddButton = () => setShow(true);
 
   const handleSave = async () => {
@@ -171,6 +176,19 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
           onChange={(e) => handlePanelPriceChange(Number(e.target.value))}
+        />
+        <label className={inputFormAttributeListItemLabel + " p-3"}>
+          <span className="text-xl mr-5">Nssf ID:</span>
+        </label>
+        <input
+          className={inputFormAttributeListItemInput + " w-fit"}
+          type={"number"}
+          value={data.nssf_id || 0}
+          placeholder={"Enter Lab Panel nssf Id"}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          onChange={(e) => handlePanelNssfIDChange(Number(e.target.value))}
         />
       </div>
 
