@@ -75,16 +75,8 @@ const LabPanelsList = () => {
       ) : (
         <>
           <div className="flex justify-between items-center mb-4">
-            <Pagination
-              TotalNumberOfPaginatedItems={totalNumberOfLabPanels}
-              setPageSize={setPageSize}
-              pageSize={pageSize}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
             <button
-              className={tableCreateButton + " float-left"}
+              className={`${tableCreateButton} ml-auto text-xl`}
               onClick={handleCreateLabPanel}
             >
               Create Lab Panel
@@ -111,6 +103,9 @@ const LabPanelsList = () => {
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-xl text-left">
                           {lp.panel_name}
+                        </span>
+                        <span className="font-bold text-xl text-left">
+                          {lp.lab_panel_price} $
                         </span>
                         <div className="flex space-x-2">
                           <button
@@ -162,6 +157,14 @@ const LabPanelsList = () => {
               ))}
             </tbody>
           </table>
+          <Pagination
+            TotalNumberOfPaginatedItems={totalNumberOfLabPanels}
+            setPageSize={setPageSize}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+          />
         </>
       )}
     </div>

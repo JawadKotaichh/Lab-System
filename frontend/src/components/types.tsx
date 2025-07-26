@@ -6,6 +6,11 @@ export type visitInvoiceData = {
   patient_insurance_company_rate: number;
 };
 
+export type visitResultData = {
+  listOfLabTestResults: TestResult[];
+  patient: patientInfo;
+  visit_date: Date;
+};
 export type Params = {
   patient_id: string;
   visit_id: string;
@@ -15,6 +20,15 @@ export type LabTestResult = {
   lab_test_type_id: string;
   lab_panel_name?: string;
   result: string;
+};
+export type TestResult = {
+  name: string;
+  result: string;
+  unit: string;
+  lower_bound: string;
+  upper_bound: string;
+  lab_panel_name: string;
+  lab_test_category_name: string;
 };
 
 export type visitResult = {
@@ -48,6 +62,7 @@ export type labPanel = {
   id: string;
   panel_name: string;
   lab_tests: labTest[];
+  lab_panel_price?: number;
 };
 export type CreateLabTestParams = {
   lab_test_category_id: string;
@@ -59,6 +74,7 @@ export type CreateLabTestParams = {
   lower_bound: string;
 };
 export type CreateLabPanelParams = {
+  lab_panel_price: number;
   panel_name: string;
   list_of_test_type_ids: string[];
 };

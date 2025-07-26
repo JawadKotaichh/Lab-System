@@ -117,6 +117,14 @@ const LabTestCategoryTable = () => {
         </button>
       </div>
       {error && <div className="text-red-600">{error}</div>}
+
+      <GenericTable
+        table={table}
+        loading={loading}
+        tableHeadStyle={tableHead}
+        cellStyle={tableItem}
+        noDataMessage="No lab test categories found"
+      />
       <Pagination
         TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
         currentPage={currentPage}
@@ -124,13 +132,6 @@ const LabTestCategoryTable = () => {
         setCurrentPage={handleSetPage}
         pageSize={pagination.pageSize}
         setPageSize={handleSetPageSize}
-      />
-      <GenericTable
-        table={table}
-        loading={loading}
-        tableHeadStyle={tableHead}
-        cellStyle={tableItem}
-        noDataMessage="No lab test categories found"
       />
     </div>
   );

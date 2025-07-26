@@ -17,6 +17,7 @@ import type {
   patientsFilters,
   visitFilters,
   visitInvoiceData,
+  visitResultData,
   VisitsInfo,
 } from "./types.js";
 import api from "../api.js";
@@ -32,6 +33,11 @@ import {
 
 const fetchInvoice = async (visit_id: string): Promise<visitInvoiceData> => {
   const url = `${visitsApiURL}${visit_id}/invoice`;
+  const response = await api.get(url);
+  return response.data;
+};
+const fetchResultList = async (visit_id: string): Promise<visitResultData> => {
+  const url = `${visitsApiURL}${visit_id}/result`;
   const response = await api.get(url);
   return response.data;
 };
@@ -61,7 +67,7 @@ const fetchLabTest = async (
 const fetchLabPanel = async (
   lab_panel_id: string
 ): Promise<CreateLabPanelParams> => {
-  const url = `${labPanelApiURL}/${lab_panel_id}`;
+  const url = `${labPanelApiURL}/${lab_panel_id}/test_ids`;
   const response = await api.get(url);
   return response.data;
 };
@@ -196,3 +202,4 @@ export { fetchLabTest };
 export { fetchInsuranceCompaniesPaginated };
 export { fetchLabTestResultsPaginated };
 export { fetchInvoice };
+export { fetchResultList };
