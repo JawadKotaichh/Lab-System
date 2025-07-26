@@ -41,6 +41,22 @@ class visitInvoice(BaseModel):
     patient_insurance_company_rate: float
 
 
+class visitResultTest(BaseModel):
+    name: str
+    result: str
+    unit: str
+    lower_bound: str
+    upper_bound: str
+    lab_panel_name: str | None
+    lab_test_category_name: str
+
+
+class visitResultData(BaseModel):
+    listOfLabTestResults: List[visitResultTest]
+    patient: Patient
+    visit_date: datetime
+
+
 class PaginatedVisitDataList(BaseModel):
     visitsData: List[VisitData]
     TotalNumberOfVisits: int
