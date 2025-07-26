@@ -105,7 +105,10 @@ const LabPanelsList = () => {
                           {lp.panel_name}
                         </span>
                         <span className="font-bold text-xl text-left">
-                          {lp.lab_panel_price} $
+                          Price: {lp.lab_panel_price} $
+                        </span>
+                        <span className="font-bold text-xl text-left">
+                          Nssf Id: {lp.nssf_id}
                         </span>
                         <div className="flex space-x-2">
                           <button
