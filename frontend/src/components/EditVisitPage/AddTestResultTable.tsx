@@ -8,7 +8,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type { labTest, visitResult } from "../types";
+import type { labTest, patientPanelResult, patientTestResult } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { getLabTestColumns } from "../tableData";
@@ -30,8 +30,12 @@ interface TestsList {
   setError: React.Dispatch<React.SetStateAction<string>>;
   showAdd: boolean;
   visit_id: string;
-  results: visitResult[];
-  setResults: React.Dispatch<React.SetStateAction<visitResult[]>>;
+  panelResults: patientPanelResult[];
+  setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
+  standAloneTestResults: patientTestResult[];
+  setStandAloneTestResults: React.Dispatch<
+    React.SetStateAction<patientTestResult[]>
+  >;
   setAddError: React.Dispatch<React.SetStateAction<string>>;
   setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
   setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>;
@@ -41,8 +45,10 @@ const AddTestResultTable: React.FC<TestsList> = ({
   addError,
   visit_id,
   showTestsTable,
-  results,
-  setResults,
+  standAloneTestResults,
+  setPanelResults,
+  setStandAloneTestResults,
+  panelResults,
   setAddError,
   setShowTestsTable,
   showAdd,
@@ -84,8 +90,10 @@ const AddTestResultTable: React.FC<TestsList> = ({
     pagination,
     setPagination,
     visit_id,
-    results,
-    setResults,
+    panelResults,
+    setPanelResults,
+    standAloneTestResults,
+    setStandAloneTestResults,
     setAddError,
     showTestsTable,
     setShowTestsTable,

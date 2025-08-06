@@ -1,10 +1,38 @@
-export type visitInvoiceData = {
+export type patientTestResult = {
+  lab_test_result_id: string;
+  lab_test_type: labTest;
+  lab_test_type_id: string;
+  result: string;
+};
+
+export type patientPanelResult = {
+  lab_panel_id: string;
+  lab_panel_name: string;
+  list_of_test_results: patientTestResult[];
+};
+
+export type paginatedMixedVisitResults = {
+  visit_id: string;
+  list_of_standalone_test_results: patientTestResult[];
+  list_of_panel_results: patientPanelResult[];
+  TotalNumberOfLabTestResults: number;
+  total_pages: number;
+};
+
+export type InvoiceData = {
   listOfPanels: labPanel[];
   patient: patientInfo;
   totalPrice: number;
   listOfTests: labTest[];
   visit_date: Date;
   patient_insurance_company_rate: number;
+};
+export type updateInvoiceData = {
+  list_of_tests?: labTest[];
+  list_of_lab_panels?: labPanel[];
+  visit_id?: string;
+  visit_date?: Date;
+  patient_insurance_company_rate?: number;
 };
 
 export type visitResultData = {

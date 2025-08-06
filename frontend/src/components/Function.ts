@@ -2,8 +2,8 @@ import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
 import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
-import { createVisit, fetchLabTestResultsPaginated } from "./utils";
-import type { patientInfo, visitResult } from "./types";
+import { createEmptyInvoice, createVisit, fetchLabTestResultsAndPanelsPaginated } from "./utils";
+import type { patientInfo, patientPanelResult, patientTestResult } from "./types";
 import type { PaginationState } from "@tanstack/react-table";
 
 interface deleteElement {
@@ -85,6 +85,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     try {
       const resp = await createVisit(patient.patient_id);
       const newVisit = resp.data;
+      createEmptyInvoice(newVisit._id);
       navigate(`/visits/${newVisit._id}`, {
         state: {
           patientData: {
@@ -105,8 +106,12 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
     visit_id: string;
     lab_test_id:string;
-    results: visitResult[];
-    setResults: React.Dispatch<React.SetStateAction<visitResult[]>>;
+    panelResults: patientPanelResult[];
+    setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
+    standAloneTestResults: patientTestResult[];
+    setStandAloneTestResults: React.Dispatch<
+      React.SetStateAction<patientTestResult[]>
+    >;
     setAddError: React.Dispatch<React.SetStateAction<string>>;
     showTestsTable: boolean;
     setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
@@ -114,15 +119,29 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     setTotalPages: React.Dispatch<React.SetStateAction<number>>;
     setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
   }
-  export const handleAddLabTest = async ({setTotalNumberOfTests,setTotalPages,pagination,setResults,setError,lab_test_id,results,setAddError,setShowTestsTable,visit_id,
+  export const handleAddLabTest = async ({setTotalNumberOfTests,setTotalPages,pagination,setError,lab_test_id,panelResults,setPanelResults,setStandAloneTestResults,standAloneTestResults,setAddError,setShowTestsTable,visit_id,
   }:addLabTestParams) => {
-    if (results.some((r) => r.lab_test_type_id === lab_test_id)) {
+    if (standAloneTestResults.some((r) => r.lab_test_type_id === lab_test_id)) {
       setAddError("This test already exists.");
       alert("This test already exists.");
       setShowTestsTable(false);
       setAddError("");
       return;
     }
+    const alreadyExists = panelResults.some(panel =>
+    panel.list_of_test_results.some(r =>
+      r.lab_test_type_id === lab_test_id
+    )
+  );
+
+    if (alreadyExists) {
+      setAddError("This test already exists.");
+      alert("This test already exists.");
+      setShowTestsTable(false);
+      setAddError("");
+      return;
+}
+    
     setAddError("");
     const url = `/lab_tests_results/${visit_id}`;
     try {
@@ -131,12 +150,13 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
         visit_id,
         result: "",
       });
-      const updated = await fetchLabTestResultsPaginated(
+      const updated = await fetchLabTestResultsAndPanelsPaginated(
         visit_id,
         pagination.pageIndex + 1,        
         pagination.pageSize
       );
-      setResults(updated.list_of_results);
+      setStandAloneTestResults(updated.list_of_standalone_test_results);
+      setPanelResults(updated.list_of_panel_results);
       setShowTestsTable(false);
       setTotalPages(updated.total_pages);
       setTotalNumberOfTests(updated.TotalNumberOfLabTestResults);
