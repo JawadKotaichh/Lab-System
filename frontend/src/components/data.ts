@@ -143,8 +143,12 @@ export const visitsMainPageURL = "/visits";
 export const visitEditPageURL="/visits/";
 export const visitCreatePageURL="/create-visit";
 
-//lab test results
+// lab test results
 export const labTestResultApiURL="/lab_tests_results";
+
+// invoice
+export const invoicesApiURL = "/invoices";
+
 
 export{labTestCategoryMainPageURL};
 export{labTestCategoryEditPageURL};
