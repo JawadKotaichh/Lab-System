@@ -43,7 +43,6 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   const handleAddLabPanel = async (visit_id: string, lab_panel_id: string) => {
     setLoading(true);
     setError("");
-
     try {
       await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
       setShowPanelsTable(false);
