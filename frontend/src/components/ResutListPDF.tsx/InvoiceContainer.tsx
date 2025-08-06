@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import type { labTest, patientInfo } from "../types";
 import { fetchInvoice } from "../utils";
 import Invoice from "./Invoice";
+import { PDFViewer } from "@react-pdf/renderer";
 
 export default function InvoiceContainer() {
   const [loading, setLoading] = useState(true);
@@ -39,7 +40,7 @@ export default function InvoiceContainer() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div style={{ width: "100%", height: "800px" }}>
+    <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Invoice
         patient_insurance_company_rate={patientInsuranceCompanyRate}
         patient={patient!}
@@ -47,6 +48,6 @@ export default function InvoiceContainer() {
         totalPrice={totalPrice}
         visit_date={visitDate}
       />
-    </div>
+    </PDFViewer>
   );
 }

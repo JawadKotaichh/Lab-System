@@ -25,6 +25,28 @@ class Lab_test_result(BaseModel):
     )
 
 
+class patientTestResult(BaseModel):
+    lab_test_result_id: str
+    lab_test_type: Lab_test_type
+    lab_test_type_id: str
+    result: str
+
+
+class patientPanelResult(BaseModel):
+    lab_panel_id: str
+    lab_panel_name: str
+    list_of_test_results: List[patientTestResult]
+
+
+class paginatedMixedVisitResults(BaseModel):
+    visit_id: str
+    list_of_standalone_test_results: List[patientTestResult]
+    list_of_panel_results: List[patientPanelResult]
+    TotalNumberOfLabTestResults: int
+    total_pages: int
+
+
+# To remove
 class visitResult(BaseModel):
     lab_test_result_id: str
     lab_panel_id: Optional[str] = None

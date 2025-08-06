@@ -3,20 +3,22 @@ import type {
   CreateLabTestParams,
   insuranceCompanyParams,
   InsuranceFilters,
+  InvoiceData,
   lab_test_category_filters,
   labPanelFilter,
   labTestCategoryParams,
   labTestFilters,
   paginatedlabPanel,
   paginatedlabTest,
+  paginatedMixedVisitResults,
   paginatedPatientInfo,
   paginatedTestCategoryInfo,
   paginatedVisitData,
   paginatedVisitResults,
   patientInfo,
   patientsFilters,
+  updateInvoiceData,
   visitFilters,
-  visitInvoiceData,
   visitResultData,
   VisitsInfo,
 } from "./types.js";
@@ -24,6 +26,7 @@ import api from "../api.js";
 import type { labTest } from "./types.js";
 import {
   InsuranceApiURL,
+  invoicesApiURL,
   labPanelApiURL,
   labTestCategoryApiURL,
   labTestResultApiURL,
@@ -31,17 +34,42 @@ import {
   visitsApiURL,
 } from "./data.js";
 
-const fetchInvoice = async (visit_id: string): Promise<visitInvoiceData> => {
-  const url = `${visitsApiURL}${visit_id}/invoice`;
+// Invoice
+const fetchInvoice = async (visit_id: string): Promise<InvoiceData> => {
+  const url = `${invoicesApiURL}/${visit_id}/fetch_invoice`;
   const response = await api.get(url);
   return response.data;
 };
+const createEmptyInvoice = async (visit_id: string): Promise<InvoiceData> => {
+  const url = `${invoicesApiURL}/${visit_id}/create_empty_invoice`;
+  const response = await api.post(url);
+  return response.data;
+};
+const updateInvoice = async (
+  visit_id: string,
+  updated_data: updateInvoiceData
+) => {
+  await api.post(`${invoicesApiURL}/${visit_id}/update_invoice`, updated_data);
+};
+
+// Result
 const fetchResultList = async (visit_id: string): Promise<visitResultData> => {
   const url = `${visitsApiURL}${visit_id}/result`;
   const response = await api.get(url);
   return response.data;
 };
 
+const fetchLabTestResultsAndPanelsPaginated = async (
+  visit_id: string,
+  page_number: number,
+  page_size: number
+): Promise<paginatedMixedVisitResults> => {
+  const url = `${labTestResultApiURL}/page/${visit_id}/${page_size}/${page_number}`;
+  const response = await api.get(url);
+  return response.data;
+};
+
+// to remove
 const fetchLabTestResultsPaginated = async (
   visit_id: string,
   page_number: number,
@@ -203,3 +231,6 @@ export { fetchInsuranceCompaniesPaginated };
 export { fetchLabTestResultsPaginated };
 export { fetchInvoice };
 export { fetchResultList };
+export { createEmptyInvoice };
+export { updateInvoice };
+export { fetchLabTestResultsAndPanelsPaginated };
