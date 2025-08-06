@@ -1,20 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
-import {
-  type patientPanelResult,
-  type patientTestResult,
-  type updateInvoiceData,
-} from "../types.js";
+import { type updateInvoiceData, type visitResult } from "../types.js";
 import api from "../../api.js";
 import PatientInfo from "./PatientInfo.js";
 import type { PaginationState } from "@tanstack/react-table";
 import { labTestResultApiURL } from "../data.js";
 import TestResultsList from "./TestResultsList.js";
-import {
-  fetchLabTestResultsAndPanelsPaginated,
-  updateInvoice,
-} from "../utils.js";
+import { fetchLabTestResultsPaginated, updateInvoice } from "../utils.js";
 import Pagination from "../Pagination.js";
 import AddTestResultTable from "./AddTestResultTable.js";
 import LabPanelsTable from "./LabPanelsTable.js";
@@ -24,10 +17,7 @@ const EditVisitPage: React.FC = () => {
   const location = useLocation();
   const { patientData } = location.state || {};
   const { visit_id } = useParams<{ visit_id: string }>();
-  const [standAloneTestResults, setStandAloneTestResults] = useState<
-    patientTestResult[]
-  >([]);
-  const [panelResults, setPanelResults] = useState<patientPanelResult[]>([]);
+  const [results, setResults] = useState<visitResult[]>([]);
   const [loading, setLoading] = useState(true);
   // const [loadingTests, setLoadingTests] = useState(true);
   const [error, setError] = useState<string>("");
@@ -57,13 +47,12 @@ const EditVisitPage: React.FC = () => {
       setError("");
       try {
         if (!visit_id) return;
-        const res = await fetchLabTestResultsAndPanelsPaginated(
+        const res = await fetchLabTestResultsPaginated(
           visit_id,
           pagination.pageIndex + 1,
           pagination.pageSize
         );
-        setStandAloneTestResults(res.list_of_standalone_test_results);
-        setPanelResults(res.list_of_panel_results);
+        setResults(res.list_of_results);
         setTotalPages(res.total_pages);
         setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
       } catch (err) {
@@ -79,17 +68,9 @@ const EditVisitPage: React.FC = () => {
   const handleSaveAll = async () => {
     try {
       await Promise.all(
-        standAloneTestResults.map((item) => {
+        results.map((item) => {
           const url = `${labTestResultApiURL}/${item.lab_test_result_id}`;
           api.put(url, null, { params: { result: item.result } });
-        })
-      );
-      await Promise.all(
-        panelResults.map((panelResult) => {
-          panelResult.list_of_test_results.map((item) => {
-            const url = `${labTestResultApiURL}/${item.lab_test_result_id}`;
-            api.put(url, null, { params: { result: item.result } });
-          });
         })
       );
     } catch (err: unknown) {
@@ -131,17 +112,15 @@ const EditVisitPage: React.FC = () => {
       >
         Save
       </button>
-      {panelResults.length === 0 && standAloneTestResults.length === 0 ? (
+      {results.length === 0 ? (
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
         <TestResultsList
           setUpdatedInvoiceData={setUpdatedInvoiceData}
           visit_id={visit_id}
           setError={setError}
-          panelResults={panelResults}
-          setPanelResults={setPanelResults}
-          setStandAloneTestResults={setStandAloneTestResults}
-          standAloneTestResults={standAloneTestResults}
+          results={results}
+          setResults={setResults}
         />
       )}
       <AddTestResultTable
@@ -149,10 +128,8 @@ const EditVisitPage: React.FC = () => {
         addError={addError}
         visit_id={visit_id}
         showTestsTable={showTestsTable}
-        panelResults={panelResults}
-        setPanelResults={setPanelResults}
-        setStandAloneTestResults={setStandAloneTestResults}
-        standAloneTestResults={standAloneTestResults}
+        results={results}
+        setResults={setResults}
         setAddError={setAddError}
         setShowTestsTable={setShowTestsTable}
         error={error}

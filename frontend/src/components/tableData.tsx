@@ -6,8 +6,9 @@ import type {
   labTest,
   labTestCategoryParams,
   patientInfo,
+  patientPanelResult,
+  patientTestResult,
   visitData,
-  visitResult,
 } from "./types";
 import {
   InsuranceEditPageURL,
@@ -283,8 +284,12 @@ export function getLabTestColumns(
   pagination?: PaginationState,
   setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>,
   visit_id?: string,
-  results?: visitResult[],
-  setResults?: React.Dispatch<React.SetStateAction<visitResult[]>>,
+  panelResults?: patientPanelResult[],
+  setPanelResults?: React.Dispatch<React.SetStateAction<patientPanelResult[]>>,
+  standAloneTestResults?: patientTestResult[],
+  setStandAloneTestResults?: React.Dispatch<
+    React.SetStateAction<patientTestResult[]>
+  >,
   setAddError?: React.Dispatch<React.SetStateAction<string>>,
   showTestsTable?: boolean,
   setShowTestsTable?: React.Dispatch<React.SetStateAction<boolean>>,
@@ -438,10 +443,12 @@ export function getLabTestColumns(
                     !setPagination ||
                     !visit_id ||
                     !setAddError ||
-                    !results ||
+                    !standAloneTestResults ||
+                    !setStandAloneTestResults ||
+                    !panelResults ||
+                    !setPanelResults ||
                     !setShowTestsTable ||
                     !setTotalNumberOfTests ||
-                    !setResults ||
                     !showTestsTable ||
                     !setTotalPages
                   ) {
@@ -454,11 +461,13 @@ export function getLabTestColumns(
                     setPagination,
                     visit_id,
                     setAddError,
-                    results,
+                    panelResults,
+                    setPanelResults,
+                    standAloneTestResults,
+                    setStandAloneTestResults,
                     setShowTestsTable,
                     setTotalNumberOfTests,
                     setError,
-                    setResults,
                     showTestsTable,
                     setTotalPages,
                     lab_test_id,
