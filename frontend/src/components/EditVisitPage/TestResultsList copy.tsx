@@ -1,55 +1,31 @@
-import type {
-  patientPanelResult,
-  patientTestResult,
-  updateInvoiceData,
-} from "../types.js";
+import type { visitResult } from "../types.js";
 import api from "../../api.js";
 import { labTestResultApiURL } from "../data.js";
 import React from "react";
 
 interface ShowResultsListParams {
-  panelResults: patientPanelResult[];
-  setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
-  standAloneTestResults: patientTestResult[];
-  setStandAloneTestResults: React.Dispatch<
-    React.SetStateAction<patientTestResult[]>
-  >;
-  setUpdatedInvoiceData: React.Dispatch<
-    React.SetStateAction<updateInvoiceData>
-  >;
+  results: visitResult[];
   visit_id: string;
+  setResults: React.Dispatch<React.SetStateAction<visitResult[]>>;
   setError: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const TestResultsList: React.FC<ShowResultsListParams> = ({
-  panelResults,
-  setPanelResults,
-  standAloneTestResults,
-  setStandAloneTestResults,
+  results,
+  setResults,
   setError,
   visit_id,
-}: // setUpdatedInvoiceData,
-ShowResultsListParams) => {
+}: ShowResultsListParams) => {
   const handleChange = async (
     lab_test_result_id: string,
     newResult: string
   ) => {
-    setStandAloneTestResults((prev) =>
+    setResults((prev) =>
       prev.map((item) =>
         item.lab_test_result_id == lab_test_result_id
           ? { ...item, result: newResult }
           : item
       )
-    );
-    setPanelResults((prevPanels) =>
-      prevPanels.map((panel) => ({
-        ...panel,
-        list_of_test_results: panel.list_of_test_results.map((res) =>
-          res.lab_test_result_id === lab_test_result_id
-            ? { ...res, result: newResult }
-            : res
-        ),
-      }))
     );
   };
 
@@ -80,35 +56,18 @@ ShowResultsListParams) => {
       }
     }
   };
-  // const panelNameToTests = new Map<string, visitResult[]>();
-  // const testResults: visitResult[] = [];
-  // results.map((r) => {
-  //   if (r.lab_panel_name != "" && r.lab_panel_name != null) {
-  //     const tests = panelNameToTests.get(r.lab_panel_name);
-  //     if (tests) {
-  //       tests.push(r);
-  //     } else panelNameToTests.set(r.lab_panel_name, [r]);
-  //   } else {
-  //     testResults.push(r);
-  //   }
-  // });
-  // console.log(panelNameToTests);
-  // const listOfLabTestsType = testResults.map((t) => t.lab_test_type);
-  // const arrayOfLabPanels = Array.from(panelNameToTests.entries());
-  // const listOfLabPanels: labPanel[] = arrayOfLabPanels.map(
-  //   ([panelName, testsInPanel]) => ({
-  //     id: testsInPanel[0].lab_panel_id,
-  //     panel_name: panelName,
-  //     lab_tests: testsInPanel.map((r) => r.lab_test_type),
-  //     lab_panel_price: testsInPanel[0].lab_panel_price,
-  //     nssf_id: testsInPanel[0].lab_panel_nssf_id,
-  //   })
-  // );
-  // setUpdatedInvoiceData((prev) => ({
-  //   ...prev,
-  //   list_of_tests: standAloneTestResults,
-  //   list_of_lab_panels: panelResults,
-  // }));
+  const panelNameToTests = new Map<string, visitResult[]>();
+  const testResults: visitResult[] = [];
+  results.map((r) => {
+    if (r.lab_panel_name != "" && r.lab_panel_name != null) {
+      const tests = panelNameToTests.get(r.lab_panel_name);
+      if (tests) {
+        tests.push(r);
+      } else panelNameToTests.set(r.lab_panel_name, [r]);
+    } else {
+      testResults.push(r);
+    }
+  });
   return (
     <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-10">
       <thead className="bg-gray-300 border-b border-black top-0 z-10">
@@ -129,7 +88,7 @@ ShowResultsListParams) => {
             <h1 className="font-bold rounded-b-sm px-4 py-2">Tests</h1>
           </td>
         </tr>
-        {standAloneTestResults.map((r) => (
+        {testResults.map((r) => (
           <React.Fragment key={r.lab_test_result_id}>
             <tr key={r.lab_test_result_id} className="border rounded-sm">
               <td className="border rounded-b-sm px-4 py-2">
@@ -176,24 +135,22 @@ ShowResultsListParams) => {
             </tr>
           </React.Fragment>
         ))}
-        {panelResults.map((panel) => (
+        {Array.from(panelNameToTests.entries()).map(([panel_name, value]) => (
           <>
             <tr>
               <td className="border rounded-b-sm px-4 py-2" colSpan={7}>
-                {panel.lab_panel_name}
+                {panel_name}
               </td>
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
-                  onClick={() =>
-                    handleDeletePanel(panel.lab_panel_name, visit_id)
-                  }
+                  onClick={() => handleDeletePanel(panel_name, visit_id)}
                 >
                   Remove
                 </button>
               </td>
             </tr>
-            {panel.list_of_test_results.map((r) => (
+            {value.map((r) => (
               <tr key={r.lab_test_result_id} className="border rounded-sm">
                 <td className="border rounded-b-sm px-4 py-2">
                   {r.lab_test_type.lab_test_category_name}

@@ -10,9 +10,10 @@ from ..models import lab_test_category as DBLab_test_category
 from ..models import lab_panel as DBLab_panel
 from ..schemas.schema_Lab_Test_Result import (
     Lab_test_result,
-    paginatedVisitResults,
+    paginatedMixedVisitResults,
+    patientPanelResult,
+    patientTestResult,
     update_lab_test_result_model,
-    visitResult,
 )
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -132,10 +133,15 @@ async def create_lab_test_result(visit_id: str, data: Lab_test_result):
 
 @router.get("/completed/{visit_id}", response_model=Dict[str, Any])
 async def get_completed_and_total_results(visit_id: str):
+    mongo_filter_lab_test_results: dict[str, Any] = {}
+    if visit_id:
+        mongo_filter_lab_test_results["visit_id"] = PydanticObjectId(visit_id)
     all_items = DBLab_test_result.find(
         DBLab_test_result.visit_id == PydanticObjectId(visit_id)
     )
-    total = 0.0
+    total_number_of_lab_test_results = await DBLab_test_result.find(
+        mongo_filter_lab_test_results
+    ).count()
     completed = 0
     totalPrice = 0.0
     visit = await DBVisit.find_one(DBVisit.id == PydanticObjectId(visit_id))
@@ -161,7 +167,6 @@ async def get_completed_and_total_results(visit_id: str):
             detail=f"Insurance Company {patient.insurance_company_id} not found",
         )
     async for item in all_items:
-        total += 1
         lab_test = await DBLab_test_type.find_one(
             DBLab_test_type.id == PydanticObjectId(item.lab_test_type_id)
         )
@@ -173,14 +178,15 @@ async def get_completed_and_total_results(visit_id: str):
     output: Dict[str, Any] = {
         "visit_id": str(visit_id),
         "countOfCompletedResults": completed,
-        "totalNumberOfTests": total,
+        "totalNumberOfTests": total_number_of_lab_test_results,
         "totalPrice": round(FinalTotalPrice, 2),
     }
     return output
 
 
 @router.get(
-    "/page/{visit_id}/{page_size}/{page_number}", response_model=paginatedVisitResults
+    "/page/{visit_id}/{page_size}/{page_number}",
+    response_model=paginatedMixedVisitResults,
 )
 async def get_Lab_test_results_with_page_size(
     visit_id: str,
@@ -206,7 +212,10 @@ async def get_Lab_test_results_with_page_size(
         .limit(page_size)
     )
 
-    visits: List[visitResult] = []
+    list_of_standalone_test_results: List[patientTestResult] = []
+    list_of_panel_results: List[patientPanelResult] = []
+    panels_to_list_of_tests: dict[str, List[patientTestResult]] = {}
+
     async for test_result in cursor:
         db_lab_test_type = await DBLab_test_type.find_one(
             DBLab_test_type.id == PydanticObjectId(test_result.lab_test_type_id)
@@ -234,9 +243,14 @@ async def get_Lab_test_results_with_page_size(
             price=db_lab_test_type.price,
             lab_test_category_name=lab_test_type_category.lab_test_category_name,
         )
-        lab_test_type_id = db_lab_test_type.id
+        current_test_result = patientTestResult(
+            lab_test_result_id=str(test_result.id),
+            lab_test_type=lab_test_type,
+            lab_test_type_id=str(db_lab_test_type.id),
+            result=test_result.result,
+        )
 
-        if test_result.lab_panel_name != "" and test_result.lab_panel_name is not None:
+        if test_result.lab_panel_name:
             db_lab_panel = await DBLab_panel.find_one(
                 DBLab_panel.panel_name == test_result.lab_panel_name
             )
@@ -245,32 +259,133 @@ async def get_Lab_test_results_with_page_size(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Panel {test_result.lab_panel_name} not found",
                 )
+            if db_lab_panel.panel_name not in panels_to_list_of_tests:
+                panels_to_list_of_tests[db_lab_panel.panel_name] = []
+            panels_to_list_of_tests[db_lab_panel.panel_name].append(current_test_result)
 
-            current_visit_result = visitResult(
-                lab_panel_id=str(db_lab_panel.id),
-                lab_panel_name=test_result.lab_panel_name,
-                lab_test_result_id=str(test_result.id),
-                lab_test_type=lab_test_type,
-                result=test_result.result,
-                lab_test_type_id=str(lab_test_type_id),
-            )
         else:
-            current_visit_result = visitResult(
-                lab_panel_name=test_result.lab_panel_name,
-                lab_test_result_id=str(test_result.id),
-                lab_test_type=lab_test_type,
-                result=test_result.result,
-                lab_test_type_id=str(lab_test_type_id),
+            list_of_standalone_test_results.append(current_test_result)
+
+    for panel_name, test_results in panels_to_list_of_tests.items():
+        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.panel_name == panel_name)
+        if db_lab_panel is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Panel {panel_name} not found",
             )
-        visits.append(current_visit_result)
+
+        list_of_panel_results.append(
+            patientPanelResult(
+                lab_panel_id=str(db_lab_panel.id),
+                lab_panel_name=panel_name,
+                list_of_test_results=test_results,
+            )
+        )
+
     total_pages = ceil(total_number_of_lab_test_results / page_size)
-    output = paginatedVisitResults(
+    output = paginatedMixedVisitResults(
         visit_id=str(visit_id),
-        list_of_results=visits,
+        list_of_standalone_test_results=list_of_standalone_test_results,
+        list_of_panel_results=list_of_panel_results,
         TotalNumberOfLabTestResults=total_number_of_lab_test_results,
         total_pages=total_pages,
     )
     return output
+
+
+# @router.get(
+#     "/page/{visit_id}/{page_size}/{page_number}/old",
+#     response_model=paginatedVisitResults,
+# )
+# async def get_Lab_test_results_with_page_sizeold(
+#     visit_id: str,
+#     page_size: int,
+#     page_number: int,
+#     # result: str | None = Query(None),
+#     # lab_test_type_id: str | None = Query(None),
+# ):
+#     offset = (page_number - 1) * page_size
+#     mongo_filter_lab_test_results: dict[str, Any] = {}
+#     if visit_id:
+#         mongo_filter_lab_test_results["visit_id"] = PydanticObjectId(visit_id)
+#     # if result:
+#     #     mongo_filter["result"] = {"$regex": result, "$options": "i"}
+#     # if lab_test_type_id:
+#     #     mongo_filter["lab_test_type_id"] = {"$regex": lab_test_type_id, "$options": "i"}
+#     total_number_of_lab_test_results = await DBLab_test_result.find(
+#         mongo_filter_lab_test_results
+#     ).count()
+#     cursor = (
+#         DBLab_test_result.find(mongo_filter_lab_test_results)
+#         .skip(offset)
+#         .limit(page_size)
+#     )
+
+#     visits: List[visitResult] = []
+#     async for test_result in cursor:
+#         db_lab_test_type = await DBLab_test_type.find_one(
+#             DBLab_test_type.id == PydanticObjectId(test_result.lab_test_type_id)
+#         )
+#         if db_lab_test_type is None:
+#             raise HTTPException(
+#                 status_code=status.HTTP_400_BAD_REQUEST,
+#                 detail="Invalid lab test type ID",
+#             )
+#         lab_test_type_category = await DBLab_test_category.find_one(
+#             DBLab_test_category.id == db_lab_test_type.lab_test_category_id
+#         )
+#         if lab_test_type_category is None:
+#             raise HTTPException(
+#                 status_code=status.HTTP_400_BAD_REQUEST,
+#                 detail="Invalid lab test category ID",
+#             )
+#         lab_test_type = Lab_test_type(
+#             name=db_lab_test_type.name,
+#             nssf_id=db_lab_test_type.nssf_id,
+#             lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
+#             unit=db_lab_test_type.unit,
+#             lower_bound=db_lab_test_type.lower_bound,
+#             upper_bound=db_lab_test_type.upper_bound,
+#             price=db_lab_test_type.price,
+#             lab_test_category_name=lab_test_type_category.lab_test_category_name,
+#         )
+#         lab_test_type_id = db_lab_test_type.id
+
+#         if test_result.lab_panel_name != "" and test_result.lab_panel_name is not None:
+#             db_lab_panel = await DBLab_panel.find_one(
+#                 DBLab_panel.panel_name == test_result.lab_panel_name
+#             )
+#             if db_lab_panel is None:
+#                 raise HTTPException(
+#                     status_code=status.HTTP_404_NOT_FOUND,
+#                     detail=f"Panel {test_result.lab_panel_name} not found",
+#                 )
+
+#             current_visit_result = visitResult(
+#                 lab_panel_id=str(db_lab_panel.id),
+#                 lab_panel_name=test_result.lab_panel_name,
+#                 lab_test_result_id=str(test_result.id),
+#                 lab_test_type=lab_test_type,
+#                 result=test_result.result,
+#                 lab_test_type_id=str(lab_test_type_id),
+#             )
+#         else:
+#             current_visit_result = visitResult(
+#                 lab_panel_name=test_result.lab_panel_name,
+#                 lab_test_result_id=str(test_result.id),
+#                 lab_test_type=lab_test_type,
+#                 result=test_result.result,
+#                 lab_test_type_id=str(lab_test_type_id),
+#             )
+#         visits.append(current_visit_result)
+#     total_pages = ceil(total_number_of_lab_test_results / page_size)
+#     output = paginatedVisitResults(
+#         visit_id=str(visit_id),
+#         list_of_results=visits,
+#         TotalNumberOfLabTestResults=total_number_of_lab_test_results,
+#         total_pages=total_pages,
+#     )
+#     return output
 
 
 @router.put("/{lab_test_result_id}")
