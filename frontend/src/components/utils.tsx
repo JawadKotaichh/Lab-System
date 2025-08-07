@@ -1,10 +1,12 @@
 import type {
   CreateLabPanelParams,
   CreateLabTestParams,
+  fetchedInvoiceData,
   insuranceCompanyParams,
   InsuranceFilters,
   InvoiceData,
   lab_test_category_filters,
+  labPanel,
   labPanelFilter,
   labTestCategoryParams,
   labTestFilters,
@@ -35,7 +37,7 @@ import {
 } from "./data.js";
 
 // Invoice
-const fetchInvoice = async (visit_id: string): Promise<InvoiceData> => {
+const fetchInvoice = async (visit_id: string): Promise<fetchedInvoiceData> => {
   const url = `${invoicesApiURL}/${visit_id}/fetch_invoice`;
   const response = await api.get(url);
   return response.data;
@@ -49,7 +51,7 @@ const updateInvoice = async (
   visit_id: string,
   updated_data: updateInvoiceData
 ) => {
-  await api.post(`${invoicesApiURL}/${visit_id}/update_invoice`, updated_data);
+  await api.put(`${invoicesApiURL}/${visit_id}/update_invoice`, updated_data);
 };
 
 // Result
@@ -96,6 +98,13 @@ const fetchLabPanel = async (
   lab_panel_id: string
 ): Promise<CreateLabPanelParams> => {
   const url = `${labPanelApiURL}/${lab_panel_id}/test_ids`;
+  const response = await api.get(url);
+  return response.data;
+};
+const fetchLabPanelWithTests = async (
+  lab_panel_id: string
+): Promise<labPanel> => {
+  const url = `${labPanelApiURL}/${lab_panel_id}/test_types`;
   const response = await api.get(url);
   return response.data;
 };
@@ -223,6 +232,7 @@ export { fetchAllInsuranceCompanies };
 export { fetchAllLabTestTypeCategories };
 export { fetchPatientsPaginated };
 export { fetchLabTestTypePaginated };
+export { fetchLabPanelWithTests };
 export { fetchAllVisits };
 export { fetchVisitsPaginated };
 export { fetchInsuranceCompany };

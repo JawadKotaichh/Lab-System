@@ -19,14 +19,27 @@ export type paginatedMixedVisitResults = {
   total_pages: number;
 };
 
-export type InvoiceData = {
-  listOfPanels: labPanel[];
+export type InvoiceWrapperProps = {
+  list_of_lab_panels: labPanel[];
+  list_of_tests: labTest[];
   patient: patientInfo;
-  totalPrice: number;
-  listOfTests: labTest[];
+  visit_date: Date;
+  total_price: number;
+  patient_insurance_company_rate: number;
+};
+export type InvoiceData = {
+  visit_id: string;
+  list_of_lab_panels: labPanel[];
+  list_of_tests: labTest[];
   visit_date: Date;
   patient_insurance_company_rate: number;
 };
+export type fetchedInvoiceData = {
+  patient: patientInfo;
+  invoice_data: InvoiceData;
+};
+
+// continue the fecthing the invoice and check the output
 export type updateInvoiceData = {
   list_of_tests?: labTest[];
   list_of_lab_panels?: labPanel[];
