@@ -331,7 +331,7 @@ async def get_visits_with_page_size(
         panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
 
         async for test_result in all_test_results:
-            if test_result.lab_panel_name:
+            if test_result.lab_panel_name is not None:
                 panel_to_list_of_tests[test_result.lab_panel_name].append(test_result)
             else:
                 list_of_individual_test_results.append(test_result)
@@ -346,10 +346,15 @@ async def get_visits_with_page_size(
             )
             if lab_test:
                 total_price += lab_test.price
-            if test_result.result:
+            if individual_test.result != "":
                 completed_tests_results += 1
 
         for panel_name in panel_to_list_of_tests:
+            total_tests_results += len(panel_to_list_of_tests[panel_name])
+            for test_result in panel_to_list_of_tests[panel_name]:
+                if test_result.result != "":
+                    completed_tests_results += 1
+
             db_lab_panel = await DBLab_panel.find_one(
                 DBLab_panel.panel_name == panel_name
             )
@@ -502,7 +507,7 @@ async def get_visit(visit_id: PydanticObjectId):
     )
     if not all_lab_test_results:
         raise HTTPException(
-            404, f"Lab result of patient {db_visit.patient_id} not found"
+            404, f"Lab result of patient with id: {db_visit.patient_id} not found"
         )
 
     total_tests_results = 0
@@ -525,6 +530,7 @@ async def get_visit(visit_id: PydanticObjectId):
         raise HTTPException(
             404, f"Insurance Company of patient {db_patient.id} not found"
         )
+    print(total_tests_results)
     total_price_with_insurance = total_price * insurance_company.rate
     insurance_company_name = insurance_company.insurance_company_name
     visit_data = VisitData(
