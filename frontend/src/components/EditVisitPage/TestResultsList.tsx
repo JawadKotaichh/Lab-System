@@ -209,7 +209,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   {r.lab_test_type.unit}
                 </td>
                 <td className="border rounded-b-sm  px-4 py-2">
-                  ${r.lab_test_type.price.toFixed(2)}
+                  ${panel.lab_panel_price.toFixed(2)}
                 </td>
                 <td className="border rounded-b-sm  px-4 py-2">
                   {r.lab_test_type.lower_bound}
