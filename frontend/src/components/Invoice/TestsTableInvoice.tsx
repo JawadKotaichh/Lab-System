@@ -1,25 +1,24 @@
 import { Text, View } from "@react-pdf/renderer";
 import { styles } from "./InvoiceStyle";
-import type { visitInvoiceData } from "../types";
 import amountToWords from "./amountToWords";
+import type { InvoiceWrapperProps } from "../types";
 
 const TestsTableInvoice = ({
-  listOfTests,
-  totalPrice,
+  list_of_tests,
+  total_price,
   patient_insurance_company_rate,
-  listOfPanels,
-}: visitInvoiceData) => {
-  console.log("listOfTests", listOfTests);
+  list_of_lab_panels,
+}: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
-  const testData = listOfTests.map((t) => [
+  const testData = list_of_tests.map((t) => [
     t.nssf_id,
     t.name,
     `${(patient_insurance_company_rate * t.price).toFixed(2)} $`,
   ]);
-  const panelData = listOfPanels.map((t) => [
-    t.nssf_id,
-    t.panel_name,
-    `${(patient_insurance_company_rate * t.lab_panel_price!).toFixed(2)} $`,
+  const panelData = list_of_lab_panels.map((p) => [
+    p.nssf_id,
+    p.panel_name,
+    `${(patient_insurance_company_rate * p.lab_panel_price!).toFixed(2)} $`,
   ]);
   return (
     <View>
@@ -36,7 +35,7 @@ const TestsTableInvoice = ({
           ))}
         </View>
         {testData.map((testVals, rowIdx) => (
-          <View style={styles.tableRow} key={listOfTests[rowIdx].lab_test_id}>
+          <View style={styles.tableRow} key={list_of_tests[rowIdx].lab_test_id}>
             {testVals.map((val, colIdx) => (
               <View
                 key={colIdx}
@@ -51,7 +50,7 @@ const TestsTableInvoice = ({
           </View>
         ))}
         {panelData.map((panelVals, rowIdx) => (
-          <View style={styles.tableRow} key={listOfTests[rowIdx].lab_test_id}>
+          <View style={styles.tableRow} key={list_of_tests[rowIdx].lab_test_id}>
             {panelVals.map((val, colIdx) => (
               <View
                 key={colIdx}
@@ -78,14 +77,14 @@ const TestsTableInvoice = ({
                 { textAlign: "right", fontWeight: "9000" },
               ]}
             >
-              {(totalPrice * patient_insurance_company_rate).toFixed(2)} $
+              {(total_price * patient_insurance_company_rate).toFixed(2)} $
             </Text>
           </View>
         </View>
       </View>
       <View style={[{ textAlign: "center" }, styles.AmountBox]}>
         <Text>
-          {amountToWords(totalPrice * patient_insurance_company_rate)}
+          {amountToWords(total_price * patient_insurance_company_rate)}
         </Text>
       </View>
     </View>

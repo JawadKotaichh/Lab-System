@@ -51,7 +51,7 @@ const handleDeleteLabTest = ({elementID,setError}:deleteElement) => {
       return;
     }
     try {
-      api.delete(`${visitsApiURL}/${elementID}`);
+      api.delete(`${visitsApiURL}${elementID}`);
       window.location.reload();
     } catch (err) {
       if (err instanceof Error) {
