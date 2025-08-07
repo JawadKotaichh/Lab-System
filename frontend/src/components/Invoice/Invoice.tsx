@@ -7,16 +7,16 @@ import {
   Text,
   PDFViewer,
 } from "@react-pdf/renderer";
-import type { visitInvoiceData } from "../types";
 import { styles } from "./InvoiceStyle";
 import TestsTableInvoice from "./TestsTableInvoice";
+import type { InvoiceWrapperProps } from "../types";
 
-const InvoicePdf: React.FC<visitInvoiceData> = ({
-  listOfTests,
-  totalPrice,
+const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
+  list_of_lab_panels,
+  list_of_tests,
   patient,
+  total_price,
   visit_date,
-  listOfPanels,
   patient_insurance_company_rate,
 }) => (
   <Document>
@@ -67,10 +67,10 @@ const InvoicePdf: React.FC<visitInvoiceData> = ({
         </View>
       </View>
       <TestsTableInvoice
-        listOfPanels={listOfPanels}
-        listOfTests={listOfTests}
+        list_of_lab_panels={list_of_lab_panels}
+        list_of_tests={list_of_tests}
         visit_date={visit_date!}
-        totalPrice={totalPrice}
+        total_price={total_price}
         patient={patient!}
         patient_insurance_company_rate={patient_insurance_company_rate}
       />
@@ -81,7 +81,7 @@ const InvoicePdf: React.FC<visitInvoiceData> = ({
     </Page>
   </Document>
 );
-export default function Invoice(props: visitInvoiceData) {
+export default function Invoice(props: InvoiceWrapperProps) {
   return (
     <PDFViewer width="100%" height="100%">
       <InvoicePdf key={props.patient.patient_id} {...props} />

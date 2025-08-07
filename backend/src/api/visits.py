@@ -8,6 +8,7 @@ from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import lab_test_category as DBLab_test_category
 from ..schemas.schema_Lab_Test_Result import Lab_test_result
 from ..models import lab_panel as DBLab_panel
+from ..models import Invoice as DBInvoice
 from ..schemas.schema_Lab_Panel import Lab_Panel
 from ..schemas.schema_Visit import (
     PaginatedVisitDataList,
@@ -573,6 +574,10 @@ async def update_visit(visit_id: PydanticObjectId, update_data: update_visit_mod
 async def delete_visit(visit_id: PydanticObjectId):
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
+    await DBLab_test_result.find(
+        DBLab_test_result.visit_id == PydanticObjectId(visit_id)
+    ).delete()
+    await DBInvoice.find(DBInvoice.visit_id == PydanticObjectId(visit_id)).delete()
     visit_to_be_deleted = await DBVisit.get(PydanticObjectId(visit_id))
     if not visit_to_be_deleted:
         raise HTTPException(

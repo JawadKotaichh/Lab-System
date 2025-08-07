@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
+
+from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import Invoice as DBInvoice
 from ..schemas.schema_Invoice import Invoice, invoiceData, update_invoice
 from ..schemas.schema_Patient import Patient
@@ -16,6 +18,7 @@ from beanie import PydanticObjectId
 from ..models import Visit as DBVisit
 from ..models import Patient as DBPatient
 from ..models import insurance_company as DBInsurance_company
+from ..models import lab_test_category as DBlab_test_category
 
 # from ..models import lab_test_result as DBLab_test_result
 # from ..models import lab_test_type as DBLab_test_type
@@ -62,9 +65,9 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         raise HTTPException(
             status_code=400, detail=f"Visit of Id:{visit_id} not found!"
         )
-    existing_invoice = await DBVisit.find_one(DBInvoice.visit_id == db_visit.id)
+    existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
 
-    if existing_invoice is None:
+    if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
 
     if update_data.visit_date is not None:
@@ -94,7 +97,7 @@ async def get_invoice(visit_id: str):
         raise HTTPException(
             status_code=400, detail=f"Visit of Id:{visit_id} not found!"
         )
-    db_invoice = await DBVisit.find_one(DBInvoice.visit_id == db_visit.id)
+    db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not db_invoice:
         raise HTTPException(
             status_code=400, detail=f"Invoice with visit id:{db_visit.id} not found!"
@@ -124,9 +127,31 @@ async def get_invoice(visit_id: str):
         phone_number=db_patient.phone_number,
         insurance_company_id=str(db_patient.insurance_company_id),
     )
+    list_of_lab_test: List[Lab_test_type] = []
+    for test in db_invoice.list_of_tests:
+        db_category = await DBlab_test_category.find_one(
+            DBlab_test_category.id == test.lab_test_category_id
+        )
+        if db_category is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Lab Test Type {test.lab_test_category_id} not found",
+            )
+        lab_test = Lab_test_type(
+            lab_test_id=str(test.id),
+            lab_test_category_name=db_category.lab_test_category_name,
+            nssf_id=test.nssf_id,
+            lab_test_category_id=str(test.lab_test_category_id),
+            name=test.name,
+            unit=test.unit,
+            price=test.price,
+            lower_bound=test.lower_bound,
+            upper_bound=test.upper_bound,
+        )
+        list_of_lab_test.append(lab_test)
     currentInvoice = Invoice(
         visit_id=str(db_invoice.visit_id),
-        list_of_tests=db_invoice.list_of_tests,
+        list_of_tests=list_of_lab_test,
         list_of_lab_panels=db_invoice.list_of_lab_panels,
         visit_date=db_invoice.visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
@@ -136,7 +161,6 @@ async def get_invoice(visit_id: str):
     output_invoice_data = invoiceData(
         patient=currentPatient,
         invoice_data=currentInvoice,
-        patient_insurance_company_rate=patient_insurance_company_rate,
     )
     return output_invoice_data
 

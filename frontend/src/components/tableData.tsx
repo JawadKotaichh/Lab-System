@@ -429,10 +429,8 @@ export function getLabTestColumns(
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
         const { lab_test_id } = row.original;
-        console.log("lab_Test_id: ", lab_test_id);
 
         if (showAdd) {
-          console.log("lab_Test_id: ", lab_test_id);
           return (
             <div className="flex gap-2 justify-center">
               <button
