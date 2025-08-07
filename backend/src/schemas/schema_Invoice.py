@@ -2,14 +2,14 @@ from typing import Optional, List
 from pydantic import ConfigDict, BaseModel, Field
 
 from ..schemas.schema_Patient import Patient
-from ..schemas.schema_Lab_Panel import Lab_Panel
+from ..schemas.schema_Lab_Panel import LabPanelResponse
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from datetime import datetime
 
 
 class Invoice(BaseModel):
     list_of_tests: List[Lab_test_type] = Field(...)
-    list_of_lab_panels: List[Lab_Panel] = Field(...)
+    list_of_lab_panels: List[LabPanelResponse] = Field(...)
     visit_id: str = Field(...)
     visit_date: datetime = Field(...)
     patient_insurance_company_rate: float = Field(...)
@@ -31,12 +31,11 @@ class Invoice(BaseModel):
 class invoiceData(BaseModel):
     patient: Patient
     invoice_data: Invoice
-    patient_insurance_company_rate: float
 
 
 class update_invoice(BaseModel):
     list_of_tests: Optional[List[Lab_test_type]] = None
-    list_of_lab_panels: Optional[List[Lab_Panel]] = None
+    list_of_lab_panels: Optional[List[LabPanelResponse]] = None
     visit_id: Optional[str] = None
     visit_date: Optional[datetime] = None
     patient_insurance_company_rate: Optional[float] = None

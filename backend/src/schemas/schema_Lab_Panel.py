@@ -35,6 +35,14 @@ class LabPanelResponseTestsIDs(BaseModel):
     list_of_test_type_ids: List[str]
 
 
+class LabPanelResponseTestsTypes(BaseModel):
+    id: str
+    nssf_id: int
+    panel_name: str
+    lab_panel_price: float
+    lab_tests: List[Lab_test_type]
+
+
 class LabPanelPaginatedResponse(BaseModel):
     TotalNumberOfLabPanels: int
     total_pages: int

@@ -5,6 +5,7 @@ from ..models import lab_test_category as DBLab_test_category
 from ..schemas.schema_Lab_Panel import (
     Lab_Panel,
     LabPanelResponseTestsIDs,
+    LabPanelResponseTestsTypes,
     update_Lab_Panel_model,
     LabPanelResponse,
     LabPanelPaginatedResponse,
@@ -164,7 +165,7 @@ async def getLabPanel(lab_panel_id: str):
         if db_category is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Lab Test Type {db_lab_test.lab_test_category_id} not found",
+                detail=f"Lab Test category with id {db_lab_test.lab_test_category_id} not found",
             )
         lab_test = Lab_test_type(
             lab_test_id=str(db_lab_test.id),
@@ -211,6 +212,58 @@ async def getLabPanelWithListOfIDs(lab_panel_id: str):
         id=str(db_lab_panel.id),
         panel_name=db_lab_panel.panel_name,
         list_of_test_type_ids=testsList,
+        lab_panel_price=db_lab_panel.lab_panel_price,
+    )
+    return output
+
+
+@router.get("/{lab_panel_id}/test_types", response_model=LabPanelResponseTestsTypes)
+async def getLabPanelWithListOfTests(lab_panel_id: str):
+    if not PydanticObjectId.is_valid(lab_panel_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid lab_panel_id ID"
+        )
+    db_lab_panel = await DBLab_panel.get(PydanticObjectId(lab_panel_id))
+    if not db_lab_panel:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Panel with id: {lab_panel_id} not found",
+        )
+
+    testsList: List[Lab_test_type] = []
+    for test_type_id in db_lab_panel.list_of_test_type_ids:
+        db_lab_test = await DBLab_test_type.find_one(DBLab_test_type.id == test_type_id)
+        if not db_lab_test:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Test type with id: {test_type_id} not found",
+            )
+        db_category = await DBLab_test_category.find_one(
+            DBLab_test_category.id == db_lab_test.lab_test_category_id
+        )
+        if db_category is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Lab Test category with id {db_lab_test.lab_test_category_id} not found",
+            )
+        lab_test = Lab_test_type(
+            lab_test_id=str(db_lab_test.id),
+            lab_test_category_name=db_category.lab_test_category_name,
+            nssf_id=db_lab_test.nssf_id,
+            lab_test_category_id=str(db_lab_test.lab_test_category_id),
+            name=db_lab_test.name,
+            unit=db_lab_test.unit,
+            price=db_lab_test.price,
+            lower_bound=db_lab_test.lower_bound,
+            upper_bound=db_lab_test.upper_bound,
+        )
+        testsList.append(lab_test)
+
+    output: LabPanelResponseTestsTypes = LabPanelResponseTestsTypes(
+        nssf_id=db_lab_panel.nssf_id,
+        id=str(db_lab_panel.id),
+        panel_name=db_lab_panel.panel_name,
+        lab_tests=testsList,
         lab_panel_price=db_lab_panel.lab_panel_price,
     )
     return output

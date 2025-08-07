@@ -12,6 +12,7 @@ import type { PaginationState } from "@tanstack/react-table";
 import { labTestResultApiURL } from "../data.js";
 import TestResultsList from "./TestResultsList.js";
 import {
+  fetchLabPanelWithTests,
   fetchLabTestResultsAndPanelsPaginated,
   updateInvoice,
 } from "../utils.js";
@@ -92,13 +93,25 @@ const EditVisitPage: React.FC = () => {
           });
         })
       );
+      const fetchedPanels = await Promise.all(
+        panelResults.map((p) => fetchLabPanelWithTests(p.lab_panel_id))
+      );
+      const fetchedTestTypes = standAloneTestResults.map(
+        (test) => test.lab_test_type
+      );
+      const newInvoiceData: updateInvoiceData = {
+        ...updatedInvoiceData,
+        list_of_tests: fetchedTestTypes,
+        list_of_lab_panels: fetchedPanels,
+      };
+      setUpdatedInvoiceData(newInvoiceData);
+      console.log(updatedInvoiceData);
+      await updateInvoice(visit_id!, newInvoiceData);
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
         setError(err.message);
       }
-    } finally {
-      updateInvoice(visit_id!, updatedInvoiceData);
     }
   };
 
@@ -135,7 +148,6 @@ const EditVisitPage: React.FC = () => {
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
         <TestResultsList
-          setUpdatedInvoiceData={setUpdatedInvoiceData}
           visit_id={visit_id}
           setError={setError}
           panelResults={panelResults}

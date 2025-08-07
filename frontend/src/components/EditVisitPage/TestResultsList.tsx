@@ -1,8 +1,4 @@
-import type {
-  patientPanelResult,
-  patientTestResult,
-  updateInvoiceData,
-} from "../types.js";
+import type { patientPanelResult, patientTestResult } from "../types.js";
 import api from "../../api.js";
 import { labTestResultApiURL } from "../data.js";
 import React from "react";
@@ -13,9 +9,6 @@ interface ShowResultsListParams {
   standAloneTestResults: patientTestResult[];
   setStandAloneTestResults: React.Dispatch<
     React.SetStateAction<patientTestResult[]>
-  >;
-  setUpdatedInvoiceData: React.Dispatch<
-    React.SetStateAction<updateInvoiceData>
   >;
   visit_id: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
@@ -28,8 +21,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   setStandAloneTestResults,
   setError,
   visit_id,
-}: // setUpdatedInvoiceData,
-ShowResultsListParams) => {
+}: ShowResultsListParams) => {
   const handleChange = async (
     lab_test_result_id: string,
     newResult: string
@@ -80,6 +72,7 @@ ShowResultsListParams) => {
       }
     }
   };
+
   // const panelNameToTests = new Map<string, visitResult[]>();
   // const testResults: visitResult[] = [];
   // results.map((r) => {
@@ -104,11 +97,7 @@ ShowResultsListParams) => {
   //     nssf_id: testsInPanel[0].lab_panel_nssf_id,
   //   })
   // );
-  // setUpdatedInvoiceData((prev) => ({
-  //   ...prev,
-  //   list_of_tests: standAloneTestResults,
-  //   list_of_lab_panels: panelResults,
-  // }));
+
   return (
     <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-10">
       <thead className="bg-gray-300 border-b border-black top-0 z-10">

@@ -22,11 +22,21 @@ export default function InvoiceContainer() {
       .then((data) => {
         console.log("Fetched data: ", data);
         setPatient(data.patient);
-        setListOfTests(data.listOfTests);
-        setVisitDate(data.visit_date);
-        setTotalPrice(data.totalPrice);
-        setListOfPanels(data.listOfPanels);
-        setPatientInsuranceCompanyRate(data.patient_insurance_company_rate);
+        setListOfTests(data.invoice_data.list_of_tests);
+        setVisitDate(data.invoice_data.visit_date);
+        const testsTotal = data.invoice_data.list_of_tests.reduce(
+          (acc, t) => acc + t.price,
+          0
+        );
+        const panelsTotal = data.invoice_data.list_of_lab_panels.reduce(
+          (acc, panel) => acc + (panel.lab_panel_price ?? 0),
+          0
+        );
+        setTotalPrice(testsTotal + panelsTotal);
+        setListOfPanels(data.invoice_data.list_of_lab_panels);
+        setPatientInsuranceCompanyRate(
+          data.invoice_data.patient_insurance_company_rate
+        );
         setLoading(false);
       })
       .catch((err) => setError(err.message || "Failed to load"));
@@ -44,11 +54,11 @@ export default function InvoiceContainer() {
   return (
     <div style={{ width: "100%", height: "800px" }}>
       <Invoice
-        listOfPanels={listOfPanels}
+        list_of_lab_panels={listOfPanels}
         patient_insurance_company_rate={patientInsuranceCompanyRate}
         patient={patient!}
-        listOfTests={listOfTests}
-        totalPrice={totalPrice}
+        list_of_tests={listOfTests}
+        total_price={totalPrice}
         visit_date={visitDate}
       />
     </div>

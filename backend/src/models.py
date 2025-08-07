@@ -8,6 +8,8 @@ from beanie import Document, PydanticObjectId
 
 from typing import Union
 
+from .schemas.schema_Lab_Panel import LabPanelResponse
+
 
 class Visit(Document):
     patient_id: PydanticObjectId = Field(...)
@@ -78,7 +80,7 @@ class lab_panel(Document):
 
 class Invoice(Document):
     list_of_tests: List[lab_test_type] = Field(...)
-    list_of_lab_panels: List[lab_panel] = Field(...)
+    list_of_lab_panels: List[LabPanelResponse] = Field(...)
     visit_id: PydanticObjectId = Field(...)
     visit_date: datetime = Field(...)
     # total_price_with_insurance: float = Field(...)
