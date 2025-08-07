@@ -90,6 +90,12 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div className="bg-white p-6 rounded shadow-lg w-fit max-h-[80vh] overflow-y-auto">
             <h1 className={pageListTitle}>Lab Panels List</h1>
+            <button
+              className={tableDeleteButton + " mb-2"}
+              onClick={() => setShowPanelsTable(false)}
+            >
+              Close
+            </button>
             {error && (
               <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
                 Error adding panel: {error}
@@ -185,12 +191,6 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
                       totalPages={totalPages}
                       setCurrentPage={setCurrentPage}
                     />
-                    <button
-                      className={tableDeleteButton + " mt-3"}
-                      onClick={() => setShowPanelsTable(false)}
-                    >
-                      Close
-                    </button>
                   </>
                 )}
               </>

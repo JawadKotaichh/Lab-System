@@ -8,6 +8,7 @@ export type patientTestResult = {
 export type patientPanelResult = {
   lab_panel_id: string;
   lab_panel_name: string;
+  lab_panel_price: number;
   list_of_test_results: patientTestResult[];
 };
 

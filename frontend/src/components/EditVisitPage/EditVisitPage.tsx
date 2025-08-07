@@ -63,6 +63,7 @@ const EditVisitPage: React.FC = () => {
           pagination.pageIndex + 1,
           pagination.pageSize
         );
+        console.log("Standalone tests ", res.list_of_standalone_test_results);
         setStandAloneTestResults(res.list_of_standalone_test_results);
         setPanelResults(res.list_of_panel_results);
         setTotalPages(res.total_pages);
