@@ -105,6 +105,7 @@ async def get_Lab_panel_with_page_size(
             id=str(db_lab_panel.id),
             panel_name=db_lab_panel.panel_name,
             lab_tests=listOfLabTest,
+            lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
         )
         listOfpanels.append(labPanelData)
 
@@ -139,7 +140,8 @@ async def getAllLabPanels() -> List[Dict[str, Any]]:
 async def getLabPanel(lab_panel_id: str):
     if not PydanticObjectId.is_valid(lab_panel_id):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid lab_panel_id ID"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid lab panel  ID: {lab_panel_id}",
         )
     db_lab_panel = await DBLab_panel.find_one(
         DBLab_panel.id == PydanticObjectId(lab_panel_id)
@@ -185,6 +187,7 @@ async def getLabPanel(lab_panel_id: str):
         id=str(db_lab_panel.id),
         panel_name=db_lab_panel.panel_name,
         lab_tests=listOfLabTest,
+        lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
     )
 
     return labPanelData
@@ -213,6 +216,7 @@ async def getLabPanelWithListOfIDs(lab_panel_id: str):
         panel_name=db_lab_panel.panel_name,
         list_of_test_type_ids=testsList,
         lab_panel_price=db_lab_panel.lab_panel_price,
+        lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
     )
     return output
 
@@ -260,6 +264,7 @@ async def getLabPanelWithListOfTests(lab_panel_id: str):
         testsList.append(lab_test)
 
     output: LabPanelResponseTestsTypes = LabPanelResponseTestsTypes(
+        lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
         nssf_id=db_lab_panel.nssf_id,
         id=str(db_lab_panel.id),
         panel_name=db_lab_panel.panel_name,

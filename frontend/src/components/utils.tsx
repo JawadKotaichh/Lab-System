@@ -19,9 +19,10 @@ import type {
   paginatedVisitResults,
   patientInfo,
   patientsFilters,
+  resultListData,
   updateInvoiceData,
+  visitData,
   visitFilters,
-  visitResultData,
   VisitsInfo,
 } from "./types.js";
 import api from "../api.js";
@@ -36,6 +37,11 @@ import {
   visitsApiURL,
 } from "./data.js";
 
+const fetchVisit = async (visit_id: string): Promise<visitData> => {
+  const url = `${visitsApiURL}${visit_id}`;
+  const response = await api.get(url);
+  return response.data;
+};
 // Invoice
 const fetchInvoice = async (visit_id: string): Promise<fetchedInvoiceData> => {
   const url = `${invoicesApiURL}/${visit_id}/fetch_invoice`;
@@ -55,11 +61,11 @@ const updateInvoice = async (
 };
 
 // Result
-const fetchResultList = async (visit_id: string): Promise<visitResultData> => {
-  const url = `${visitsApiURL}${visit_id}/result`;
-  const response = await api.get(url);
-  return response.data;
-};
+// const fetchResultList = async (visit_id: string): Promise<visitResultData> => {
+//   const url = `${visitsApiURL}${visit_id}/result`;
+//   const response = await api.get(url);
+//   return response.data;
+// };
 
 const fetchLabTestResultsAndPanelsPaginated = async (
   visit_id: string,
@@ -67,6 +73,11 @@ const fetchLabTestResultsAndPanelsPaginated = async (
   page_size: number
 ): Promise<paginatedMixedVisitResults> => {
   const url = `${labTestResultApiURL}/page/${visit_id}/${page_size}/${page_number}`;
+  const response = await api.get(url);
+  return response.data;
+};
+const fetchResultList = async (visit_id: string): Promise<resultListData> => {
+  const url = `${labTestResultApiURL}/${visit_id}/get_result_list`;
   const response = await api.get(url);
   return response.data;
 };
@@ -244,3 +255,4 @@ export { fetchResultList };
 export { createEmptyInvoice };
 export { updateInvoice };
 export { fetchLabTestResultsAndPanelsPaginated };
+export { fetchVisit };

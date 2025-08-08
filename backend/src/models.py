@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import Field
-from typing import List, Optional
+from typing import List
 
 # TODO: take the database name from env variables
 
@@ -47,7 +47,7 @@ class lab_test_result(Document):
     lab_test_type_id: PydanticObjectId = Field(...)
     visit_id: PydanticObjectId = Field(...)
     result: str = Field(...)
-    lab_panel_name: Optional[str] = None
+    lab_panel_id: PydanticObjectId | None = None
 
     class Settings:
         name = "lab_tests_results"
@@ -72,6 +72,7 @@ class lab_panel(Document):
     nssf_id: int = Field(...)
     panel_name: str = Field(...)
     lab_panel_price: float = Field(...)
+    lab_panel_category_id: PydanticObjectId = Field(...)
     list_of_test_type_ids: List[PydanticObjectId] = Field(...)
 
     class Settings:

@@ -1,6 +1,6 @@
 export const inputForm = "flex flex-col items-center justify-center w-full";
 export const patientInfoCard = "flex flex-col";
-export const patientInfoCardGrid = "grid grid-cols-6 md:grid-cols-5 border rounded-sm shadow-lg shadow-blue-200";
+export const patientInfoCardGrid = "grid grid-cols-6 md:grid-cols-6 border rounded-sm shadow-lg shadow-blue-200";
 export const patientInfoCardItem ="mb-2 text-sm font-medium text-gray-700 flex items-center space-x-1";
 
 

@@ -1,4 +1,6 @@
-import logo from "../../assets/logo.png";
+import lab_header from "../../assets/lab_header.png";
+import lab_signature from "../../assets/Lab Signature.png";
+import lab_address from "../../assets/lab_address.png";
 import {
   Document,
   Page,
@@ -13,17 +15,14 @@ import TestsTableResults from "./TestsTableResults";
 
 const ResultPdf: React.FC<visitResultData> = ({
   patient,
-  listOfLabTestResults,
+  list_of_panel_results,
+  list_of_standalone_test_results,
   visit_date,
+  report_date,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Image src={logo} style={styles.logo} />
-        <View>
-          <Text style={[styles.title, styles.textBold]}>RESULT</Text>
-        </View>
-      </View>
+      <Image src={lab_header} style={styles.lab_header} />
       <View style={styles.patientCard}>
         <View style={styles.patientInfoRow}>
           <View style={styles.patientInfoPair}>
@@ -49,25 +48,36 @@ const ResultPdf: React.FC<visitResultData> = ({
             </Text>
           </View>
           <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Phone Number:</Text>
-            <Text style={styles.patientValue}>{patient!.phone_number}</Text>
-          </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Visit Date:</Text>
+            <Text style={styles.patientLabel}>Exam Date:</Text>
             <Text style={styles.patientValue}>
               {visit_date.toString().split("T")[0]}
             </Text>
           </View>
+          <View style={styles.patientInfoPair}>
+            <Text style={styles.patientLabel}>Report Date:</Text>
+            <Text style={styles.patientValue}>
+              {report_date.toISOString().split("T")[0]}
+            </Text>
+          </View>
         </View>
+      </View>
+      <View>
+        <Text style={styles.labTitle}>Lab Results</Text>
       </View>
       <TestsTableResults
         visit_date={visit_date}
-        listOfLabTestResults={listOfLabTestResults}
+        report_date={report_date}
+        list_of_standalone_test_results={list_of_standalone_test_results}
+        list_of_panel_results={list_of_panel_results}
         patient={patient!}
       />
-      <View style={[{ textAlign: "right" }]}>
+      <View style={[{ textAlign: "right", paddingTop: 15 }]}>
+        <Image src={lab_signature} style={styles.lab_signature} />
         <Text>Signature</Text>
         <Text style={[{ top: 20 }]}>2009/37</Text>
+      </View>
+      <View style={styles.footer} fixed>
+        <Image src={lab_address} style={styles.footerImage} />
       </View>
     </Page>
   </Document>

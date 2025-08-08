@@ -14,6 +14,7 @@ import TestResultsList from "./TestResultsList.js";
 import {
   fetchLabPanelWithTests,
   fetchLabTestResultsAndPanelsPaginated,
+  fetchVisit,
   updateInvoice,
 } from "../utils.js";
 import Pagination from "../Pagination.js";
@@ -40,7 +41,7 @@ const EditVisitPage: React.FC = () => {
   });
   const [updatedInvoiceData, setUpdatedInvoiceData] =
     useState<updateInvoiceData>({});
-
+  const [visitDate, setVisitDate] = useState<Date>(new Date());
   const [addError, setAddError] = useState<string>("");
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalNumberOfTests, setTotalNumberOfTests] = useState<number>(0);
@@ -68,6 +69,10 @@ const EditVisitPage: React.FC = () => {
         setPanelResults(res.list_of_panel_results);
         setTotalPages(res.total_pages);
         setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+        const res1 = await fetchVisit(visit_id);
+        console.log("res1: ", res1);
+        setVisitDate(res1.visit_date);
+        console.log(res1.visit_date);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -126,7 +131,12 @@ const EditVisitPage: React.FC = () => {
   return (
     <div className="p-8 bg-white">
       <h1 className="text-2xl font-semibold mb-6">Edit Visit</h1>
-      <PatientInfo patientData={patientData}></PatientInfo>
+      <PatientInfo
+        setVisitDate={setVisitDate}
+        visitDate={visitDate}
+        patientData={patientData}
+        visit_id={visit_id}
+      ></PatientInfo>
       <button
         className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
         onClick={() => setShowTestsTable(true)}

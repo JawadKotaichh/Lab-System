@@ -57,11 +57,8 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
       }
     }
   };
-  const handleDeletePanel = async (
-    lab_panel_name: string,
-    visit_id: string
-  ) => {
-    const url = `${labTestResultApiURL}/delete_panels/${visit_id}/${lab_panel_name}`;
+  const handleDeletePanel = async (lab_panel_id: string, visit_id: string) => {
+    const url = `${labTestResultApiURL}/delete_panels/${visit_id}/${lab_panel_id}`;
     try {
       await api.delete(url);
       window.location.reload();
@@ -72,32 +69,6 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
       }
     }
   };
-
-  // const panelNameToTests = new Map<string, visitResult[]>();
-  // const testResults: visitResult[] = [];
-  // results.map((r) => {
-  //   if (r.lab_panel_name != "" && r.lab_panel_name != null) {
-  //     const tests = panelNameToTests.get(r.lab_panel_name);
-  //     if (tests) {
-  //       tests.push(r);
-  //     } else panelNameToTests.set(r.lab_panel_name, [r]);
-  //   } else {
-  //     testResults.push(r);
-  //   }
-  // });
-  // console.log(panelNameToTests);
-  // const listOfLabTestsType = testResults.map((t) => t.lab_test_type);
-  // const arrayOfLabPanels = Array.from(panelNameToTests.entries());
-  // const listOfLabPanels: labPanel[] = arrayOfLabPanels.map(
-  //   ([panelName, testsInPanel]) => ({
-  //     id: testsInPanel[0].lab_panel_id,
-  //     panel_name: panelName,
-  //     lab_tests: testsInPanel.map((r) => r.lab_test_type),
-  //     lab_panel_price: testsInPanel[0].lab_panel_price,
-  //     nssf_id: testsInPanel[0].lab_panel_nssf_id,
-  //   })
-  // );
-
   return (
     <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-10">
       <thead className="bg-gray-300 border-b border-black top-0 z-10">
@@ -175,7 +146,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
                   onClick={() =>
-                    handleDeletePanel(panel.lab_panel_name, visit_id)
+                    handleDeletePanel(panel.lab_panel_id, visit_id)
                   }
                 >
                   Remove
