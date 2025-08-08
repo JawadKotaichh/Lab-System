@@ -3,12 +3,16 @@ export type patientTestResult = {
   lab_test_type: labTest;
   lab_test_type_id: string;
   result: string;
+  prev_result?: string;
+  prev_date?: Date;
 };
 
 export type patientPanelResult = {
   lab_panel_id: string;
   lab_panel_name: string;
   lab_panel_price: number;
+  lab_panel_category_id: string;
+  lab_panel_category_name?: string;
   list_of_test_results: patientTestResult[];
 };
 
@@ -18,6 +22,13 @@ export type paginatedMixedVisitResults = {
   list_of_panel_results: patientPanelResult[];
   TotalNumberOfLabTestResults: number;
   total_pages: number;
+};
+export type resultListData = {
+  visit_date: Date;
+  patient: patientInfo;
+  visit_id: string;
+  list_of_standalone_test_results: patientTestResult[];
+  list_of_panel_results: patientPanelResult[];
 };
 
 export type InvoiceWrapperProps = {
@@ -39,8 +50,6 @@ export type fetchedInvoiceData = {
   patient: patientInfo;
   invoice_data: InvoiceData;
 };
-
-// continue the fecthing the invoice and check the output
 export type updateInvoiceData = {
   list_of_tests?: labTest[];
   list_of_lab_panels?: labPanel[];
@@ -48,11 +57,12 @@ export type updateInvoiceData = {
   visit_date?: Date;
   patient_insurance_company_rate?: number;
 };
-
 export type visitResultData = {
-  listOfLabTestResults: TestResult[];
+  list_of_standalone_test_results: patientTestResult[];
   patient: patientInfo;
   visit_date: Date;
+  report_date: Date;
+  list_of_panel_results: patientPanelResult[];
 };
 export type Params = {
   patient_id: string;
@@ -226,7 +236,7 @@ export type paginatedVisitData = {
 };
 export type visitData = {
   visit_id: string;
-  visit_date: string;
+  visit_date: Date;
   patient: patientInfo;
   completed_tests_results: number;
   total_tests_results: number;

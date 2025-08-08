@@ -66,8 +66,8 @@ class PaginatedVisitDataList(BaseModel):
 
 
 class update_visit_model(BaseModel):
-    patient_id: Optional[str]
-    date: datetime = Field(...)
+    # patient_id: Optional[str]
+    date: Optional[datetime]
 
     model_config = ConfigDict(
         populate_by_name=True,

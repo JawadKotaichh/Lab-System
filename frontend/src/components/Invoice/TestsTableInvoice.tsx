@@ -23,7 +23,7 @@ const TestsTableInvoice = ({
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View style={styles.tableRow}>
+        <View style={[styles.tableRow, { borderBottom: 0.1 }]}>
           {headers.map((h) => (
             <View style={styles.tableColHeader} key={h}>
               <Text
@@ -36,7 +36,7 @@ const TestsTableInvoice = ({
         </View>
         {testData.map((testVals, rowIdx) => (
           <View
-            style={[styles.tableRow, { borderBottom: 1 }]}
+            style={[styles.tableRow, { borderBottom: 0.1 }]}
             key={list_of_tests[rowIdx].lab_test_id}
           >
             {testVals.map((val, colIdx) => (
@@ -63,7 +63,7 @@ const TestsTableInvoice = ({
         ))}
         {panelData.map((panelVals, rowIdx) => (
           <View
-            style={[styles.tableRow, { borderBottom: 1 }]}
+            style={[styles.tableRow, { borderBottom: 0.1 }]}
             key={list_of_tests[rowIdx].lab_test_id}
           >
             {panelVals.map((val, colIdx) => (
