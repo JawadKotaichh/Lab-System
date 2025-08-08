@@ -234,6 +234,7 @@ async def get_Lab_test_results_with_page_size(
                 detail="Invalid lab test category ID",
             )
         lab_test_type = Lab_test_type(
+            lab_test_id=str(db_lab_test_type.id),
             name=db_lab_test_type.name,
             nssf_id=db_lab_test_type.nssf_id,
             lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
@@ -276,6 +277,7 @@ async def get_Lab_test_results_with_page_size(
 
         list_of_panel_results.append(
             patientPanelResult(
+                lab_panel_price=db_lab_panel.lab_panel_price,
                 lab_panel_id=str(db_lab_panel.id),
                 lab_panel_name=panel_name,
                 list_of_test_results=test_results,

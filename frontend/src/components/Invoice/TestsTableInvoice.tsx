@@ -35,7 +35,10 @@ const TestsTableInvoice = ({
           ))}
         </View>
         {testData.map((testVals, rowIdx) => (
-          <View style={styles.tableRow} key={list_of_tests[rowIdx].lab_test_id}>
+          <View
+            style={[styles.tableRow, { borderBottom: 1 }]}
+            key={list_of_tests[rowIdx].lab_test_id}
+          >
             {testVals.map((val, colIdx) => (
               <View
                 key={colIdx}
@@ -44,13 +47,25 @@ const TestsTableInvoice = ({
                   colIdx === testVals.length - 1 ? styles.tableColLast : {},
                 ]}
               >
-                <Text style={styles.tableCellText}>{val}</Text>
+                <Text
+                  style={[
+                    styles.tableCellText,
+                    colIdx === testVals.length - 1
+                      ? { textAlign: "right" }
+                      : {},
+                  ]}
+                >
+                  {val}
+                </Text>
               </View>
             ))}
           </View>
         ))}
         {panelData.map((panelVals, rowIdx) => (
-          <View style={styles.tableRow} key={list_of_tests[rowIdx].lab_test_id}>
+          <View
+            style={[styles.tableRow, { borderBottom: 1 }]}
+            key={list_of_tests[rowIdx].lab_test_id}
+          >
             {panelVals.map((val, colIdx) => (
               <View
                 key={colIdx}
@@ -59,7 +74,16 @@ const TestsTableInvoice = ({
                   colIdx === panelVals.length - 1 ? styles.tableColLast : {},
                 ]}
               >
-                <Text style={styles.tableCellText}>{val}</Text>
+                <Text
+                  style={[
+                    styles.tableCellText,
+                    colIdx === panelVals.length - 1
+                      ? { textAlign: "right" }
+                      : {},
+                  ]}
+                >
+                  {val}
+                </Text>
               </View>
             ))}
           </View>
