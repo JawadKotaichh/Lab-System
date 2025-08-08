@@ -1,3 +1,4 @@
+from datetime import datetime, time
 from fastapi import APIRouter, HTTPException, status
 from ..models import Patient as DBPatient
 from ..models import insurance_company as DBInsurance_company
@@ -45,7 +46,15 @@ async def get_patients_with_page_size(
     if phone_number:
         mongo_filter["phone_number"] = {"$regex": phone_number, "$options": "i"}
     if DOB:
-        mongo_filter["DOB"] = {"$regex": f"^{DOB}"}
+        try:
+            parsed_date = datetime.strptime(DOB, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+            )
+        start_dt = datetime.combine(parsed_date, time.min)
+        end_dt = datetime.combine(parsed_date, time.max)
+        mongo_filter["DOB"] = {"$gte": start_dt, "$lte": end_dt}
 
     offset = (page_number - 1) * page_size
     total_number_of_patients = await DBPatient.find(mongo_filter).count()

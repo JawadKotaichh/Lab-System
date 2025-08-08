@@ -40,7 +40,11 @@ async def create_lab_panel(data: Lab_Panel):
         ):
             raise HTTPException(400, "Invalid lab_test_type ID")
     db_Lab_panel = DBLab_panel(
-        panel_name=data.panel_name, list_of_test_type_ids=data.list_of_test_type_ids
+        panel_name=data.panel_name,
+        list_of_test_type_ids=data.list_of_test_type_ids,
+        nssf_id=data.nssf_id,
+        lab_panel_price=data.lab_panel_price,
+        lab_panel_category_id=data.lab_panel_category_id,
     )
     db_Lab_panel = await db_Lab_panel.insert()
     return db_Lab_panel
