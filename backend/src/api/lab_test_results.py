@@ -266,7 +266,10 @@ async def get_result_list(
         )
         if not lab_test_type_category:
             raise HTTPException(400, detail="Invalid lab test category ID")
-        prev_data = prev_results_map.get(test_result.lab_test_type_id, {})
+        prev_data = prev_results_map.get(test_result.lab_test_type_id) or {
+            "result": None,
+            "date": None,
+        }
 
         lab_test_type = Lab_test_type(
             lab_test_id=str(db_lab_test_type.id),
