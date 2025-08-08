@@ -317,7 +317,15 @@ async def get_visits_with_page_size(
         mongo_filter_visits["patient_id"] = {"$in": patient_ids}
 
     if visit_date:
-        mongo_filter_visits["date"] = {"$regex": f"^{visit_date}"}
+        try:
+            parsed_date = datetime.strptime(visit_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+            )
+        start_dt = datetime.combine(parsed_date, time.min)
+        end_dt = datetime.combine(parsed_date, time.max)
+        mongo_filter_visits["date"] = {"$gte": start_dt, "$lte": end_dt}
 
     total_number_of_visits = await DBVisit.find(mongo_filter_visits).count()
     cursor = DBVisit.find(mongo_filter_visits).skip(offset).limit(page_size)
