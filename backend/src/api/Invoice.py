@@ -73,9 +73,33 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     if update_data.visit_date is not None:
         existing_invoice.visit_date = update_data.visit_date
     if update_data.list_of_tests is not None:
-        existing_invoice.list_of_tests = update_data.list_of_tests
+        list_of_test_types: List[Lab_test_type] = []
+        for test in update_data.list_of_tests:
+            db_category = await DBlab_test_category.find_one(
+                DBlab_test_category.id == PydanticObjectId(test.lab_test_category_id)
+            )
+            if db_category is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Lab Test category {test.lab_test_category_id} not found",
+                )
+            lab_test = Lab_test_type(
+                lab_test_id=test.lab_test_id,
+                lab_test_category_name=db_category.lab_test_category_name,
+                nssf_id=test.nssf_id,
+                lab_test_category_id=str(test.lab_test_category_id),
+                name=test.name,
+                unit=test.unit,
+                price=test.price,
+                lower_bound=test.lower_bound,
+                upper_bound=test.upper_bound,
+            )
+            list_of_test_types.append(lab_test)
+        existing_invoice.list_of_tests = list_of_test_types
+
     if update_data.list_of_lab_panels is not None:
         existing_invoice.list_of_lab_panels = update_data.list_of_lab_panels
+
     # if update_data.total_price_with_insurance is not None:
     #     existing_invoice.total_price_with_insurance = (
     #         update_data.total_price_with_insurance
@@ -135,7 +159,7 @@ async def get_invoice(visit_id: str):
         if db_category is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Lab Test Type {test.lab_test_category_id} not found",
+                detail=f"Lab Test Category with id: {test.lab_test_category_id} not found",
             )
         lab_test = Lab_test_type(
             lab_test_id=str(test.id),
@@ -163,116 +187,6 @@ async def get_invoice(visit_id: str):
         invoice_data=currentInvoice,
     )
     return output_invoice_data
-
-
-# @router.get(
-#     "/{visit_id}/get_invoice",
-#     response_model=DBInvoice,
-# )
-# async def get_invoice(visit_id: str):
-#     if not PydanticObjectId.is_valid(visit_id):
-#         raise HTTPException(status_code=400, detail="Invalid Visit ID")
-#     db_visit = await DBVisit.get(PydanticObjectId(visit_id))
-#     if not db_visit:
-#         raise HTTPException(status_code=400, detail=f"Visit Id:{visit_id} not found!")
-
-#     db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
-#     if not db_patient:
-#         raise HTTPException(
-#             status_code=400, detail=f"Patient Id:{db_visit.patient_id} not found!"
-#         )
-#     db_list_of_lab_tests = DBLab_test_result.find(
-#         DBLab_test_result.visit_id == PydanticObjectId(visit_id)
-#     )
-#     if not db_list_of_lab_tests:
-#         raise HTTPException(
-#             status_code=400, detail=f"No test found for visit: {visit_id}!"
-#         )
-
-#     visit_date = db_visit.date
-
-#     listOfTests: List[Lab_test_type] = []
-#     listOfPanels: List[Lab_Panel] = []
-#     list_of_individual_test_results: List[Lab_test_result] = []
-#     panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
-
-#     async for lab_result in db_list_of_lab_tests:
-#         db_lab_test_type = await DBLab_test_type.find_one(
-#             DBLab_test_type.id == lab_result.lab_test_type_id
-#         )
-#         if not db_lab_test_type:
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail=f"Lab test type: {lab_result.lab_test_type_id} not found!",
-#             )
-#         category = await DBLab_test_category.find_one(
-#             DBLab_test_category.id == db_lab_test_type.lab_test_category_id
-#         )
-#         if not category:
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail=f"Lab test category: {db_lab_test_type.lab_test_category_id} not found!",
-#             )
-#         if lab_result.lab_panel_name:
-#             panel_to_list_of_tests[lab_result.lab_panel_name].append(lab_result)
-#         else:
-#             list_of_individual_test_results.append(lab_result)
-#             currentLabTest = Lab_test_type(
-#                 name=db_lab_test_type.name,
-#                 lab_test_id=str(db_lab_test_type.id),
-#                 lab_test_category_name=category.lab_test_category_name,
-#                 nssf_id=db_lab_test_type.nssf_id,
-#                 lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
-#                 unit=db_lab_test_type.unit,
-#                 price=db_lab_test_type.price,
-#                 lower_bound=db_lab_test_type.lower_bound,
-#                 upper_bound=db_lab_test_type.upper_bound,
-#             )
-#             listOfTests.append(currentLabTest)
-
-#     totalPrice = 0.0
-
-#     for individual_test in list_of_individual_test_results:
-#         lab_test = await DBLab_test_type.get(
-#             PydanticObjectId(individual_test.lab_test_type_id)
-#         )
-#         if lab_test:
-#             totalPrice += lab_test.price
-
-#     for panel_name in panel_to_list_of_tests:
-#         db_lab_panel = await DBLab_panel.find_one(DBLab_panel.panel_name == panel_name)
-#         if not db_lab_panel:
-#             raise HTTPException(
-#                 status_code=400, detail=f"Invalid lab panel name: {panel_name}"
-#             )
-#         lab_panel = Lab_Panel(
-#             nssf_id=db_lab_panel.nssf_id,
-#             panel_name=db_lab_panel.panel_name,
-#             list_of_test_type_ids=db_lab_panel.list_of_test_type_ids,
-#             lab_panel_price=db_lab_panel.lab_panel_price,
-#         )
-#         listOfPanels.append(lab_panel)
-#         totalPrice += db_lab_panel.lab_panel_price
-
-#     db_invoice = DBInvoice(
-#         visit_id=PydanticObjectId(data.visit_id),
-#         list_of_tests=data.list_of_tests,
-#         list_of_lab_panels=data.list_of_lab_panels,
-#         issued_at_date=data.issued_at_date,
-#         total_price_with_insurance=data.total_price_with_insurance,
-#         total_without_insurance=data.total_without_insurance,
-#     )
-#     new_invoice = await db_invoice.insert()
-#     if not new_invoice:
-#         raise HTTPException(status_code=404, detail="invoice was not created")
-
-#     output = Invoice(
-#         list_of_tests=listOfTests,
-#         list_of_lab_panels=listOfPanels,
-#         total_without_insurance=totalPrice,
-#         issued_at_date=visit_date,
-#     )
-#     return output
 
 
 @router.get("/page/{page_size}/{page_number}", response_model=List[Invoice])
