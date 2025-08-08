@@ -103,8 +103,8 @@ async def get_invoice(visit_id: str):
                 status_code=400,
                 detail=f"Lab test category: {db_lab_test_type.lab_test_category_id} not found!",
             )
-        if lab_result.lab_panel_name:
-            panel_to_list_of_tests[lab_result.lab_panel_name].append(lab_result)
+        if lab_result.lab_panel_id:
+            panel_to_list_of_tests[lab_result.lab_panel_id].append(lab_result)
         else:
             list_of_individual_test_results.append(lab_result)
             currentLabTest = Lab_test_type(
@@ -129,17 +129,18 @@ async def get_invoice(visit_id: str):
         if lab_test:
             totalPrice += lab_test.price
 
-    for panel_name in panel_to_list_of_tests:
-        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.panel_name == panel_name)
+    for panel_id in panel_to_list_of_tests:
+        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.id == panel_id)
         if not db_lab_panel:
             raise HTTPException(
-                status_code=400, detail=f"Invalid lab panel name: {panel_name}"
+                status_code=400, detail=f"Invalid lab panel id: {panel_id}"
             )
         lab_panel = Lab_Panel(
             nssf_id=db_lab_panel.nssf_id,
             panel_name=db_lab_panel.panel_name,
             list_of_test_type_ids=db_lab_panel.list_of_test_type_ids,
             lab_panel_price=db_lab_panel.lab_panel_price,
+            lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
         )
         listOfPanels.append(lab_panel)
         totalPrice += db_lab_panel.lab_panel_price
@@ -220,16 +221,35 @@ async def getResult(visit_id: str):
                 status_code=400,
                 detail=f"Lab test category: {db_lab_test_type.lab_test_category_id} not found!",
             )
+        if lab_result.lab_panel_id is not None:
+            db_lab_panel = await DBLab_panel.find_one(
+                DBLab_panel.id == lab_result.lab_panel_id
+            )
+            if not db_lab_panel:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Lab test panel with id: {lab_result.lab_panel_id} not found!",
+                )
+            current_lab_test_result = visitResultTest(
+                name=db_lab_test_type.name,
+                result=lab_result.result,
+                unit=db_lab_test_type.unit,
+                lower_bound=db_lab_test_type.lower_bound,
+                upper_bound=db_lab_test_type.upper_bound,
+                lab_test_category_name=lab_test_category.lab_test_category_name,
+                lab_panel_name=db_lab_panel.panel_name,
+            )
+        else:
+            current_lab_test_result = visitResultTest(
+                name=db_lab_test_type.name,
+                result=lab_result.result,
+                unit=db_lab_test_type.unit,
+                lower_bound=db_lab_test_type.lower_bound,
+                upper_bound=db_lab_test_type.upper_bound,
+                lab_test_category_name=lab_test_category.lab_test_category_name,
+                lab_panel_name=None,
+            )
 
-        current_lab_test_result = visitResultTest(
-            name=db_lab_test_type.name,
-            result=lab_result.result,
-            unit=db_lab_test_type.unit,
-            lower_bound=db_lab_test_type.lower_bound,
-            upper_bound=db_lab_test_type.upper_bound,
-            lab_test_category_name=lab_test_category.lab_test_category_name,
-            lab_panel_name=lab_result.lab_panel_name,
-        )
         listOfLabTestResults.append(current_lab_test_result)
     output = visitResultData(
         patient=currentPatient,
@@ -331,8 +351,8 @@ async def get_visits_with_page_size(
         panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
 
         async for test_result in all_test_results:
-            if test_result.lab_panel_name is not None:
-                panel_to_list_of_tests[test_result.lab_panel_name].append(test_result)
+            if test_result.lab_panel_id is not None:
+                panel_to_list_of_tests[test_result.lab_panel_id].append(test_result)
             else:
                 list_of_individual_test_results.append(test_result)
 
@@ -349,18 +369,16 @@ async def get_visits_with_page_size(
             if individual_test.result != "":
                 completed_tests_results += 1
 
-        for panel_name in panel_to_list_of_tests:
-            total_tests_results += len(panel_to_list_of_tests[panel_name])
-            for test_result in panel_to_list_of_tests[panel_name]:
+        for panel_id in panel_to_list_of_tests:
+            total_tests_results += len(panel_to_list_of_tests[panel_id])
+            for test_result in panel_to_list_of_tests[panel_id]:
                 if test_result.result != "":
                     completed_tests_results += 1
 
-            db_lab_panel = await DBLab_panel.find_one(
-                DBLab_panel.panel_name == panel_name
-            )
+            db_lab_panel = await DBLab_panel.find_one(DBLab_panel.id == panel_id)
             if not db_lab_panel:
                 raise HTTPException(
-                    status_code=400, detail=f"Invalid lab panel name: {panel_name}"
+                    status_code=400, detail=f"Invalid lab panel id: {panel_id}"
                 )
             total_price += db_lab_panel.lab_panel_price
 
@@ -499,7 +517,7 @@ async def get_visit(visit_id: PydanticObjectId):
         gender=db_patient.gender,
         DOB=db_patient.DOB,
         phone_number=db_patient.phone_number,
-        insurance_company_id=db_patient.insurance_company_id,
+        insurance_company_id=str(db_patient.insurance_company_id),
         patient_id=str(db_patient.id),
     )
     all_lab_test_results = DBLab_test_result.find(
@@ -530,7 +548,6 @@ async def get_visit(visit_id: PydanticObjectId):
         raise HTTPException(
             404, f"Insurance Company of patient {db_patient.id} not found"
         )
-    print(total_tests_results)
     total_price_with_insurance = total_price * insurance_company.rate
     insurance_company_name = insurance_company.insurance_company_name
     visit_data = VisitData(
@@ -556,18 +573,20 @@ async def get_all_visits():
 async def update_visit(visit_id: PydanticObjectId, update_data: update_visit_model):
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
-    if not PydanticObjectId.is_valid(update_data.patient_id):
-        raise HTTPException(400, "Invalid Visit ID")
 
     existing_visit = await DBVisit.find_one(DBVisit.id == PydanticObjectId(visit_id))
     if existing_visit is None:
         raise HTTPException(404, f"Visit {visit_id} not found")
-    patient = await DBPatient.get(PydanticObjectId(update_data.patient_id))
-    if patient is None:
-        raise HTTPException(404, f"Visit {visit_id} not found")
 
-    if update_data.patient_id is not None:
-        existing_visit.patient_id = update_data.patient_id
+    # if update_data.patient_id is not None:
+    #     if not PydanticObjectId.is_valid(update_data.patient_id):
+    #         raise HTTPException(400, "Invalid patient ID")
+    #     patient = await DBPatient.get(PydanticObjectId(update_data.patient_id))
+    #     if patient is None:
+    #         raise HTTPException(
+    #             404, f"Patient with id: {update_data.patient_id} not found"
+    #         )
+    #     existing_visit.patient_id = update_data.patient_id
     if update_data.date is not None:
         existing_visit.date = update_data.date
 

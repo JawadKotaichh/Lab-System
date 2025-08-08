@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, type Dispatch, type SetStateAction } from "react";
 
 import type { patientInfo } from "../types.js";
 import {
@@ -7,14 +7,42 @@ import {
   patientInfoCard,
   patientInfoCardGrid,
 } from "../../style.js";
+import api from "../../api.js";
+import { visitsApiURL } from "../data.js";
 
 interface PatientCardParams {
   patientData: patientInfo;
+  visit_id: string;
+  visitDate: Date;
+  setVisitDate: Dispatch<SetStateAction<Date>>;
 }
 
 const PatientInfo: React.FC<PatientCardParams> = ({
   patientData,
+  visit_id,
+  visitDate,
+  setVisitDate,
 }: PatientCardParams) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleVisitDateChange = async (
+    newVisitDate: string,
+    visit_id: string
+  ) => {
+    try {
+      const currdate = new Date(newVisitDate);
+      await api.put(`${visitsApiURL}${visit_id}`, {
+        date: currdate,
+      });
+      setVisitDate(currdate);
+    } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   return (
     <div className={patientInfoCard}>
       <div className={patientInfoCardGrid}>
@@ -46,6 +74,20 @@ const PatientInfo: React.FC<PatientCardParams> = ({
           <label className={patientInfoCardItem}>
             <span className="font-bold">Insurance Company:</span>
             <span>{patientData.insurance_company_name}</span>
+          </label>
+        </div>
+        <div className={inputFormAttributeListItem}>
+          <label className={patientInfoCardItem}>
+            <span className="font-bold">Visit Date:</span>
+            <span>
+              <input
+                value={new Date(visitDate).toISOString().split("T")[0]}
+                type="date"
+                onChange={(e) =>
+                  handleVisitDateChange(e.target.value, visit_id)
+                }
+              />
+            </span>
           </label>
         </div>
       </div>
