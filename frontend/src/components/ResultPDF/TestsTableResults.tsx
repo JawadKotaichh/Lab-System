@@ -83,7 +83,9 @@ const TestsTableResults = ({
                     <View style={styles.tableCol}>
                       <Text style={styles.tableCellText}>
                         {t.prev_result}{" "}
-                        {new Date(t.prev_date!).toISOString().split("T")[0]}
+                        {t.prev_date
+                          ? new Date(t.prev_date).toISOString().split("T")[0]
+                          : null}
                       </Text>
                     </View>
                   </View>
@@ -149,7 +151,11 @@ const TestsTableResults = ({
                         <View style={styles.tableCol}>
                           <Text style={styles.tableCellText}>
                             {t.prev_result}{" "}
-                            {new Date(t.prev_date!).toISOString().split("T")[0]}
+                            {t.prev_date
+                              ? new Date(t.prev_date)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : null}
                           </Text>
                         </View>
                       </View>
