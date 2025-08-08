@@ -1,4 +1,10 @@
 import { StyleSheet } from '@react-pdf/renderer';
+import { Font } from "@react-pdf/renderer";
+Font.register({
+  family: "Amiri",
+  src: "/fonts/Amiri-Regular.ttf", 
+  fontWeight: "normal",
+});
 
 export const styles = StyleSheet.create({
   page: {
@@ -17,6 +23,18 @@ export const styles = StyleSheet.create({
     flexDirection:"row",
     justifyContent:"space-between",
     marginBottom:20,
+  },
+  lab_header:{
+    width:"100%",
+    objectFit: "cover",
+  },
+  lab_signature:{
+    position: 'absolute',
+    marginTop: - 40, 
+    marginRight:-30,
+    right: 0, 
+    width: 120,
+    height: 100,
   },
   logo: {
     position: 'absolute',
@@ -87,11 +105,21 @@ export const styles = StyleSheet.create({
   },
   tableCellText: {
     fontSize: 10,
-    textAlign: 'left',
+  }, footer: {
+    position: "absolute",
+    bottom: 20,         
+    left: 40,
+    right: 40,
+    textAlign: "center",
+  },
+  footerImage: {
+    width: 500,         
+    height: 30,
+    objectFit: "contain",
   },
   tableCellTextHeader:{
     fontSize: 12,
-    textAlign: 'left',
+    textAlign: 'center',
   },
   subTotal:{
     borderTop:1,
@@ -112,6 +140,7 @@ subtotalCellText: {
     textAlign: 'left',
   },
   invoiceNumber:{
+    marginTop:5,
     fontSize:12,
     fontWeight:5000,
     textAlign:'center',

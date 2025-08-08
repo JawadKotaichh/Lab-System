@@ -35,6 +35,7 @@ class patientTestResult(BaseModel):
 class patientPanelResult(BaseModel):
     lab_panel_id: str
     lab_panel_name: str
+    lab_panel_price: float
     list_of_test_results: List[patientTestResult]
 
 
