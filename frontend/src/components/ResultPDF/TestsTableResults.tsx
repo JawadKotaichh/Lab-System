@@ -1,64 +1,25 @@
 import { Text, View } from "@react-pdf/renderer";
-import type { TestResult, visitResultData } from "../types";
+import type { visitResultData } from "../types";
 import { styles } from "./ResultStyle";
+import groupByCategory from "./groupByCategory";
 
-type Row = {
-  panelName: string;
-  categoryName: string;
-  testName: string;
-  result: string;
-  unit: string;
-  lowerBound: string;
-  upperBound: string;
-};
-
-const TestsTableResults = ({ listOfLabTestResults }: visitResultData) => {
+const TestsTableResults = ({
+  list_of_standalone_test_results,
+  list_of_panel_results,
+}: visitResultData) => {
   const headers = [
-    "Category Name",
     "Test Name",
     "Result",
     "Unit",
-    "Lower Bound",
-    "Upper Bound",
+    "Normal Value",
+    "Previous Result",
   ];
 
-  const panelNameToTests = new Map<string, TestResult[]>();
-  const testResults: TestResult[] = [];
-  listOfLabTestResults.map((t) => {
-    if (t.lab_panel_name != "" && t.lab_panel_name != null) {
-      const tests = panelNameToTests.get(t.lab_panel_name);
-      if (tests) {
-        tests.push(t);
-      } else panelNameToTests.set(t.lab_panel_name, [t]);
-    } else {
-      testResults.push(t);
-    }
-  });
-
-  const testResultData = testResults.map((t) => [
-    t.lab_panel_name,
-    t.lab_test_category_name,
-    t.name,
-    t.result,
-    t.unit,
-    t.lower_bound,
-    t.upper_bound,
-  ]);
-  const rows: Row[] = [];
-
-  panelNameToTests.forEach((tests, panelName) => {
-    tests.forEach((t, idx) => {
-      rows.push({
-        panelName: idx === 0 ? panelName : "",
-        categoryName: t.lab_test_category_name,
-        testName: t.name,
-        result: t.result,
-        unit: t.unit,
-        lowerBound: t.lower_bound,
-        upperBound: t.upper_bound,
-      });
-    });
-  });
+  const groupedData = groupByCategory(
+    list_of_standalone_test_results,
+    list_of_panel_results
+  );
+  // console.log("Grouped data: ", groupedData);
 
   return (
     <View>
@@ -74,60 +35,129 @@ const TestsTableResults = ({ listOfLabTestResults }: visitResultData) => {
             </View>
           ))}
         </View>
-        {testResultData.map((resultVals, rowIdx) => (
-          <View
-            style={[
-              styles.tableRow,
-              rowIdx === testResultData.length - 1
-                ? styles.tableRowWithoutBorder
-                : {},
-            ]}
-            key={listOfLabTestResults[rowIdx].name}
-          >
-            {resultVals.map((val, colIdx) => (
-              <View
-                key={colIdx}
-                style={[
-                  styles.tableCol,
-                  colIdx === resultVals.length - 1 ? styles.tableColLast : {},
-                ]}
-              >
-                <Text style={styles.tableCellText}>{val}</Text>
-              </View>
-            ))}
-          </View>
-        ))}
-        {rows.map((r, rowIdx) => (
-          <View
-            style={[
-              styles.tableRow,
-              rowIdx === rows.length - 1 ? styles.tableRowWithoutBorder : {},
-            ]}
-            key={`${r.panelName || "__"}-${rowIdx}`}
-          >
-            r.panelName && (
-            <View style={styles.tableRow}>
-              <Text>{r.panelName}</Text>
-            </View>
-            )
-            {[
-              r.categoryName,
-              r.testName,
-              r.result,
-              r.unit,
-              r.lowerBound,
-              r.upperBound,
-            ].map((val, colIdx) => (
-              <View
-                key={colIdx}
-                style={[
-                  styles.tableCol,
-                  colIdx === headers.length - 1 ? styles.tableColLast : {},
-                ]}
-              >
-                <Text style={styles.tableCellText}>{val}</Text>
-              </View>
-            ))}
+        {groupedData.map((currentCategory, rowIdx) => (
+          <View key={rowIdx}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "600",
+                borderBottom: 1,
+                borderTop: 1,
+                paddingBottom: 5,
+                paddingTop: 2,
+                padding: 4,
+              }}
+            >
+              {currentCategory.category}
+            </Text>
+            {currentCategory.items.map((item, idx) => {
+              if (item.type == "standalone") {
+                const t = item.test;
+                return (
+                  <View
+                    style={[
+                      styles.tableRow,
+                      { borderBottom: 0.3, borderStyle: "dotted" },
+                    ]}
+                    key={`${rowIdx}-s-${idx}`}
+                  >
+                    <View style={styles.tableCol}>
+                      <Text style={styles.tableCellText}>
+                        {t.lab_test_type.name}
+                      </Text>
+                    </View>
+                    <View style={styles.tableCol}>
+                      <Text style={styles.tableCellText}>{t.result}</Text>
+                    </View>
+                    <View style={styles.tableCol}>
+                      <Text style={styles.tableCellText}>
+                        {t.lab_test_type.unit}
+                      </Text>
+                    </View>
+                    <View style={styles.tableCol}>
+                      <Text style={styles.tableCellText}>
+                        {t.lab_test_type.lower_bound}{" "}
+                        {t.lab_test_type.upper_bound}
+                      </Text>
+                    </View>
+                    <View style={styles.tableCol}>
+                      <Text style={styles.tableCellText}>
+                        {t.prev_result}{" "}
+                        {new Date(t.prev_date!).toISOString().split("T")[0]}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              } else {
+                const p = item.panel;
+                return (
+                  <View key={`${rowIdx}-p-${idx}`}>
+                    <View
+                      style={styles.tableRow}
+                      key={`${rowIdx}-p-${idx}-r-$`}
+                    >
+                      <Text
+                        style={[
+                          styles.tableCellText,
+                          {
+                            fontSize: 11,
+                            padding: 4,
+                            width: "100%",
+                            fontWeight: "bold",
+                            borderStyle: "dotted",
+                            borderBottomWidth: 0.3,
+                          },
+                        ]}
+                      >
+                        {p.lab_panel_name}
+                      </Text>
+                    </View>
+                    {p.list_of_test_results.map((t, i) => (
+                      <View
+                        style={[
+                          styles.tableRow,
+                          { borderBottom: 0.3, borderStyle: "dotted" },
+                        ]}
+                        key={`${rowIdx}-p-${idx}-r-${i}`}
+                      >
+                        <View style={styles.tableCol}>
+                          <Text style={styles.tableCellText}>
+                            {t.lab_test_type.name}
+                          </Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                          <Text
+                            style={[
+                              styles.tableCellText,
+                              { textAlign: "center" },
+                            ]}
+                          >
+                            {t.result}
+                          </Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                          <Text style={styles.tableCellText}>
+                            {t.lab_test_type.unit}
+                          </Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                          <Text style={styles.tableCellText}>
+                            {t.lab_test_type.lower_bound}{" "}
+                            {t.lab_test_type.upper_bound}
+                          </Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                          <Text style={styles.tableCellText}>
+                            {t.prev_result}{" "}
+                            {new Date(t.prev_date!).toISOString().split("T")[0]}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                );
+              }
+            })}
           </View>
         ))}
       </View>
