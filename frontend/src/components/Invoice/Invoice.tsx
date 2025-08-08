@@ -1,4 +1,7 @@
-import logo from "../../assets/logo.png";
+// import logo from "../../assets/logo.png";
+import lab_header from "../../assets/lab_header.png";
+import lab_signature from "../../assets/Lab Signature.png";
+import lab_address from "../../assets/lab_address.png";
 import {
   Document,
   Page,
@@ -21,12 +24,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Image src={logo} style={styles.logo} />
-        <View>
-          <Text style={[styles.title, styles.textBold]}>INVOICE</Text>
-        </View>
-      </View>
+      <Image src={lab_header} style={styles.lab_header} />
       <View style={styles.invoiceNumber}>
         <Text>Invoice Number:</Text>
       </View>
@@ -75,8 +73,12 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         patient_insurance_company_rate={patient_insurance_company_rate}
       />
       <View style={[{ textAlign: "right" }]}>
+        <Image src={lab_signature} style={styles.lab_signature} />
         <Text>Signature</Text>
         <Text style={[{ top: 20 }]}>2009/37</Text>
+      </View>
+      <View style={styles.footer} fixed>
+        <Image src={lab_address} style={styles.footerImage} />
       </View>
     </Page>
   </Document>
