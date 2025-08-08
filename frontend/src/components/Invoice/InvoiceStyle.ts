@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   },
    patientCard: {  
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    bordercolor:'#262626',
     borderRadius: 5,
     padding: 10,
     marginBottom: 20,
@@ -140,9 +140,9 @@ subtotalCellText: {
     textAlign: 'left',
   },
   invoiceNumber:{
-    marginTop:5,
+    paddingTop:10,
     fontSize:12,
-    fontWeight:5000,
+    fontWeight:4000,
     textAlign:'center',
   },
   AmountBox: {  
