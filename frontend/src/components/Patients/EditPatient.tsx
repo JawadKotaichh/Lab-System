@@ -34,6 +34,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
     gender: "",
     phone_number: "",
     insurance_company_id: "",
+    insurance_company_name: "",
   });
   const [allInsuranceCompanies, setAllInsuranceCompanies] = useState<
     insuranceCompanyParams[]
