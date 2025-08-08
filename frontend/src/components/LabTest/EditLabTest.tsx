@@ -48,7 +48,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({
   const [data, setData] = useState<CreateLabTestParams>({
     lab_test_category_id: "",
     name: "",
-    nssf_id: "",
+    nssf_id: 0,
     unit: "",
     price: 0,
     upper_bound: "",

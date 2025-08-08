@@ -53,6 +53,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const navigate = useNavigate();
   const [labTests, setLabTests] = useState<Record<string, labTest>>({});
   const [data, setData] = useState<CreateLabPanelParams>({
+    lab_panel_category_id: "",
     panel_name: "",
     nssf_id: 0,
     list_of_test_type_ids: [],
@@ -68,6 +69,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           panel_name: currentPanelData.panel_name,
           lab_panel_price: currentPanelData.lab_panel_price,
           nssf_id: currentPanelData.nssf_id,
+          lab_panel_category_id: currentPanelData.lab_panel_category_id,
         });
       })
       .catch((err) => setError(err.message || "Failed to load lab panel"));
@@ -125,10 +127,19 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const handlePanelNssfIDChange = (value: number) => {
     setData((prev) => ({ ...prev, nssf_id: value }));
   };
+  const handleCategoryChange = (value: string) => {
+    setData((prev) => ({ ...prev, lab_panel_category_id: value }));
+  };
   const handleAddButton = () => setShow(true);
 
   const handleSave = async () => {
-    if (!data.panel_name || data.list_of_test_type_ids.length === 0) {
+    if (
+      !data.panel_name ||
+      data.list_of_test_type_ids.length === 0 ||
+      !data.lab_panel_price ||
+      !data.lab_panel_category_id ||
+      !data.nssf_id
+    ) {
       setState("Please insert all the required fields!");
       return;
     }
@@ -190,6 +201,26 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           }}
           onChange={(e) => handlePanelNssfIDChange(Number(e.target.value))}
         />
+        <label className={inputFormAttributeListItemLabel + " p-3"}>
+          <span className="text-xl mr-5">Category:</span>
+        </label>
+        <select
+          className={inputFormAttributeListItemInput}
+          value={data.lab_panel_category_id || ""}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+        >
+          <option value="" disabled>
+            — Select lab test category —
+          </option>
+          {labTestCategories.map((ltc) => (
+            <option
+              key={ltc.lab_test_category_id}
+              value={ltc.lab_test_category_id}
+            >
+              {ltc.lab_test_category_name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex justify-between items-center mb-4">

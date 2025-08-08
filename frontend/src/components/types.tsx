@@ -132,6 +132,7 @@ export type CreateLabPanelParams = {
   lab_panel_price: number;
   panel_name: string;
   list_of_test_type_ids: string[];
+  lab_panel_category_id: string;
 };
 export interface InsuranceFilters {
   insurance_company_name?: string;
