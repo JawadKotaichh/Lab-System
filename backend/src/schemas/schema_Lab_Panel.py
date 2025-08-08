@@ -9,6 +9,7 @@ class Lab_Panel(BaseModel):
     panel_name: str = Field(...)
     list_of_test_type_ids: List[PydanticObjectId] = Field(...)
     lab_panel_price: float
+    lab_panel_category_id: str = Field(...)
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -25,6 +26,7 @@ class LabPanelResponse(BaseModel):
     panel_name: str
     lab_panel_price: float
     lab_tests: List[Lab_test_type]
+    lab_panel_category_id: str
 
 
 class LabPanelResponseTestsIDs(BaseModel):
@@ -33,6 +35,7 @@ class LabPanelResponseTestsIDs(BaseModel):
     panel_name: str
     lab_panel_price: float
     list_of_test_type_ids: List[str]
+    lab_panel_category_id: str
 
 
 class LabPanelResponseTestsTypes(BaseModel):
@@ -41,6 +44,7 @@ class LabPanelResponseTestsTypes(BaseModel):
     panel_name: str
     lab_panel_price: float
     lab_tests: List[Lab_test_type]
+    lab_panel_category_id: str
 
 
 class LabPanelPaginatedResponse(BaseModel):
@@ -54,6 +58,7 @@ class update_Lab_Panel_model(BaseModel):
     nssf_id: Optional[int] = None
     lab_panel_price: Optional[float] = None
     list_of_test_type_ids: Optional[List[PydanticObjectId]] = None
+    lab_panel_category_id: Optional[PydanticObjectId] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
