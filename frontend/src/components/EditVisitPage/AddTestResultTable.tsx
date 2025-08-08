@@ -191,6 +191,12 @@ const AddTestResultTable: React.FC<TestsList> = ({
               {showTestsTable && (
                 <>
                   <h1 className={pageListTitle}>Add Lab Test Result</h1>
+                  <button
+                    className={tableDeleteButton + " mb-2"}
+                    onClick={() => setShowTestsTable(false)}
+                  >
+                    Close
+                  </button>
                   <GenericTable
                     table={labTestsTable}
                     loading={loading}
@@ -198,12 +204,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
                     cellStyle={tableItem}
                     noDataMessage="No lab tests found"
                   />
-                  <button
-                    className={tableDeleteButton + " mt-3"}
-                    onClick={() => setShowTestsTable(false)}
-                  >
-                    Close
-                  </button>
+
                   <Pagination
                     TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
                     currentPage={pagination.pageIndex + 1}
