@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import type { labPanel } from "../types";
-import { fetchLabPanelsPaginated } from "../utils";
+import type {
+  labPanel,
+  patientPanelResult,
+  patientTestResult,
+  updateInvoiceData,
+} from "../types";
+import {
+  fetchLabPanelsPaginated,
+  fetchLabPanelWithTests,
+  fetchLabTestResultsAndPanelsPaginated,
+  updateInvoice,
+} from "../utils";
 import {
   pageListTitle,
   tableDeleteButton,
@@ -13,22 +23,37 @@ import Pagination from "../Pagination";
 import SearchLabPanel from "../LabPanel/SearchLabPanel";
 import api from "../../api";
 import { labTestResultApiURL } from "../data";
+import type { PaginationState } from "@tanstack/react-table";
 
 interface ErrorResponse {
   detail: string;
 }
 interface labPanelTableParams {
+  pagination: PaginationState;
   visit_id: string;
   showPanelsTable: boolean;
-  // results: visitResult[];
+  updatedInvoiceData: updateInvoiceData;
+  setUpdatedInvoiceData: React.Dispatch<
+    React.SetStateAction<updateInvoiceData>
+  >;
+  setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
+  setStandAloneTestResults: React.Dispatch<
+    React.SetStateAction<patientTestResult[]>
+  >;
   setShowPanelsTable: React.Dispatch<React.SetStateAction<boolean>>;
+  setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const LabPanelsTable: React.FC<labPanelTableParams> = ({
   visit_id,
   showPanelsTable,
-  // results,
   setShowPanelsTable,
+  updatedInvoiceData,
+  setUpdatedInvoiceData,
+  pagination,
+  setPanelResults,
+  setStandAloneTestResults,
+  setTotalNumberOfTests,
 }: labPanelTableParams) => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
   const [error, setError] = useState<string>("");
@@ -45,6 +70,27 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
     setError("");
     try {
       await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
+      const res = await fetchLabTestResultsAndPanelsPaginated(
+        visit_id,
+        pagination.pageIndex + 1,
+        pagination.pageSize
+      );
+      setStandAloneTestResults(res.list_of_standalone_test_results);
+      setPanelResults(res.list_of_panel_results);
+      setTotalPages(res.total_pages);
+      setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+      const fetchedPanels = await Promise.all(
+        res.list_of_panel_results.map((p) =>
+          fetchLabPanelWithTests(p.lab_panel_id)
+        )
+      );
+      console.log("fetchedPanels: ", fetchedPanels);
+      const newInvoiceData: updateInvoiceData = {
+        ...updatedInvoiceData,
+        list_of_lab_panels: fetchedPanels,
+      };
+      setUpdatedInvoiceData(newInvoiceData);
+      await updateInvoice(visit_id!, newInvoiceData);
       setShowPanelsTable(false);
       window.location.reload();
     } catch (err: unknown) {
@@ -62,8 +108,6 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       } else if (err instanceof Error) {
         message = err.message;
       }
-
-      // at this point you should see the real payload in your console
       alert(message);
       setError(message);
     } finally {
