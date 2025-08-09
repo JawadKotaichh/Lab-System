@@ -68,6 +68,9 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
 
     if not existing_invoice:
+        await create_invoice(visit_id=visit_id)
+    existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
+    if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
 
     if update_data.visit_date is not None:
@@ -99,14 +102,6 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
 
     if update_data.list_of_lab_panels is not None:
         existing_invoice.list_of_lab_panels = update_data.list_of_lab_panels
-
-    # if update_data.total_price_with_insurance is not None:
-    #     existing_invoice.total_price_with_insurance = (
-    #         update_data.total_price_with_insurance
-    #     )
-    # if update_data.total_without_insurance is not None:
-    #     existing_invoice.total_without_insurance = update_data.total_without_insurance
-
     await existing_invoice.replace()
 
     return existing_invoice

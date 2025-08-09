@@ -4,7 +4,6 @@ import type {
   fetchedInvoiceData,
   insuranceCompanyParams,
   InsuranceFilters,
-  InvoiceData,
   lab_test_category_filters,
   labPanel,
   labPanelFilter,
@@ -46,11 +45,6 @@ const fetchVisit = async (visit_id: string): Promise<visitData> => {
 const fetchInvoice = async (visit_id: string): Promise<fetchedInvoiceData> => {
   const url = `${invoicesApiURL}/${visit_id}/fetch_invoice`;
   const response = await api.get(url);
-  return response.data;
-};
-const createEmptyInvoice = async (visit_id: string): Promise<InvoiceData> => {
-  const url = `${invoicesApiURL}/${visit_id}/create_empty_invoice`;
-  const response = await api.post(url);
   return response.data;
 };
 const updateInvoice = async (
@@ -252,7 +246,6 @@ export { fetchInsuranceCompaniesPaginated };
 export { fetchLabTestResultsPaginated };
 export { fetchInvoice };
 export { fetchResultList };
-export { createEmptyInvoice };
 export { updateInvoice };
 export { fetchLabTestResultsAndPanelsPaginated };
 export { fetchVisit };

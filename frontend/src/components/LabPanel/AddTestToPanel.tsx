@@ -1,4 +1,3 @@
-// import SearchTest from "./SearchTest";
 import type { CreateLabPanelParams, labTest } from "../types.js";
 import { fetchLabTestTypePaginated } from "../utils.js";
 import { useEffect } from "react";
@@ -93,12 +92,7 @@ const AddTestToPanel: React.FC<TestsList> = ({
             {addError && (
               <p className="mb-2 text-sm text-red-600">{addError}</p>
             )}
-            {/* <SearchTest
-                searchInput={searchInput}
-                setSearchInput={setSearchInput}
-                allTests={allTests}
-                setVisibleTests={setVisibleTests}
-                /> */}
+
             <div className="flex-1 overflow-y-auto mt-4 border border-black">
               <Pagination
                 TotalNumberOfPaginatedItems={TotalNumberOfTests}
