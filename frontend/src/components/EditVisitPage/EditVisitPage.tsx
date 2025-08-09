@@ -11,16 +11,10 @@ import PatientInfo from "./PatientInfo.js";
 import type { PaginationState } from "@tanstack/react-table";
 import { labTestResultApiURL } from "../data.js";
 import TestResultsList from "./TestResultsList.js";
-import {
-  fetchLabPanelWithTests,
-  fetchLabTestResultsAndPanelsPaginated,
-  fetchVisit,
-  updateInvoice,
-} from "../utils.js";
+import { fetchLabTestResultsAndPanelsPaginated, fetchVisit } from "../utils.js";
 import Pagination from "../Pagination.js";
 import AddTestResultTable from "./AddTestResultTable.js";
 import LabPanelsTable from "./LabPanelsTable.js";
-// import LabPanelsTable from "./LabPanelsTable.js";
 
 const EditVisitPage: React.FC = () => {
   const location = useLocation();
@@ -64,15 +58,12 @@ const EditVisitPage: React.FC = () => {
           pagination.pageIndex + 1,
           pagination.pageSize
         );
-        console.log("Standalone tests ", res.list_of_standalone_test_results);
         setStandAloneTestResults(res.list_of_standalone_test_results);
         setPanelResults(res.list_of_panel_results);
         setTotalPages(res.total_pages);
         setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
         const res1 = await fetchVisit(visit_id);
-        console.log("res1: ", res1);
         setVisitDate(res1.visit_date);
-        console.log(res1.visit_date);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -99,20 +90,6 @@ const EditVisitPage: React.FC = () => {
           });
         })
       );
-      const fetchedPanels = await Promise.all(
-        panelResults.map((p) => fetchLabPanelWithTests(p.lab_panel_id))
-      );
-      const fetchedTestTypes = standAloneTestResults.map(
-        (test) => test.lab_test_type
-      );
-      const newInvoiceData: updateInvoiceData = {
-        ...updatedInvoiceData,
-        list_of_tests: fetchedTestTypes,
-        list_of_lab_panels: fetchedPanels,
-      };
-      setUpdatedInvoiceData(newInvoiceData);
-      console.log(updatedInvoiceData);
-      await updateInvoice(visit_id!, newInvoiceData);
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
@@ -168,6 +145,8 @@ const EditVisitPage: React.FC = () => {
         />
       )}
       <AddTestResultTable
+        updatedInvoiceData={updatedInvoiceData}
+        setUpdatedInvoiceData={setUpdatedInvoiceData}
         showAdd={showAdd}
         addError={addError}
         visit_id={visit_id}
@@ -180,10 +159,17 @@ const EditVisitPage: React.FC = () => {
         setShowTestsTable={setShowTestsTable}
         error={error}
         setError={setError}
+
         //showTestsTable={showTestsTable}
         // setShowPanelsTable={setShowPanelsTable}
       />
       <LabPanelsTable
+        setPanelResults={setPanelResults}
+        pagination={pagination}
+        setStandAloneTestResults={setStandAloneTestResults}
+        setTotalNumberOfTests={setTotalNumberOfTests}
+        setUpdatedInvoiceData={setUpdatedInvoiceData}
+        updatedInvoiceData={updatedInvoiceData}
         showPanelsTable={showPanelsTable}
         setShowPanelsTable={setShowPanelsTable}
         visit_id={visit_id}
