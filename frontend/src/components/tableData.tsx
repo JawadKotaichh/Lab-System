@@ -8,6 +8,7 @@ import type {
   patientInfo,
   patientPanelResult,
   patientTestResult,
+  updateInvoiceData,
   visitData,
 } from "./types";
 import {
@@ -276,6 +277,10 @@ export function getPatientsColumns(
 }
 
 export function getLabTestColumns(
+  updatedInvoiceData: updateInvoiceData,
+  setUpdatedInvoiceData: React.Dispatch<
+    React.SetStateAction<updateInvoiceData>
+  >,
   navigate: NavigateFunction,
   showFilters: Record<string, boolean>,
   toggleFilter: (id: string) => void,
@@ -455,6 +460,8 @@ export function getLabTestColumns(
                     );
                   }
                   handleAddLabTest({
+                    updatedInvoiceData,
+                    setUpdatedInvoiceData,
                     pagination,
                     setPagination,
                     visit_id,
