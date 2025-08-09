@@ -551,7 +551,9 @@ async def update_lab_test_result(
 
 @router.delete("/delete_panels/{visit_id}/{lab_panel_id}", response_class=Response)
 async def delete_lab_panel_result(visit_id: str, lab_panel_id: str):
-    lab_panel_to_be_deleted = await DBLab_panel.find_one(DBLab_panel.id == lab_panel_id)
+    lab_panel_to_be_deleted = await DBLab_panel.find_one(
+        DBLab_panel.id == PydanticObjectId(lab_panel_id)
+    )
     if not lab_panel_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
