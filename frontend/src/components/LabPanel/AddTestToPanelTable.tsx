@@ -8,12 +8,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type {
-  labTest,
-  patientPanelResult,
-  patientTestResult,
-  updateInvoiceData,
-} from "../types";
+import type { CreateLabPanelParams, labTest } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { getLabTestColumns } from "../tableData";
@@ -27,44 +22,27 @@ import {
 import GenericTable from "../react-table/GeneralTable";
 
 interface TestsList {
-  updatedInvoiceData: updateInvoiceData;
-  setUpdatedInvoiceData: React.Dispatch<
-    React.SetStateAction<updateInvoiceData>
-  >;
   addError: string;
-  showTestsTable: boolean;
-  error: string;
-  setError: React.Dispatch<React.SetStateAction<string>>;
-  showAdd: boolean;
-  visit_id: string;
-  panelResults: patientPanelResult[];
-  setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
-  standAloneTestResults: patientTestResult[];
-  setStandAloneTestResults: React.Dispatch<
-    React.SetStateAction<patientTestResult[]>
-  >;
+  data: CreateLabPanelParams;
+  setData: React.Dispatch<React.SetStateAction<CreateLabPanelParams>>;
   setAddError: React.Dispatch<React.SetStateAction<string>>;
-  setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
-  setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>;
+  showAddForLabPanels: boolean;
+  setShowAddForLabPanels: React.Dispatch<React.SetStateAction<boolean>>;
+  setError: React.Dispatch<React.SetStateAction<string>>;
+  error: string;
 }
 
-const AddTestResultTable: React.FC<TestsList> = ({
-  addError,
-  visit_id,
-  showTestsTable,
-  standAloneTestResults,
-  setPanelResults,
-  setStandAloneTestResults,
-  panelResults,
-  setAddError,
-  setShowTestsTable,
-  showAdd,
+const AddTestToPanelTable: React.FC<TestsList> = ({
+  data,
   error,
+  addError,
+  setData,
+  setAddError,
+  setShowAddForLabPanels,
+  showAddForLabPanels,
   setError,
-  updatedInvoiceData,
-  setUpdatedInvoiceData,
 }: TestsList) => {
-  const [data, setData] = useState<labTest[]>([]);
+  const [labTests, setLabTests] = useState<labTest[]>([]);
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -93,37 +71,16 @@ const AddTestResultTable: React.FC<TestsList> = ({
     showFilters,
     toggleFilter,
     setError,
-    showAdd,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    setAddError,
-    pagination,
-    setPagination,
-    visit_id,
-    panelResults,
-    setPanelResults,
-    standAloneTestResults,
-    setStandAloneTestResults,
-    updatedInvoiceData,
-    setUpdatedInvoiceData,
-    showTestsTable,
-    setShowTestsTable,
-    setTotalPages,
-    setTotalNumberOfPaginatedItems
+    false,
+    showAddForLabPanels,
+    setShowAddForLabPanels,
+    data,
+    setData,
+    setAddError
   );
-  ///neeed adjusments
-  //   const labPanelsCols = getLabTestColumns(
-  //     navigate,
-  //     showFilters,
-  //     toggleFilter,
-  //     setError,
-  //     false
-  //   );
 
   const labTestsTable = useReactTable({
-    data,
+    data: labTests,
     columns: labTestCols,
     pageCount: totalPages,
     state: { pagination, columnFilters, sorting },
@@ -137,22 +94,6 @@ const AddTestResultTable: React.FC<TestsList> = ({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-
-  //   const labPanelsTable = useReactTable({
-  //     data,
-  //     columns: labPanelsCols,
-  //     pageCount: totalPages,
-  //     state: { pagination, columnFilters, sorting },
-  //     manualPagination: true,
-  //     manualFiltering: true,
-  //     manualSorting: false,
-  //     onSortingChange: setSorting,
-  //     onPaginationChange: setPagination,
-  //     onColumnFiltersChange: setColumnFilters,
-  //     getCoreRowModel: getCoreRowModel(),
-  //     getSortedRowModel: getSortedRowModel(),
-  //     getPaginationRowModel: getPaginationRowModel(),
-  //   });
 
   useEffect(() => {
     const loadPage = async () => {
@@ -171,7 +112,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
           pagination.pageSize,
           filters
         );
-        setData(res.lab_tests);
+        setLabTests(res.lab_tests);
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfTests);
       } catch (err) {
@@ -194,19 +135,19 @@ const AddTestResultTable: React.FC<TestsList> = ({
 
   return (
     <>
-      {showTestsTable && (
+      {showAddForLabPanels && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div className="bg-white p-6 rounded shadow-lg w-fit max-h-[80vh] overflow-y-auto">
             <div className="p-8 bg-white">
               {error && <div className="text-red-600">{error}</div>}
               {addError && <div className="text-red-600">{addError}</div>}
 
-              {showTestsTable && (
+              {showAddForLabPanels && (
                 <>
-                  <h1 className={pageListTitle}>Add Lab Test Result</h1>
+                  <h1 className={pageListTitle}>Add Lab Test</h1>
                   <button
                     className={tableDeleteButton + " mb-2"}
-                    onClick={() => setShowTestsTable(false)}
+                    onClick={() => setShowAddForLabPanels(false)}
                   >
                     Close
                   </button>
@@ -228,15 +169,6 @@ const AddTestResultTable: React.FC<TestsList> = ({
                   />
                 </>
               )}
-              {/* {showPanelsTable && (
-        <GenericTable
-          table={labPanelsTable}
-          loading={loading}
-          tableHeadStyle={tableHead}
-          cellStyle={tableItem}
-          noDataMessage="No lab tests found"
-        />
-      )} */}
             </div>
           </div>
         </div>
@@ -245,4 +177,4 @@ const AddTestResultTable: React.FC<TestsList> = ({
   );
 };
 
-export default AddTestResultTable;
+export default AddTestToPanelTable;
