@@ -23,8 +23,6 @@ async def get_Lab_test_type_with_page_size(
     name: str | None = Query(None),
     price: int | None = Query(None),
     unit: str | None = Query(None),
-    lower_bound: str | None = Query(None),
-    upper_bound: str | None = Query(None),
     nssf_id: int | None = Query(None),
 ):
     offset = (page_number - 1) * page_size
@@ -54,11 +52,6 @@ async def get_Lab_test_type_with_page_size(
         }
         mongo_filter = {"$and": [mongo_filter, expr]}
 
-    if lower_bound:
-        mongo_filter["lower_bound"] = {"$regex": lower_bound, "$options": "i"}
-    if upper_bound:
-        mongo_filter["upper_bound"] = {"$regex": upper_bound, "$options": "i"}
-
     total_number_of_lab_test_type = await DBLab_test_type.find(mongo_filter).count()
     cursor = DBLab_test_type.find(mongo_filter).skip(offset).limit(page_size)
     lab_tests: List[Lab_test_type] = []
@@ -74,6 +67,7 @@ async def get_Lab_test_type_with_page_size(
             )
 
         lab_test = Lab_test_type(
+            normal_value_list=test.normal_value_list,
             lab_test_id=str(test.id),
             lab_test_category_name=db_category.lab_test_category_name,
             nssf_id=test.nssf_id,
@@ -81,8 +75,6 @@ async def get_Lab_test_type_with_page_size(
             name=test.name,
             unit=test.unit,
             price=test.price,
-            lower_bound=test.lower_bound,
-            upper_bound=test.upper_bound,
         )
         lab_tests.append(lab_test)
 
@@ -109,14 +101,13 @@ async def getAllTestTypes() -> List[Lab_test_type]:
                 detail=f"Lab Test Type {test.lab_test_category_id} not found",
             )
         lab_test = Lab_test_type(
+            normal_value_list=test.normal_value_list,
             lab_test_category_name=db_category.lab_test_category_name,
             nssf_id=test.nssf_id,
             lab_test_category_id=str(test.lab_test_category_id),
             name=test.name,
             unit=test.unit,
             price=test.price,
-            lower_bound=test.lower_bound,
-            upper_bound=test.upper_bound,
         )
         lab_tests.append(lab_test)
     return lab_tests
@@ -142,8 +133,7 @@ async def getLabTestType(lab_test_type_id: str):
         lab_test_category_id=str(db_lab_test.lab_test_category_id),
         name=db_lab_test.name,
         price=db_lab_test.price,
-        upper_bound=db_lab_test.upper_bound,
-        lower_bound=db_lab_test.lower_bound,
+        normal_value_list=db_lab_test.normal_value_list,
     )
     return lab_test
 
@@ -168,8 +158,7 @@ async def create_lab_test_type(data: Lab_test_type):
         name=data.name,
         unit=data.unit,
         price=data.price,
-        lower_bound=data.lower_bound,
-        upper_bound=data.upper_bound,
+        normal_value_list=data.normal_value_list,
     )
     new_Lab_test_type = await db_Lab_test_type.insert()
     return new_Lab_test_type
@@ -213,10 +202,8 @@ async def update_lab_test_type(
         existing_Lab_test_type.unit = update_data.unit
     if update_data.price is not None:
         existing_Lab_test_type.price = update_data.price
-    if update_data.lower_bound is not None:
-        existing_Lab_test_type.lower_bound = update_data.lower_bound
-    if update_data.upper_bound is not None:
-        existing_Lab_test_type.upper_bound = update_data.upper_bound
+    if update_data.normal_value_list is not None:
+        existing_Lab_test_type.normal_value_list = update_data.normal_value_list
     if update_data.lab_test_category_id is not None:
         existing_Lab_test_type.lab_test_category_id = update_data.lab_test_category_id
 
