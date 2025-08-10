@@ -1,3 +1,64 @@
+export type upper_bound_only = {
+  description?: string;
+  upper_bound_value: number;
+};
+
+export type lower_bound_only = {
+  description?: string;
+  lower_bound_value: number;
+};
+export type upper_and_lower_bound_only = {
+  description?: string;
+  lower_bound_value: number;
+  upper_bound_value: number;
+};
+export type positive_or_negative = {
+  description?: string;
+  normal_value: string;
+};
+
+export type normal_value_by_gender = {
+  description?: string;
+  male_normal_value_type:
+    | upper_and_lower_bound_only
+    | positive_or_negative
+    | upper_bound_only
+    | lower_bound_only;
+  female_normal_value_type:
+    | upper_and_lower_bound_only
+    | positive_or_negative
+    | upper_bound_only
+    | lower_bound_only;
+};
+
+export type NV =
+  | upper_and_lower_bound_only
+  | upper_bound_only
+  | lower_bound_only
+  | positive_or_negative
+  | normal_value_by_gender;
+
+export type NVPartial =
+  | Partial<upper_and_lower_bound_only>
+  | Partial<upper_bound_only>
+  | Partial<lower_bound_only>
+  | Partial<positive_or_negative>
+  | Partial<normal_value_by_gender>;
+
+export type NVType =
+  | "upper_and_lower_bound_only"
+  | "upper_bound_only"
+  | "lower_bound_only"
+  | "positive_or_negative"
+  | "normal_value_by_gender";
+
+export type GenderNV =
+  | upper_and_lower_bound_only
+  | upper_bound_only
+  | lower_bound_only
+  | positive_or_negative;
+export type GenderType = Exclude<NVType, "normal_value_by_gender">;
+
 export type patientTestResult = {
   lab_test_result_id: string;
   lab_test_type: labTest;
@@ -108,8 +169,13 @@ export type labTest = {
   nssf_id: number;
   unit: string;
   price: number;
-  upper_bound: string;
-  lower_bound: string;
+  normal_value_list: (
+    | upper_and_lower_bound_only
+    | upper_bound_only
+    | lower_bound_only
+    | positive_or_negative
+    | normal_value_by_gender
+  )[];
 };
 export type labPanel = {
   nssf_id?: number;
@@ -124,8 +190,13 @@ export type CreateLabTestParams = {
   nssf_id: number;
   unit: string;
   price: number;
-  upper_bound: string;
-  lower_bound: string;
+  normal_value_list: (
+    | upper_and_lower_bound_only
+    | upper_bound_only
+    | lower_bound_only
+    | positive_or_negative
+    | normal_value_by_gender
+  )[];
 };
 export type CreateLabPanelParams = {
   nssf_id: number;
@@ -194,8 +265,12 @@ export interface CreateLabTestType {
   name: string;
   unit: string;
   price: number;
-  lower_bound: string;
-  upper_bound: string;
+  normal_value_list:
+    | upper_and_lower_bound_only
+    | upper_bound_only
+    | lower_bound_only
+    | positive_or_negative
+    | normal_value_by_gender;
 }
 
 export interface insuranceCompanyParams {

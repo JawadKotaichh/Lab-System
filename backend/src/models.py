@@ -8,6 +8,14 @@ from beanie import Document, PydanticObjectId
 
 from typing import Union
 
+from .schemas.schema_Lab_Test_Type import (
+    NormalValueByGender,
+    PositiveOrNegative,
+    UpperAndLowerBound,
+    UpperBoundOnly,
+    LowerBoundOnly,
+)
+
 from .schemas.schema_Lab_Panel import LabPanelResponse
 
 
@@ -36,8 +44,17 @@ class lab_test_type(Document):
     name: str = Field(...)
     unit: str = Field(...)
     price: int = Field(...)
-    lower_bound: Union[str, float] = Field(...)
-    upper_bound: Union[str, float] = Field(...)
+    normal_value_list: List[
+        Union[
+            NormalValueByGender,
+            UpperBoundOnly,
+            LowerBoundOnly,
+            UpperAndLowerBound,
+            PositiveOrNegative,
+        ]
+    ]
+    # lower_bound: Union[str, float] = Field(...)
+    # upper_bound: Union[str, float] = Field(...)
 
     class Settings:
         name = "lab_test_type"
