@@ -277,8 +277,7 @@ async def get_result_list(
             nssf_id=db_lab_test_type.nssf_id,
             lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
             unit=db_lab_test_type.unit,
-            lower_bound=db_lab_test_type.lower_bound,
-            upper_bound=db_lab_test_type.upper_bound,
+            normal_value_list=db_lab_test_type.normal_value_list,
             price=db_lab_test_type.price,
             lab_test_category_name=lab_test_type_category.lab_test_category_name,
         )
@@ -402,8 +401,7 @@ async def get_Lab_test_results_with_page_size(
             nssf_id=db_lab_test_type.nssf_id,
             lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
             unit=db_lab_test_type.unit,
-            lower_bound=db_lab_test_type.lower_bound,
-            upper_bound=db_lab_test_type.upper_bound,
+            normal_value_list=db_lab_test_type.normal_value_list,
             price=db_lab_test_type.price,
             lab_test_category_name=lab_test_type_category.lab_test_category_name,
         )
@@ -479,31 +477,6 @@ async def set_result(lab_test_result_id: str, result: str):
         DBLab_test_result.id == PydanticObjectId(lab_test_result_id)
     ).update({"$set": {"result": result}})
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.get("/all/{visit_id}", response_model=List[Dict[str, Any]])
-async def get_list_of_lab_test(visit_id: str):
-    all_items = DBLab_test_result.find(
-        DBLab_test_result.visit_id == PydanticObjectId(visit_id)
-    )
-    output: List[Dict[str, Any]] = []
-    async for item in all_items:
-        d: Dict[str, Any] = {}
-        lab_test = await DBLab_test_type.find_one(
-            DBLab_test_type.id == PydanticObjectId(item.lab_test_type_id)
-        )
-        if lab_test is not None:
-            d["lab_test_type_id"] = str(item.lab_test_type_id)
-            d["lab_test_category_id"] = str(lab_test.lab_test_category_id)
-            d["name"] = lab_test.name
-            d["result"] = item.result
-            d["unit"] = lab_test.unit
-            d["price"] = lab_test.price
-            d["upper_bound"] = lab_test.upper_bound
-            d["lower_bound"] = lab_test.lower_bound
-            d["lab_test_result_id"] = str(item.id)
-        output.append(d)
-    return output
 
 
 @router.get("/{lab_test_result_id}", response_model=DBLab_test_result)
