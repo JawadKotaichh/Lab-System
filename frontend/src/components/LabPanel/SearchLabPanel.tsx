@@ -1,76 +1,103 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { type labPanel, type labPanelFilter } from "../types";
+import React, { useEffect, useState } from "react";
+import type { labPanel, labPanelFilter } from "../types";
 import { fetchLabPanelsPaginated } from "../utils";
-import { useDebounce } from "../react-table/Debounce";
 
-interface SearchLabPanelParams {
-  setAvailableLabPanels: Dispatch<SetStateAction<labPanel[]>>;
-  currentPage: number;
-  pageSize: number;
-  setLoading: Dispatch<SetStateAction<boolean>>;
-  setTotalPages: Dispatch<SetStateAction<number>>;
-  setTotalNumberOfLabPanels: Dispatch<SetStateAction<number>>;
-  setError: Dispatch<SetStateAction<string>>;
+interface SearchLabPanelProps {
   searchInput: string;
-  setSearchInput: Dispatch<SetStateAction<string>>;
+  setSearchInput: (value: string) => void;
+  setAvailableLabPanels: React.Dispatch<React.SetStateAction<labPanel[]>>;
+  setError: (error: string) => void;
+  setLoading: (loading: boolean) => void;
+  currentPage: number;
+  setTotalPages: (pages: number) => void;
+  setTotalNumberOfLabPanels: (count: number) => void;
+  pageSize: number;
 }
 
-const SearchLabPanel = ({
-  setAvailableLabPanels,
-  setLoading,
-  setTotalPages,
-  setTotalNumberOfLabPanels,
-  currentPage,
-  setError,
-  pageSize,
+const SearchLabPanel: React.FC<SearchLabPanelProps> = ({
   searchInput,
   setSearchInput,
-}: SearchLabPanelParams) => {
-  const [filters, setFilters] = useState<labPanelFilter>({});
+  setAvailableLabPanels,
+  setError,
+  setLoading,
+  currentPage,
+  setTotalPages,
+  setTotalNumberOfLabPanels,
+  pageSize,
+}) => {
+  const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
 
-  const debouncedFilters = useDebounce(filters, 500);
-
+  // Debounce search input (500ms delay)
   useEffect(() => {
-    console.log("I entered effect");
-    console.log("searchInput: ", searchInput);
-    console.log("debouncedFilters: ", debouncedFilters);
-    if (!debouncedFilters.panel_name) return;
+    const timerId = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 500);
 
-    setLoading(true);
-    fetchLabPanelsPaginated(currentPage, pageSize, debouncedFilters)
-      .then((data) => {
-        console.log("Fetched Data: ", data.lab_panels);
-        console.log("");
-        setAvailableLabPanels(data.lab_panels);
-        setTotalPages(data.total_pages);
-        setTotalNumberOfLabPanels(data.TotalNumberOfPanels);
-      })
-      .catch((err) => setError(err.message ?? err.toString()))
-      .finally(() => setLoading(false));
+    return () => clearTimeout(timerId);
+  }, [searchInput]);
+
+  // Fetch search results when debounced value changes
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!debouncedSearch.trim()) return;
+
+      try {
+        setLoading(true);
+        const filters: labPanelFilter = {};
+        filters.panel_name = debouncedSearch;
+        const response = await fetchLabPanelsPaginated(
+          currentPage,
+          pageSize,
+          filters
+        );
+
+        setAvailableLabPanels(response.lab_panels);
+        setTotalPages(response.total_pages);
+        setTotalNumberOfLabPanels(response.TotalNumberOfPanels);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSearchResults();
   }, [
+    debouncedSearch,
     currentPage,
     pageSize,
-    setLoading,
     setAvailableLabPanels,
+    setError,
+    setLoading,
     setTotalPages,
     setTotalNumberOfLabPanels,
-    setError,
-    debouncedFilters,
-    searchInput,
   ]);
 
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setDebouncedSearch("");
+  };
+
   return (
-    <div>
-      <input
-        placeholder="Search Lab Panel..."
-        className="mb-10 text-xl rounded-s-m grow border border-gray-400 p-2 w-full h-15"
-        onChange={(e) => {
-          setSearchInput(e.target.value);
-          console.log("I entered");
-          setFilters({ panel_name: e.target.value });
-        }}
-        value={searchInput}
-      />
+    <div className="relative mb-4">
+      <div className="flex items-center">
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search by panel name..."
+          className="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {searchInput && (
+          <button
+            onClick={handleClearSearch}
+            className="absolute right-3 text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      <div className="absolute left-3 top-2.5 text-gray-400">🔍</div>
     </div>
   );
 };

@@ -94,8 +94,7 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
                 name=test.name,
                 unit=test.unit,
                 price=test.price,
-                lower_bound=test.lower_bound,
-                upper_bound=test.upper_bound,
+                normal_value_list=test.normal_value_list,
             )
             list_of_test_types.append(lab_test)
         existing_invoice.list_of_tests = list_of_test_types
@@ -164,8 +163,7 @@ async def get_invoice(visit_id: str):
             name=test.name,
             unit=test.unit,
             price=test.price,
-            lower_bound=test.lower_bound,
-            upper_bound=test.upper_bound,
+            normal_value_list=test.normal_value_list,
         )
         list_of_lab_test.append(lab_test)
     currentInvoice = Invoice(

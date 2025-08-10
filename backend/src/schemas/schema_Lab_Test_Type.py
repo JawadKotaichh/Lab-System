@@ -1,6 +1,37 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import ConfigDict, BaseModel, Field
 from typing import Union
+
+
+class UpperBoundOnly(BaseModel):
+    description: Optional[str]
+    upper_bound_value: float
+
+
+class LowerBoundOnly(BaseModel):
+    description: Optional[str]
+    lower_bound_value: float
+
+
+class UpperAndLowerBound(BaseModel):
+    description: Optional[str]
+    upper_bound_value: float
+    lower_bound_value: float
+
+
+class PositiveOrNegative(BaseModel):
+    description: Optional[str]
+    normal_value: str
+
+
+class NormalValueByGender(BaseModel):
+    description: Optional[str]
+    male_normal_value_type: Union[
+        UpperAndLowerBound, UpperBoundOnly, LowerBoundOnly, PositiveOrNegative
+    ]
+    female_normal_value_type: Union[
+        UpperAndLowerBound, UpperBoundOnly, LowerBoundOnly, PositiveOrNegative
+    ]
 
 
 class Lab_test_type(BaseModel):
@@ -11,8 +42,15 @@ class Lab_test_type(BaseModel):
     name: str = Field(...)
     unit: str = Field(...)
     price: int = Field(...)
-    lower_bound: Union[str, float] = Field(...)
-    upper_bound: Union[str, float] = Field(...)
+    normal_value_list: List[
+        Union[
+            NormalValueByGender,
+            UpperBoundOnly,
+            LowerBoundOnly,
+            UpperAndLowerBound,
+            PositiveOrNegative,
+        ]
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -24,8 +62,6 @@ class Lab_test_type(BaseModel):
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,
-                "lower_bound": "70",
-                "upper_bound": "110",
             }
         },
     )
@@ -38,8 +74,17 @@ class update_Lab_test_type_model(BaseModel):
     name: Optional[str] = None
     unit: Optional[str] = None
     price: Optional[int] = None
-    lower_bound: Optional[str] = None
-    upper_bound: Optional[str] = None
+    normal_value_list: Optional[
+        List[
+            Union[
+                NormalValueByGender,
+                UpperBoundOnly,
+                LowerBoundOnly,
+                UpperAndLowerBound,
+                PositiveOrNegative,
+            ]
+        ]
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -51,8 +96,6 @@ class update_Lab_test_type_model(BaseModel):
                 "name": "FBS",
                 "unit": "mg/dL",
                 "price": 10,
-                "lower_bound": "70",
-                "upper_bound": "110",
             }
         },
     )

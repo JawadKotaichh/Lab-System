@@ -89,13 +89,16 @@ const AddTestResultTable: React.FC<TestsList> = ({
   };
 
   const labTestCols = getLabTestColumns(
-    updatedInvoiceData,
-    setUpdatedInvoiceData,
     navigate,
     showFilters,
     toggleFilter,
     setError,
     showAdd,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    setAddError,
     pagination,
     setPagination,
     visit_id,
@@ -103,7 +106,8 @@ const AddTestResultTable: React.FC<TestsList> = ({
     setPanelResults,
     standAloneTestResults,
     setStandAloneTestResults,
-    setAddError,
+    updatedInvoiceData,
+    setUpdatedInvoiceData,
     showTestsTable,
     setShowTestsTable,
     setTotalPages,

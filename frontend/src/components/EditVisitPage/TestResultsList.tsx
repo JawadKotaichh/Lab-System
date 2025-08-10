@@ -2,6 +2,7 @@ import type { patientPanelResult, patientTestResult } from "../types.js";
 import api from "../../api.js";
 import { labTestResultApiURL } from "../data.js";
 import React from "react";
+import renderNormalValue from "../renderNormalValue.js";
 
 interface ShowResultsListParams {
   panelResults: patientPanelResult[];
@@ -78,8 +79,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
           <th className="h-8 px-0 py-2">Result</th>
           <th className="h-8 px-0 py-2">Unit</th>
           <th className="h-8 px-0 py-2">Price</th>
-          <th className="h-8 px-0 py-2">Lower Bound</th>
-          <th className="h-8 px-0 py-2">Upper Bound</th>
+          <th className="h-8 px-0 py-2">Normal Value</th>
           <th className="h-8 px-0 py-2">Remove</th>
         </tr>
       </thead>
@@ -120,10 +120,13 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 ${r.lab_test_type.price.toFixed(2)}
               </td>
               <td className="border rounded-b-sm  px-4 py-2">
-                {r.lab_test_type.lower_bound}
-              </td>
-              <td className="border rounded-b-sm  px-4 py-2">
-                {r.lab_test_type.upper_bound}
+                {r.lab_test_type.normal_value_list?.length ? (
+                  r.lab_test_type.normal_value_list.map((nv, i) => (
+                    <div key={i}>{renderNormalValue(nv)}</div>
+                  ))
+                ) : (
+                  <span className="text-gray-400">—</span>
+                )}
               </td>
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
@@ -139,7 +142,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
         {panelResults.map((panel) => (
           <>
             <tr>
-              <td className="border rounded-b-sm px-4 py-2" colSpan={7}>
+              <td className="border rounded-b-sm px-4 py-2" colSpan={6}>
                 {panel.lab_panel_name}
               </td>
               <td className="border rounded-b-sm  px-4 py-2">
@@ -183,10 +186,13 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   ${panel.lab_panel_price.toFixed(2)}
                 </td>
                 <td className="border rounded-b-sm  px-4 py-2">
-                  {r.lab_test_type.lower_bound}
-                </td>
-                <td className="border rounded-b-sm  px-4 py-2">
-                  {r.lab_test_type.upper_bound}
+                  {r.lab_test_type.normal_value_list?.length ? (
+                    r.lab_test_type.normal_value_list.map((nv, i) => (
+                      <div key={i}>{renderNormalValue(nv)}</div>
+                    ))
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </td>
               </tr>
             ))}

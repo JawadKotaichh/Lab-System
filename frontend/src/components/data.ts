@@ -59,14 +59,14 @@ const listOfAttributesPatient = [
 const PatientsApiURL = "/patients/";
 const PatientsMainPageURL = "/patients";
 
-// Lab Test
+// Lab Test 
 export const listOfAttributesLabTest = [
   {
     subItem: "Nssf ID",
     attributeName: "nssf_id",
     typeOfInput: "number",
     icon: "id",
-    placeHolder: "Enter nssf ID",
+    placeHolder: "Enter NSSF ID",
   },
   {
     subItem: "Category",
@@ -90,27 +90,14 @@ export const listOfAttributesLabTest = [
     placeHolder: "Enter unit",
   },
   {
-    subItem: "Price",
+    subItem: "L",
     attributeName: "price",
     typeOfInput: "number",
     icon: "DollarSign",
     placeHolder: "Enter price",
   },
-  {
-    subItem: "Lower Bound",
-    attributeName: "lower_bound",
-    typeOfInput: "number",
-    icon: "lowerbound",
-    placeHolder: "Enter lower bound",
-  },
-  {
-    subItem: "Upper Bound",
-    attributeName: "upper_bound",
-    typeOfInput: "number",
-    icon: "upperbound",
-    placeHolder: "Enter upper bound",
-  },
-];
+] as const;
+
 const labTestApiURL = "/lab_test_type/";
 const labTestMainPageURL = "/lab-tests";
 const labTestEditPageURL="/edit-lab-test/";

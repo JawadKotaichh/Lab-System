@@ -18,6 +18,7 @@ import {
 } from "../data";
 import Pagination from "../Pagination";
 import SearchLabPanel from "./SearchLabPanel";
+import renderNormalValue from "../renderNormalValue";
 
 const LabPanelsList = () => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
@@ -133,8 +134,7 @@ const LabPanelsList = () => {
                     <th className={tableItemPanel}>Category</th>
                     <th className={tableItemPanel}>Unit</th>
                     <th className={tableItemPanel}>Price</th>
-                    <th className={tableItemPanel}>Lower Bound</th>
-                    <th className={tableItemPanel}>Upper Bound</th>
+                    <th className={tableItemPanel}>Normal Value</th>
                   </tr>
 
                   {lp.lab_tests.map((test) => {
@@ -149,8 +149,15 @@ const LabPanelsList = () => {
                             </td>
                             <td className={tableItem}>{test.unit}</td>
                             <td className={tableItem}>{test.price}</td>
-                            <td className={tableItem}>{test.lower_bound}</td>
-                            <td className={tableItem}>{test.upper_bound}</td>
+                            <td className={tableItem}>
+                              {test.normal_value_list?.length ? (
+                                test.normal_value_list.map((nv, i) => (
+                                  <div key={i}>{renderNormalValue(nv)}</div>
+                                ))
+                              ) : (
+                                <span className="text-gray-400">—</span>
+                              )}
+                            </td>
                           </React.Fragment>
                         </tr>
                       </>

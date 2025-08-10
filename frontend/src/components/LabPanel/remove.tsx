@@ -2,6 +2,7 @@ import type { CreateLabPanelParams, labTest } from "../types.js";
 import { fetchLabTestTypePaginated } from "../utils.js";
 import { useEffect } from "react";
 import Pagination from "../Pagination.js";
+import renderNormalValue from "../renderNormalValue.js";
 
 interface TestsList {
   labTestCategoryById: Record<string, string>;
@@ -110,8 +111,7 @@ const AddTestToPanel: React.FC<TestsList> = ({
                     <th className="border px-4 py-2">Test</th>
                     <th className="border px-4 py-2">Unit</th>
                     <th className="border px-4 py-2">Price</th>
-                    <th className="border px-4 py-2">Lower Bound</th>
-                    <th className="border px-4 py-2">Upper Bound</th>
+                    <th className="border px-4 py-2">Normal Value</th>
                     <th className="border px-4 py-2">Add</th>
                   </tr>
                 </thead>{" "}
@@ -134,10 +134,13 @@ const AddTestToPanel: React.FC<TestsList> = ({
                         ${test.price.toFixed(2)}
                       </td>
                       <td className="border rounded-b-sm  px-4 py-2">
-                        {test.lower_bound}
-                      </td>
-                      <td className="border rounded-b-sm  px-4 py-2">
-                        {test.upper_bound}
+                        {test.normal_value_list?.length ? (
+                          test.normal_value_list.map((nv, i) => (
+                            <div key={i}>{renderNormalValue(nv)}</div>
+                          ))
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="border rounded-b-sm  px-4 py-2">
                         <button
