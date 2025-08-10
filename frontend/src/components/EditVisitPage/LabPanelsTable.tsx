@@ -24,6 +24,7 @@ import SearchLabPanel from "../LabPanel/SearchLabPanel";
 import api from "../../api";
 import { labTestResultApiURL } from "../data";
 import type { PaginationState } from "@tanstack/react-table";
+import renderNormalValue from "../renderNormalValue";
 
 interface ErrorResponse {
   detail: string;
@@ -192,8 +193,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
                               <th className={tableItemPanel}>Category</th>
                               <th className={tableItemPanel}>Unit</th>
                               <th className={tableItemPanel}>Price</th>
-                              <th className={tableItemPanel}>Lower Bound</th>
-                              <th className={tableItemPanel}>Upper Bound</th>
+                              <th className={tableItemPanel}>Normal Value</th>
                             </tr>
 
                             {lp.lab_tests.map((test) => {
@@ -213,10 +213,19 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
                                         {test.price}
                                       </td>
                                       <td className={tableItem}>
-                                        {test.lower_bound}
-                                      </td>
-                                      <td className={tableItem}>
-                                        {test.upper_bound}
+                                        {test.normal_value_list?.length ? (
+                                          test.normal_value_list.map(
+                                            (nv, i) => (
+                                              <div key={i}>
+                                                {renderNormalValue(nv)}
+                                              </div>
+                                            )
+                                          )
+                                        ) : (
+                                          <span className="text-gray-400">
+                                            —
+                                          </span>
+                                        )}
                                       </td>
                                     </React.Fragment>
                                   </tr>

@@ -97,8 +97,7 @@ async def get_Lab_panel_with_page_size(
                 nssf_id=db_lab_test.nssf_id,
                 lab_test_category_id=str(db_lab_test.lab_test_category_id),
                 unit=db_lab_test.unit,
-                upper_bound=db_lab_test.upper_bound,
-                lower_bound=db_lab_test.lower_bound,
+                normal_value_list=db_lab_test.normal_value_list,
                 price=db_lab_test.price,
                 lab_test_category_name=db_lab_test_category.lab_test_category_name,
             )
@@ -181,8 +180,7 @@ async def getLabPanel(lab_panel_id: str):
             name=db_lab_test.name,
             unit=db_lab_test.unit,
             price=db_lab_test.price,
-            lower_bound=db_lab_test.lower_bound,
-            upper_bound=db_lab_test.upper_bound,
+            normal_value_list=db_lab_test.normal_value_list,
         )
         listOfLabTest.append(lab_test)
     labPanelData = LabPanelResponse(
@@ -262,8 +260,7 @@ async def getLabPanelWithListOfTests(lab_panel_id: str):
             name=db_lab_test.name,
             unit=db_lab_test.unit,
             price=db_lab_test.price,
-            lower_bound=db_lab_test.lower_bound,
-            upper_bound=db_lab_test.upper_bound,
+            normal_value_list=db_lab_test.normal_value_list,
         )
         testsList.append(lab_test)
 
