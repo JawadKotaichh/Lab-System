@@ -28,7 +28,8 @@ import {
   labTestEditPageURL,
 } from "../data";
 import Pagination from "../Pagination";
-import AddTestToPanel from "./AddTestToPanel";
+import renderNormalValue from "../renderNormalValue";
+import AddTestToPanelTable from "./AddTestToPanelTable";
 
 interface EditLabPanelProps {
   title: string;
@@ -38,7 +39,6 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const { lab_panel_id } = useParams();
   const [show, setShow] = useState<boolean>(false);
   const [addError, setAddError] = useState<string>("");
-  const [visibleTests, setVisibleTests] = useState<labTest[]>([]);
   const [state, setState] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -252,8 +252,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
               <th className={tableItemPanel}>Category</th>
               <th className={tableItemPanel}>Unit</th>
               <th className={tableItemPanel}>Price</th>
-              <th className={tableItemPanel}>Lower Bound</th>
-              <th className={tableItemPanel}>Upper Bound</th>
+              <th className={tableItemPanel}>Normal Value</th>
               <th className={tableItemPanel}>Edit</th>
               <th className={tableItemPanel}>Remove</th>
             </tr>
@@ -270,8 +269,15 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
                   </td>
                   <td className={tableItem}>{t.unit}</td>
                   <td className={tableItem}>{t.price}</td>
-                  <td className={tableItem}>{t.lower_bound}</td>
-                  <td className={tableItem}>{t.upper_bound}</td>
+                  <td className={tableItem}>
+                    {t.normal_value_list?.length ? (
+                      t.normal_value_list.map((nv, i) => (
+                        <div key={i}>{renderNormalValue(nv)}</div>
+                      ))
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
                   <td className={tableItem}>
                     <button
                       className={tableHandleButton}
@@ -295,26 +301,15 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         </table>
       )}
 
-      <AddTestToPanel
-        TotalNumberOfTests={totalNumberOfTests}
+      <AddTestToPanelTable
         addError={addError}
         setAddError={setAddError}
-        show={show}
-        visibleTests={visibleTests}
-        setVisibleTests={setVisibleTests}
-        setShow={setShow}
+        showAddForLabPanels={show}
+        setShowAddForLabPanels={setShow}
         data={data}
         setData={setData}
         error={error}
         setError={setError}
-        labTestCategoryById={labTestCategoryById}
-        pageSize={pageSize}
-        setPageSize={setPageSize}
-        totalPages={totalPages}
-        setTotalPages={setTotalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        setTotalNumberOfTests={setTotalNumberOfTests}
       />
 
       <button className={inputFormSave} onClick={handleSave}>

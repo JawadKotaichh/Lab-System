@@ -3,7 +3,7 @@ import api from "../api";
 import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
 import { createVisit, fetchLabTestResultsAndPanelsPaginated, updateInvoice } from "./utils";
-import type { patientInfo, patientPanelResult, patientTestResult, updateInvoiceData } from "./types";
+import type { CreateLabPanelParams, patientInfo, patientPanelResult, patientTestResult, updateInvoiceData } from "./types";
 import type { PaginationState } from "@tanstack/react-table";
 
 interface deleteElement {
@@ -101,10 +101,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     }
   };
   interface addLabTestParams {
-    updatedInvoiceData: updateInvoiceData,
-      setUpdatedInvoiceData: React.Dispatch<
-        React.SetStateAction<updateInvoiceData>
-      >,
+    
     pagination: PaginationState;
     setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
     visit_id: string;
@@ -121,6 +118,10 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     setError: React.Dispatch<React.SetStateAction<string>>;
     setTotalPages: React.Dispatch<React.SetStateAction<number>>;
     setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
+    updatedInvoiceData?: updateInvoiceData,
+      setUpdatedInvoiceData?: React.Dispatch<
+        React.SetStateAction<updateInvoiceData>
+      >,
   }
   export const handleAddLabTest = async ({updatedInvoiceData,setUpdatedInvoiceData,setTotalNumberOfTests,setTotalPages,pagination,setError,lab_test_id,panelResults,setPanelResults,setStandAloneTestResults,standAloneTestResults,setAddError,setShowTestsTable,visit_id,
   }:addLabTestParams) => {
@@ -166,12 +167,15 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
       const fetchedTestTypes = updated.list_of_standalone_test_results.map(
         (test) => test.lab_test_type
       );
-       const newInvoiceData: updateInvoiceData = {
+       
+        if (setUpdatedInvoiceData){
+          const newInvoiceData: updateInvoiceData = {
               ...updatedInvoiceData,
               list_of_tests: fetchedTestTypes,
             };
-       setUpdatedInvoiceData(newInvoiceData);
-      await updateInvoice(visit_id!, newInvoiceData);
+          setUpdatedInvoiceData(newInvoiceData);
+          await updateInvoice(visit_id!, newInvoiceData);
+        }
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
@@ -179,7 +183,34 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
       }
     }
   };
-  export{handleNewVisit};
+
+  interface addLabTestToPanelParams {
+    lab_test_id:string;
+    data:CreateLabPanelParams;
+    setData: React.Dispatch<React.SetStateAction<CreateLabPanelParams>>;
+    setAddError: React.Dispatch<React.SetStateAction<string>>;
+    setShowAddForLabPanels: React.Dispatch<React.SetStateAction<boolean>>;
+    setError: React.Dispatch<React.SetStateAction<string>>;
+  }
+
+export const handleAdd = async ({lab_test_id,data,setAddError,setShowAddForLabPanels,setData}: addLabTestToPanelParams) => {
+    if (data.list_of_test_type_ids.some((r) => r === lab_test_id)) {
+      setAddError("This test already exists.");
+      alert("This test already exists.");
+      setShowAddForLabPanels(false);
+      setAddError("");
+      // setSearchInput("");
+      // setVisibleTests(allTests);
+      return;
+    }
+    setAddError("");
+    setData((prev) => ({
+      ...prev,
+      list_of_test_type_ids: [...prev.list_of_test_type_ids, lab_test_id],
+    }));
+    setShowAddForLabPanels(false);
+  };
+export{handleNewVisit};
 export{handleDeleteLabTest};
 export{handleCreateLabTest};
 export {handleDeleteInsuranceCompany};  

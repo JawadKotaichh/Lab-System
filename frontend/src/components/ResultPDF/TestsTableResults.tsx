@@ -2,6 +2,7 @@ import { Text, View } from "@react-pdf/renderer";
 import type { visitResultData } from "../types";
 import { styles } from "./ResultStyle";
 import groupByCategory from "./groupByCategory";
+import renderNormalValue from "../renderNormalValue";
 
 const TestsTableResults = ({
   list_of_standalone_test_results,
@@ -19,7 +20,7 @@ const TestsTableResults = ({
     list_of_standalone_test_results,
     list_of_panel_results
   );
-  // console.log("Grouped data: ", groupedData);
+  console.log("Grouped data: ", groupedData);
 
   return (
     <View>
@@ -75,10 +76,19 @@ const TestsTableResults = ({
                       </Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text style={styles.tableCellText}>
-                        {t.lab_test_type.lower_bound}{" "}
-                        {t.lab_test_type.upper_bound}
-                      </Text>
+                      {t.lab_test_type?.normal_value_list?.length ? (
+                        <View>
+                          {t.lab_test_type.normal_value_list.map((nv, i) => (
+                            <Text key={i} style={styles.tableCellText}>
+                              {renderNormalValue(nv, { ascii: true })}
+                            </Text>
+                          ))}
+                        </View>
+                      ) : (
+                        <Text style={[styles.tableCellText, { opacity: 0.6 }]}>
+                          —
+                        </Text>
+                      )}
                     </View>
                     <View style={styles.tableCol}>
                       <Text style={styles.tableCellText}>
@@ -143,11 +153,25 @@ const TestsTableResults = ({
                           </Text>
                         </View>
                         <View style={styles.tableCol}>
-                          <Text style={styles.tableCellText}>
-                            {t.lab_test_type.lower_bound}{" "}
-                            {t.lab_test_type.upper_bound}
-                          </Text>
+                          {t.lab_test_type?.normal_value_list?.length ? (
+                            <View>
+                              {t.lab_test_type.normal_value_list.map(
+                                (nv, i) => (
+                                  <Text key={i} style={styles.tableCellText}>
+                                    {renderNormalValue(nv)}
+                                  </Text>
+                                )
+                              )}
+                            </View>
+                          ) : (
+                            <Text
+                              style={[styles.tableCellText, { opacity: 0.6 }]}
+                            >
+                              —
+                            </Text>
+                          )}
                         </View>
+
                         <View style={styles.tableCol}>
                           <Text style={styles.tableCellText}>
                             {t.prev_result}{" "}
