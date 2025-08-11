@@ -65,6 +65,7 @@ const ResultPdf: React.FC<visitResultData> = ({
         <Text style={styles.labTitle}>Lab Results</Text>
       </View>
       <TestsTableResults
+        patientGender={patient.gender}
         visit_date={visit_date}
         report_date={report_date}
         list_of_standalone_test_results={list_of_standalone_test_results}
