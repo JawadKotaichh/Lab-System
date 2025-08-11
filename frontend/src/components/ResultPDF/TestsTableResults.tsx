@@ -3,11 +3,17 @@ import type { visitResultData } from "../types";
 import { styles } from "./ResultStyle";
 import groupByCategory from "./groupByCategory";
 import renderNormalValue from "../renderNormalValue";
+import AnalyseResult from "./AnalyseResult";
+
+interface TestsTableResultsProps extends visitResultData {
+  patientGender?: string;
+}
 
 const TestsTableResults = ({
   list_of_standalone_test_results,
   list_of_panel_results,
-}: visitResultData) => {
+  patientGender,
+}: TestsTableResultsProps) => {
   const headers = [
     "Test Name",
     "Result",
@@ -15,12 +21,39 @@ const TestsTableResults = ({
     "Normal Value",
     "Previous Result",
   ];
+  const isNormalForGender = (
+    nv: unknown,
+    result: string | number,
+    gender?: string
+  ): boolean => {
+    const verdict = AnalyseResult(nv, String(result));
+    const rec = nv as Record<string, unknown>;
+    const hasSexSplit =
+      "male_normal_value_type" in rec && "female_normal_value_type" in rec;
+
+    if (hasSexSplit) {
+      const g = (gender ?? "").toString().toLowerCase();
+      const idx = g === "male" ? 0 : g === "female" ? 1 : -1;
+      if (idx >= 0) return !!verdict[idx];
+      return !!(verdict[0] || verdict[1]);
+    }
+    return !!verdict[0];
+  };
+
+  const isAbnormal = (
+    normalValueList: unknown[] | undefined,
+    result: string | number,
+    gender?: string
+  ): boolean => {
+    if (!normalValueList?.length) return false;
+    return !normalValueList.some((nv) => isNormalForGender(nv, result, gender));
+  };
 
   const groupedData = groupByCategory(
     list_of_standalone_test_results,
     list_of_panel_results
   );
-  console.log("Grouped data: ", groupedData);
+  // console.log("Grouped data: ", groupedData);
 
   return (
     <View>
@@ -68,7 +101,16 @@ const TestsTableResults = ({
                       </Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text style={styles.tableCellText}>{t.result}</Text>
+                      <Text style={styles.tableCellText}>
+                        {t.result}{" "}
+                        {isAbnormal(
+                          t.lab_test_type?.normal_value_list,
+                          t.result,
+                          patientGender
+                        )
+                          ? " *"
+                          : ""}
+                      </Text>
                     </View>
                     <View style={styles.tableCol}>
                       <Text style={styles.tableCellText}>
@@ -145,6 +187,13 @@ const TestsTableResults = ({
                             ]}
                           >
                             {t.result}
+                            {isAbnormal(
+                              t.lab_test_type?.normal_value_list,
+                              t.result,
+                              patientGender
+                            )
+                              ? " *"
+                              : ""}
                           </Text>
                         </View>
                         <View style={styles.tableCol}>
@@ -158,7 +207,7 @@ const TestsTableResults = ({
                               {t.lab_test_type.normal_value_list.map(
                                 (nv, i) => (
                                   <Text key={i} style={styles.tableCellText}>
-                                    {renderNormalValue(nv)}
+                                    {renderNormalValue(nv, { ascii: true })}
                                   </Text>
                                 )
                               )}
