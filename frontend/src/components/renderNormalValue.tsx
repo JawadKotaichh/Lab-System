@@ -9,7 +9,6 @@ export default function renderNormalValue(
   const ge = opts?.ascii ? ">=" : "≥";
   if (typeof nv !== "object" || nv === null) return "—";
   const rec = nv as Record<string, unknown>;
-  console.log("rec: ", rec);
 
   if ("male_normal_value_type" in rec && "female_normal_value_type" in rec) {
     const part = (x: unknown) => {
