@@ -21,6 +21,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
   total_price,
   visit_date,
   patient_insurance_company_rate,
+  showSignature,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -65,6 +66,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         </View>
       </View>
       <TestsTableInvoice
+        showSignature={showSignature}
         list_of_lab_panels={list_of_lab_panels}
         list_of_tests={list_of_tests}
         visit_date={visit_date!}
@@ -73,7 +75,9 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         patient_insurance_company_rate={patient_insurance_company_rate}
       />
       <View style={[{ textAlign: "right" }]}>
-        <Image src={lab_signature} style={styles.lab_signature} />
+        {showSignature && (
+          <Image src={lab_signature} style={styles.lab_signature} />
+        )}
         <Text>Signature</Text>
         <Text style={[{ top: 20 }]}>2009/37</Text>
       </View>
