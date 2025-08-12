@@ -100,7 +100,7 @@ const TestsTableResults = ({
                         {t.lab_test_type.name}
                       </Text>
                     </View>
-                    <View style={styles.tableCol}>
+                    <View style={[styles.tableCol, { textAlign: "center" }]}>
                       <Text style={styles.tableCellText}>
                         {t.result}{" "}
                         {isAbnormal(
@@ -121,7 +121,13 @@ const TestsTableResults = ({
                       {t.lab_test_type?.normal_value_list?.length ? (
                         <View>
                           {t.lab_test_type.normal_value_list.map((nv, i) => (
-                            <Text key={i} style={styles.tableCellText}>
+                            <Text
+                              key={i}
+                              style={[
+                                styles.tableCellText,
+                                { textAlign: "left" },
+                              ]}
+                            >
                               {renderNormalValue(nv, { ascii: true })}
                             </Text>
                           ))}
@@ -206,7 +212,13 @@ const TestsTableResults = ({
                             <View>
                               {t.lab_test_type.normal_value_list.map(
                                 (nv, i) => (
-                                  <Text key={i} style={styles.tableCellText}>
+                                  <Text
+                                    key={i}
+                                    style={[
+                                      styles.tableCellText,
+                                      { textAlign: "left" },
+                                    ]}
+                                  >
                                     {renderNormalValue(nv, { ascii: true })}
                                   </Text>
                                 )
@@ -214,7 +226,10 @@ const TestsTableResults = ({
                             </View>
                           ) : (
                             <Text
-                              style={[styles.tableCellText, { opacity: 0.6 }]}
+                              style={[
+                                styles.tableCellText,
+                                { opacity: 0.6, textAlign: "left" },
+                              ]}
                             >
                               —
                             </Text>
