@@ -7,6 +7,7 @@ import type {
 } from "../types";
 import { fetchResultList } from "../utils";
 import ResultList from "./Result";
+import ShowWithSignature from "./ShowWithSignature";
 
 export default function ResultContainer() {
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,8 @@ export default function ResultContainer() {
   const [error, setError] = useState<string>("");
   const version = useRef(0);
   const report_date = new Date();
+  const [showSignature, setShowSignature] = useState<boolean>(true);
+  const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
 
   useEffect(() => {
     fetchResultList(visit_id!)
@@ -44,13 +47,22 @@ export default function ResultContainer() {
 
   return (
     <div style={{ width: "100%", height: "800px" }}>
-      <ResultList
-        report_date={report_date}
-        patient={patient!}
-        list_of_panel_results={listOfPanelResults}
-        list_of_standalone_test_results={listOfStandAloneTestResults}
-        visit_date={visitDate}
-      />
+      {showSignatureOption && (
+        <ShowWithSignature
+          setShowSignature={setShowSignature}
+          setShowSignatureOption={setShowSignatureOption}
+        />
+      )}
+      {!showSignatureOption && (
+        <ResultList
+          showSignature={showSignature}
+          report_date={report_date}
+          patient={patient!}
+          list_of_panel_results={listOfPanelResults}
+          list_of_standalone_test_results={listOfStandAloneTestResults}
+          visit_date={visitDate}
+        />
+      )}
     </div>
   );
 }
