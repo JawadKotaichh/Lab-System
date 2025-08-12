@@ -19,6 +19,7 @@ const ResultPdf: React.FC<visitResultData> = ({
   list_of_standalone_test_results,
   visit_date,
   report_date,
+  showSignature,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -72,11 +73,15 @@ const ResultPdf: React.FC<visitResultData> = ({
         list_of_panel_results={list_of_panel_results}
         patient={patient!}
       />
+
       <View style={[{ textAlign: "right", paddingTop: 15 }]}>
-        <Image src={lab_signature} style={styles.lab_signature} />
+        {showSignature && (
+          <Image src={lab_signature} style={styles.lab_signature} />
+        )}
         <Text>Signature</Text>
         <Text style={[{ top: 20 }]}>2009/37</Text>
       </View>
+
       <View style={styles.footer} fixed>
         <Image src={lab_address} style={styles.footerImage} />
       </View>

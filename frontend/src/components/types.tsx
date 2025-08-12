@@ -99,6 +99,7 @@ export type InvoiceWrapperProps = {
   visit_date: Date;
   total_price: number;
   patient_insurance_company_rate: number;
+  showSignature: boolean;
 };
 export type InvoiceData = {
   visit_id: string;
@@ -124,6 +125,7 @@ export type visitResultData = {
   visit_date: Date;
   report_date: Date;
   list_of_panel_results: patientPanelResult[];
+  showSignature?: boolean;
 };
 export type Params = {
   patient_id: string;

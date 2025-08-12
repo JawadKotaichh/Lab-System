@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { type labPanel, type labTest, type patientInfo } from "../types";
 import { fetchInvoice } from "../utils";
 import Invoice from "./Invoice";
+import ShowWithSignature from "../ResultPDF/ShowWithSignature";
 
 export default function InvoiceContainer() {
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,8 @@ export default function InvoiceContainer() {
   const version = useRef(0);
   const [listOfPanels, setListOfPanels] = useState<labPanel[]>([]);
 
+  const [showSignature, setShowSignature] = useState<boolean>(true);
+  const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
   useEffect(() => {
     fetchInvoice(visit_id!)
       .then((data) => {
@@ -53,14 +56,23 @@ export default function InvoiceContainer() {
 
   return (
     <div style={{ width: "100%", height: "800px" }}>
-      <Invoice
-        list_of_lab_panels={listOfPanels}
-        patient_insurance_company_rate={patientInsuranceCompanyRate}
-        patient={patient!}
-        list_of_tests={listOfTests}
-        total_price={totalPrice}
-        visit_date={visitDate}
-      />
+      {showSignatureOption && (
+        <ShowWithSignature
+          setShowSignature={setShowSignature}
+          setShowSignatureOption={setShowSignatureOption}
+        />
+      )}
+      {!showSignatureOption && (
+        <Invoice
+          showSignature={showSignature}
+          list_of_lab_panels={listOfPanels}
+          patient_insurance_company_rate={patientInsuranceCompanyRate}
+          patient={patient!}
+          list_of_tests={listOfTests}
+          total_price={totalPrice}
+          visit_date={visitDate}
+        />
+      )}
     </div>
   );
 }
