@@ -7,7 +7,7 @@ import type {
 } from "../types";
 import { fetchResultList } from "../utils";
 import ResultList from "./Result";
-import ShowWithSignature from "./ShowWithSignature";
+import ShowWithSignature from "../ShowWithSignature";
 
 export default function ResultContainer() {
   const [loading, setLoading] = useState(true);
