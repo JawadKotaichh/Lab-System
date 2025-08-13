@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { type labPanel, type labTest, type patientInfo } from "../types";
 import { fetchInvoice } from "../utils";
 import Invoice from "./Invoice";
-import ShowWithSignature from "../ResultPDF/ShowWithSignature";
+import ShowWithSignature from "../ShowWithSignature";
 
 export default function InvoiceContainer() {
   const [loading, setLoading] = useState(true);
