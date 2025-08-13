@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.7",
-    "@heroicons/react": "^2.2.0",
     "@react-pdf/renderer": "^4.3.0",
     "@syncfusion/ej2-react-calendars": "^29.2.5",
     "@tailwindcss/vite": "^4.1.7",

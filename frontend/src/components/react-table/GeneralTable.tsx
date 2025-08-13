@@ -13,11 +13,11 @@ const GenericTable = <TData,>({
   table,
   loading = false,
   noDataMessage = "No records found",
-  tableStyle = "overflow-y-auto overflow-visible relative border rounded-b-sm w-full table-auto bg-white shadow text-center",
+  tableStyle = "overflow-y-auto border rounded-b-sm w-full table-auto bg-white shadow text-center",
   tableHeadStyle,
   cellStyle = "px-4 py-2",
 }: GenericTableProps<TData>) => (
-  <div className="w-full ">
+  <div className="w-full overflow-x-auto">
     <table className={tableStyle}>
       <thead className={tableHeadStyle}>
         {table.getHeaderGroups().map((headerGroup) => (

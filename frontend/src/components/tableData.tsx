@@ -1,5 +1,5 @@
 import React from "react";
-import { tableHandleButton } from "../style";
+import { tableHandleButton, tableDeleteButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
 import type {
   CreateLabPanelParams,
@@ -36,7 +36,6 @@ import {
 import { ColumnFilter } from "./react-table/ColumnFilter";
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
-import MeatballsMenu from "./react-table/MeatBallsMenu";
 
 export function getInsuranceCompanyColumns(
   navigate: NavigateFunction,
@@ -88,27 +87,28 @@ export function getInsuranceCompanyColumns(
       cell: ({ row }) => {
         const company = row.original;
         return (
-          <div className="flex justify-center">
-            <MeatballsMenu
-              items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(
-                      `${InsuranceEditPageURL}${company.insurance_company_id}`
-                    ),
-                },
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeleteInsuranceCompany({
-                      elementID: company.insurance_company_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
-              ]}
-            />
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() =>
+                navigate(
+                  `${InsuranceEditPageURL}${company.insurance_company_id}`
+                )
+              }
+            >
+              Edit
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
+                handleDeleteInsuranceCompany({
+                  elementID: company.insurance_company_id,
+                  setError,
+                })
+              }
+            >
+              Delete
+            </button>
           </div>
         );
       },
@@ -246,36 +246,37 @@ export function getPatientsColumns(
           insurance_company_name,
         };
         return (
-          <div className="flex justify-center">
-            <MeatballsMenu
-              items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(`/patients/edit-patient/${patient_id}`),
-                },
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeletePatient({
-                      elementID: patient_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
-                {
-                  label: "New Visit",
-                  onClick: () =>
-                    handleNewVisit(
-                      insurance_company_name,
-                      patient,
-                      navigate,
-                      setError
-                    ),
-                  className: "text-blue-600",
-                },
-              ]}
-            />
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() => navigate(`/patients/edit-patient/${patient_id}`)}
+            >
+              Edit
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
+                handleDeletePatient({
+                  elementID: patient_id,
+                  setError,
+                })
+              }
+            >
+              Delete
+            </button>
+            <button
+              className={tableHandleButton + " w-fit"}
+              onClick={() =>
+                handleNewVisit(
+                  insurance_company_name,
+                  patient,
+                  navigate,
+                  setError
+                )
+              }
+            >
+              New Visit
+            </button>
           </div>
         );
       },
@@ -477,116 +478,342 @@ export function getLabTestColumns(
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
         const { lab_test_id } = row.original;
-        const items: {
-          label: string;
-          onClick: () => void;
-          className?: string;
-        }[] = [];
 
         if (showAdd) {
-          items.push({
-            label: "Add",
-            className: "text-blue-600",
-            onClick: () => {
-              if (
-                !pagination ||
-                !setPagination ||
-                !visit_id ||
-                !setAddError ||
-                !standAloneTestResults ||
-                !setStandAloneTestResults ||
-                !panelResults ||
-                !setPanelResults ||
-                !setShowTestsTable ||
-                !setTotalNumberOfTests ||
-                !showTestsTable ||
-                !setTotalPages
-              ) {
-                return setError?.(
-                  "Cannot add test, one of the parameters is not given"
-                );
-              }
-              handleAddLabTest({
-                updatedInvoiceData,
-                setUpdatedInvoiceData,
-                pagination,
-                setPagination,
-                visit_id,
-                setAddError,
-                panelResults,
-                setPanelResults,
-                standAloneTestResults,
-                setStandAloneTestResults,
-                setShowTestsTable,
-                setTotalNumberOfTests,
-                setError,
-                showTestsTable,
-                setTotalPages,
-                lab_test_id,
-              });
-            },
-          });
-        } else if (
+          return (
+            <div className="flex gap-2 justify-center">
+              <button
+                className={tableHandleButton}
+                onClick={() => {
+                  if (
+                    !pagination ||
+                    !setPagination ||
+                    !visit_id ||
+                    !setAddError ||
+                    !standAloneTestResults ||
+                    !setStandAloneTestResults ||
+                    !panelResults ||
+                    !setPanelResults ||
+                    !setShowTestsTable ||
+                    !setTotalNumberOfTests ||
+                    !showTestsTable ||
+                    !setTotalPages
+                  ) {
+                    return setError?.(
+                      "Cannot add test, one of the parameters is not given"
+                    );
+                  }
+                  handleAddLabTest({
+                    updatedInvoiceData,
+                    setUpdatedInvoiceData,
+                    pagination,
+                    setPagination,
+                    visit_id,
+                    setAddError,
+                    panelResults,
+                    setPanelResults,
+                    standAloneTestResults,
+                    setStandAloneTestResults,
+                    setShowTestsTable,
+                    setTotalNumberOfTests,
+                    setError,
+                    showTestsTable,
+                    setTotalPages,
+                    lab_test_id,
+                  });
+                }}
+              >
+                Add
+              </button>
+            </div>
+          );
+        }
+        if (
           showAddForLabPanels &&
           setAddError &&
           setData &&
           data &&
           setShowAddForLabPanels
         ) {
-          items.push({
-            label: "Add",
-            className: "text-blue-600",
-            onClick: () =>
-              handleAdd({
-                lab_test_id,
-                data,
-                setAddError,
-                setShowAddForLabPanels,
-                setData,
-                setError,
-              }),
-          });
-        } else {
-          items.push(
-            {
-              label: "Edit",
-              onClick: () => navigate(`${labTestEditPageURL}${lab_test_id}`),
-            },
-            {
-              label: "Delete",
-              className: "text-red-600",
-              onClick: () =>
+          return (
+            <div className="rounded-b-sm  px-4 py-2">
+              <button
+                className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-green-500"
+                onClick={() =>
+                  handleAdd({
+                    lab_test_id,
+                    data,
+                    setAddError,
+                    setShowAddForLabPanels,
+                    setData,
+                    setError,
+                  })
+                }
+              >
+                Add
+              </button>
+            </div>
+          );
+        }
+        return (
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() => navigate(`${labTestEditPageURL}${lab_test_id}`)}
+            >
+              Edit
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
                 handleDeleteLabTest({
                   elementID: lab_test_id,
                   setError,
-                }),
-            }
-          );
-        }
-        if (items.length == 1) {
-          return (
-            <div className="flex justify-center">
-              {items.map((item) => (
-                <button
-                  className={tableHandleButton}
-                  onClick={() => item.onClick()}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          );
-        } else {
-          return (
-            <div className="flex justify-center">
-              <MeatballsMenu items={items} />
-            </div>
-          );
-        }
+                })
+              }
+            >
+              Delete
+            </button>
+          </div>
+        );
       },
     },
   ];
 }
+
+// export function getLabTestColumns(
+//   updatedInvoiceData: updateInvoiceData,
+//   setUpdatedInvoiceData: React.Dispatch<
+//     React.SetStateAction<updateInvoiceData>
+//   >,
+//   navigate: NavigateFunction,
+//   showFilters: Record<string, boolean>,
+//   toggleFilter: (id: string) => void,
+//   setError: React.Dispatch<React.SetStateAction<string>>,
+//   showAdd: boolean,
+//   pagination?: PaginationState,
+//   setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>,
+//   visit_id?: string,
+//   panelResults?: patientPanelResult[],
+//   setPanelResults?: React.Dispatch<React.SetStateAction<patientPanelResult[]>>,
+//   standAloneTestResults?: patientTestResult[],
+//   setStandAloneTestResults?: React.Dispatch<
+//     React.SetStateAction<patientTestResult[]>
+//   >,
+//   setAddError?: React.Dispatch<React.SetStateAction<string>>,
+//   showTestsTable?: boolean,
+//   setShowTestsTable?: React.Dispatch<React.SetStateAction<boolean>>,
+//   setTotalPages?: React.Dispatch<React.SetStateAction<number>>,
+//   setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>
+// ): ColumnDef<labTest>[] {
+//   return [
+//     {
+//       accessorKey: "name",
+//       header: ({ column }) => (
+//         <ColumnFilter
+//           withFilter={true}
+//           column={column}
+//           placeholder="Search name…"
+//           label="Lab Test"
+//           showFilter={!!showFilters[column.id]}
+//           toggleShowFilter={() => toggleFilter(column.id)}
+//         />
+//       ),
+//       sortingFn: (rowA, rowB, columnId) => {
+//         const a = (rowA.getValue(columnId) as string).toLowerCase();
+//         const b = (rowB.getValue(columnId) as string).toLowerCase();
+//         return a.localeCompare(b);
+//       },
+//     },
+//     {
+//       accessorKey: "nssf_id",
+//       header: ({ column }) => (
+//         <ColumnFilter
+//           withFilter={true}
+//           column={column}
+//           placeholder="Search Nssf Id..."
+//           label="NSSF ID"
+//           showFilter={!!showFilters[column.id]}
+//           toggleShowFilter={() => toggleFilter(column.id)}
+//         />
+//       ),
+//       sortingFn: (rowA, rowB, columnId) => {
+//         const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+//         const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+//         return a - b;
+//       },
+//     },
+//     {
+//       accessorKey: "lab_test_category_name",
+//       header: ({ column }) => (
+//         <ColumnFilter
+//           withFilter={true}
+//           column={column}
+//           placeholder="Search lab category"
+//           label="Category"
+//           showFilter={!!showFilters[column.id]}
+//           toggleShowFilter={() => toggleFilter(column.id)}
+//         />
+//       ),
+//       sortingFn: (rowA, rowB, columnId) => {
+//         const a = (rowA.getValue(columnId) as string).toLowerCase();
+//         const b = (rowB.getValue(columnId) as string).toLowerCase();
+//         return a.localeCompare(b);
+//       },
+//     },
+//     {
+//       accessorKey: "unit",
+//       header: ({ column }) => (
+//         <ColumnFilter
+//           withFilter={true}
+//           column={column}
+//           placeholder="Search unit..."
+//           label="Unit"
+//           showFilter={!!showFilters[column.id]}
+//           toggleShowFilter={() => toggleFilter(column.id)}
+//         />
+//       ),
+//       sortingFn: (rowA, rowB, columnId) => {
+//         const a = (rowA.getValue(columnId) as string).toLowerCase();
+//         const b = (rowB.getValue(columnId) as string).toLowerCase();
+//         return a.localeCompare(b);
+//       },
+//     },
+//     {
+//       accessorKey: "price",
+//       header: ({ column }) => (
+//         <ColumnFilter
+//           withFilter={true}
+//           column={column}
+//           placeholder="Search price..."
+//           label="Price"
+//           showFilter={!!showFilters[column.id]}
+//           toggleShowFilter={() => toggleFilter(column.id)}
+//         />
+//       ),
+//       sortingFn: (rowA, rowB, columnId) => {
+//         const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+//         const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+//         return a - b;
+//       },
+//     },
+//     {
+//       accessorKey: "lower_bound",
+//       header: ({ column }) => (
+//         <ColumnFilter
+//           withFilter={true}
+//           column={column}
+//           placeholder="Search lower boound..."
+//           label="Lower Bound"
+//           showFilter={!!showFilters[column.id]}
+//           toggleShowFilter={() => toggleFilter(column.id)}
+//         />
+//       ),
+//       sortingFn: (rowA, rowB, columnId) => {
+//         const a = (rowA.getValue(columnId) as string).toLowerCase();
+//         const b = (rowB.getValue(columnId) as string).toLowerCase();
+//         return a.localeCompare(b);
+//       },
+//     },
+//     {
+//       accessorKey: "upper_bound",
+//       header: ({ column }) => (
+//         <ColumnFilter
+//           withFilter={true}
+//           column={column}
+//           placeholder="Search upper bound..."
+//           label="Upper Bound"
+//           showFilter={!!showFilters[column.id]}
+//           toggleShowFilter={() => toggleFilter(column.id)}
+//         />
+//       ),
+//       sortingFn: (rowA, rowB, columnId) => {
+//         const a = (rowA.getValue(columnId) as string).toLowerCase();
+//         const b = (rowB.getValue(columnId) as string).toLowerCase();
+//         return a.localeCompare(b);
+//       },
+//     },
+//     {
+//       id: "actions",
+//       enableSorting: false,
+//       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
+//       cell: ({ row }) => {
+//         const { lab_test_id } = row.original;
+
+//         if (showAdd) {
+//           return (
+//             <div className="flex gap-2 justify-center">
+//               <button
+//                 className={tableHandleButton}
+//                 onClick={() => {
+//                   if (
+//                     !pagination ||
+//                     !setPagination ||
+//                     !visit_id ||
+//                     !setAddError ||
+//                     !standAloneTestResults ||
+//                     !setStandAloneTestResults ||
+//                     !panelResults ||
+//                     !setPanelResults ||
+//                     !setShowTestsTable ||
+//                     !setTotalNumberOfTests ||
+//                     !showTestsTable ||
+//                     !setTotalPages
+//                   ) {
+//                     return setError?.(
+//                       "Cannot add test, one of the parameters is not given"
+//                     );
+//                   }
+//                   handleAddLabTest({
+//                     updatedInvoiceData,
+//                     setUpdatedInvoiceData,
+//                     pagination,
+//                     setPagination,
+//                     visit_id,
+//                     setAddError,
+//                     panelResults,
+//                     setPanelResults,
+//                     standAloneTestResults,
+//                     setStandAloneTestResults,
+//                     setShowTestsTable,
+//                     setTotalNumberOfTests,
+//                     setError,
+//                     showTestsTable,
+//                     setTotalPages,
+//                     lab_test_id,
+//                   });
+//                 }}
+//               >
+//                 Add
+//               </button>
+//             </div>
+//           );
+//         }
+//         return (
+//           <div className="flex gap-2 justify-center">
+//             <button
+//               className={tableHandleButton}
+//               onClick={() => navigate(`${labTestEditPageURL}${lab_test_id}`)}
+//             >
+//               Edit
+//             </button>
+//             <button
+//               className={tableDeleteButton}
+//               onClick={() =>
+//                 handleDeleteLabTest({
+//                   elementID: lab_test_id,
+//                   setError,
+//                 })
+//               }
+//             >
+//               Delete
+//             </button>
+//           </div>
+//         );
+//       },
+//     },
+//   ];
+// }
 
 export function getLabTestCategoryColumns(
   navigate: NavigateFunction,
@@ -613,7 +840,6 @@ export function getLabTestCategoryColumns(
         return a.localeCompare(b);
       },
     },
-
     {
       id: "actions",
       enableSorting: false,
@@ -621,27 +847,26 @@ export function getLabTestCategoryColumns(
       cell: ({ row }) => {
         const { lab_test_category_id } = row.original;
         return (
-          <div className="flex justify-center">
-            <MeatballsMenu
-              items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(
-                      `${labTestCategoryEditPageURL}${lab_test_category_id}`
-                    ),
-                },
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeleteLabTestCategory({
-                      elementID: lab_test_category_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
-              ]}
-            />
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() =>
+                navigate(`${labTestCategoryEditPageURL}${lab_test_category_id}`)
+              }
+            >
+              Edit
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
+                handleDeleteLabTestCategory({
+                  elementID: lab_test_category_id,
+                  setError,
+                })
+              }
+            >
+              Delete
+            </button>
           </div>
         );
       },
@@ -805,42 +1030,45 @@ export function getVisitsColumns(
       cell: ({ row }) => {
         const { visit_id, patient, insurance_company_name } = row.original;
         return (
-          <div className="flex justify-center">
-            <MeatballsMenu
-              items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(`${visitEditPageURL}${visit_id}`, {
-                      state: {
-                        patientData: {
-                          ...patient,
-                          insurance_company_name: insurance_company_name,
-                        },
-                      },
-                    }),
-                },
-                {
-                  label: "Preview Result",
-                  onClick: () => navigate(`/result/${visit_id}`),
-                  className: "text-blue-600",
-                },
-                {
-                  label: "View Invoice",
-                  onClick: () => navigate(`/invoice/${visit_id}`),
-                  className: "text-blue-600",
-                },
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeleteVisit({
-                      elementID: visit_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
-              ]}
-            />
+          <div className="flex gap-2 justify-center">
+            <button
+              className={tableHandleButton}
+              onClick={() => {
+                navigate(`${visitEditPageURL}${visit_id}`, {
+                  state: {
+                    patientData: {
+                      ...patient,
+                      insurance_company_name: insurance_company_name,
+                    },
+                  },
+                });
+              }}
+            >
+              Edit
+            </button>
+            <button
+              className={tableHandleButton + " w-fit"}
+              onClick={() => navigate(`/result/${visit_id}`)}
+            >
+              Preview Result
+            </button>
+            <button
+              className={tableHandleButton}
+              onClick={() => navigate(`/invoice/${visit_id}`)}
+            >
+              View Invoice
+            </button>
+            <button
+              className={tableDeleteButton}
+              onClick={() =>
+                handleDeleteVisit({
+                  elementID: visit_id,
+                  setError,
+                })
+              }
+            >
+              Delete
+            </button>
           </div>
         );
       },
