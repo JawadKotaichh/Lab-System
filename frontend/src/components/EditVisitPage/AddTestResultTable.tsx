@@ -46,6 +46,7 @@ interface TestsList {
   setAddError: React.Dispatch<React.SetStateAction<string>>;
   setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
   setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>;
+  refreshResults: () => Promise<void>;
 }
 
 const AddTestResultTable: React.FC<TestsList> = ({
@@ -62,6 +63,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
   error,
   setError,
   updatedInvoiceData,
+  refreshResults,
   setUpdatedInvoiceData,
 }: TestsList) => {
   const [data, setData] = useState<labTest[]>([]);
@@ -106,6 +108,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
     setPanelResults,
     standAloneTestResults,
     setStandAloneTestResults,
+    refreshResults,
     updatedInvoiceData,
     setUpdatedInvoiceData,
     showTestsTable,

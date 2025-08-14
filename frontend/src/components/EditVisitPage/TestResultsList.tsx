@@ -13,6 +13,7 @@ interface ShowResultsListParams {
   >;
   visit_id: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
+  refreshResults: () => Promise<void>;
 }
 
 const TestResultsList: React.FC<ShowResultsListParams> = ({
@@ -22,6 +23,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   setStandAloneTestResults,
   setError,
   visit_id,
+  refreshResults,
 }: ShowResultsListParams) => {
   const handleChange = async (
     lab_test_result_id: string,
@@ -50,7 +52,9 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     const url = `${labTestResultApiURL}/${lab_test_result_id}`;
     try {
       await api.delete(url);
-      window.location.reload();
+      void refreshResults();
+
+      // window.location.reload();
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
