@@ -61,6 +61,12 @@ const updateInvoice = async (
 //   return response.data;
 // };
 
+const getInsuranceCompanyRate = async (patient_id: string): Promise<number> => {
+  const url = `${PatientsApiURL}${patient_id}/get_insurance_company_rate`;
+  const response = await api.get(url);
+  return response.data;
+};
+
 const fetchLabTestResultsAndPanelsPaginated = async (
   visit_id: string,
   page_number: number,
@@ -250,3 +256,4 @@ export { fetchResultList };
 export { updateInvoice };
 export { fetchLabTestResultsAndPanelsPaginated };
 export { fetchVisit };
+export { getInsuranceCompanyRate };

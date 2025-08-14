@@ -293,12 +293,18 @@ async def get_visits_with_page_size(
                 detail=f"Insurance Company {db_patient.insurance_company_id} not found",
             )
         total_price_with_insurance = total_price * insurance_company.rate
-
+        db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == visit.id)
+        if not db_invoice:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Invoice with visit id: {visit.id} not found",
+            )
         visits.append(
             VisitData(
                 total_price=total_price,
                 report_date=db_visit.report_date,
-                total_price_with_insurance=total_price_with_insurance,
+                total_price_with_insurance=total_price_with_insurance
+                - total_price_with_insurance * (db_invoice.discount_percentage / 100),
                 patient=patient,
                 visit_id=str(visit.id),
                 visit_date=db_visit.visit_date,

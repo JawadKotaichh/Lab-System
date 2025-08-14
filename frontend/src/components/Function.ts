@@ -116,14 +116,13 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     showTestsTable: boolean;
     setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
     setError: React.Dispatch<React.SetStateAction<string>>;
-    setTotalPages: React.Dispatch<React.SetStateAction<number>>;
-    setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
+    refreshResults?: () => Promise<void>;
     updatedInvoiceData?: updateInvoiceData,
       setUpdatedInvoiceData?: React.Dispatch<
         React.SetStateAction<updateInvoiceData>
       >,
   }
-  export const handleAddLabTest = async ({updatedInvoiceData,setUpdatedInvoiceData,setTotalNumberOfTests,setTotalPages,pagination,setError,lab_test_id,panelResults,setPanelResults,setStandAloneTestResults,standAloneTestResults,setAddError,setShowTestsTable,visit_id,
+  export const handleAddLabTest = async ({updatedInvoiceData,setUpdatedInvoiceData,pagination,setError,refreshResults,lab_test_id,panelResults,setPanelResults,setStandAloneTestResults,standAloneTestResults,setAddError,setShowTestsTable,visit_id,
   }:addLabTestParams) => {
     if (standAloneTestResults.some((r) => r.lab_test_type_id === lab_test_id)) {
       setAddError("This test already exists.");
@@ -161,16 +160,15 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
       );
       setStandAloneTestResults(updated.list_of_standalone_test_results);
       setPanelResults(updated.list_of_panel_results);
+      if (refreshResults) await refreshResults(); 
       setShowTestsTable(false);
-      setTotalPages(updated.total_pages);
-      setTotalNumberOfTests(updated.TotalNumberOfLabTestResults);
       const fetchedTestTypes = updated.list_of_standalone_test_results.map(
         (test) => test.lab_test_type
       );
        
         if (setUpdatedInvoiceData){
           const newInvoiceData: updateInvoiceData = {
-              ...updatedInvoiceData,
+              ...updatedInvoiceData!,
               list_of_tests: fetchedTestTypes,
             };
           setUpdatedInvoiceData(newInvoiceData);

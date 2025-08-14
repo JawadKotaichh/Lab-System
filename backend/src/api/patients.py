@@ -88,6 +88,25 @@ async def get_patients_with_page_size(
     }
 
 
+@router.get("/{patient_id}/get_insurance_company_rate")
+async def get_patient_insurance_company_rate(patient_id: str):
+    if not PydanticObjectId.is_valid(patient_id):
+        raise HTTPException(400, "Invalid patient ID")
+    db_patient = await DBPatient.get(PydanticObjectId(patient_id))
+
+    if not db_patient:
+        raise HTTPException(404, f"Patient {patient_id} not found")
+
+    db_insurance_company = await DBInsurance_company.find_one(
+        DBInsurance_company.id == db_patient.insurance_company_id
+    )
+    if not db_insurance_company:
+        raise HTTPException(
+            404, f"Insurance with id: {db_patient.insurance_company_id} not found"
+        )
+    return db_insurance_company.rate
+
+
 @router.get("/all", response_model=List[Dict[str, Any]])
 async def getAllPatients() -> List[Dict[str, Any]]:
     cursor = DBPatient.find()

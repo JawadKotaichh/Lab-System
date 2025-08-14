@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
 import {
@@ -11,10 +11,15 @@ import PatientInfo from "./PatientInfo.js";
 import type { PaginationState } from "@tanstack/react-table";
 import { labTestResultApiURL } from "../data.js";
 import TestResultsList from "./TestResultsList.js";
-import { fetchLabTestResultsAndPanelsPaginated, fetchVisit } from "../utils.js";
+import {
+  fetchInvoice,
+  fetchLabTestResultsAndPanelsPaginated,
+  fetchVisit,
+} from "../utils.js";
 import Pagination from "../Pagination.js";
 import AddTestResultTable from "./AddTestResultTable.js";
 import LabPanelsTable from "./LabPanelsTable.js";
+import Prices from "./Prices.js";
 
 const EditVisitPage: React.FC = () => {
   const location = useLocation();
@@ -34,19 +39,46 @@ const EditVisitPage: React.FC = () => {
     pageSize: 10,
   });
   const [updatedInvoiceData, setUpdatedInvoiceData] =
-    useState<updateInvoiceData>({});
+    useState<updateInvoiceData>({ discount_percentage: 0 });
   const [reportDate, setReportDate] = useState<Date>(new Date());
   const [visitDate, setVisitDate] = useState<Date>(new Date());
   const [addError, setAddError] = useState<string>("");
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalNumberOfTests, setTotalNumberOfTests] = useState<number>(0);
   const showAdd = true;
+  useState<number>(0);
+
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
   };
   const handleSetPageSize = (size: number) => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
+  const refreshResults = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      if (!visit_id) return;
+
+      const res = await fetchLabTestResultsAndPanelsPaginated(
+        visit_id,
+        pagination.pageIndex + 1,
+        pagination.pageSize
+      );
+      setStandAloneTestResults(res.list_of_standalone_test_results);
+      setPanelResults(res.list_of_panel_results);
+      setTotalPages(res.total_pages);
+      setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+
+      const res1 = await fetchVisit(visit_id);
+      setVisitDate(res1.visit_date);
+      setReportDate(res1.report_date);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }, [visit_id, pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
     const loadPage = async () => {
@@ -66,6 +98,8 @@ const EditVisitPage: React.FC = () => {
         const res1 = await fetchVisit(visit_id);
         setVisitDate(res1.visit_date);
         setReportDate(res1.report_date);
+        const inv = await fetchInvoice(visit_id);
+        if (inv) setUpdatedInvoiceData(inv.invoice_data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -74,7 +108,8 @@ const EditVisitPage: React.FC = () => {
     };
 
     loadPage();
-  }, [pagination.pageIndex, pagination.pageSize, visit_id]);
+    void refreshResults();
+  }, [pagination.pageIndex, pagination.pageSize, refreshResults, visit_id]);
 
   const handleSaveAll = async () => {
     try {
@@ -106,7 +141,6 @@ const EditVisitPage: React.FC = () => {
   if (!visit_id) {
     return <div className="p-4 text-red-600">Error: no visit selected.</div>;
   }
-
   return (
     <div className="p-8 bg-white">
       <h1 className="text-2xl font-semibold mb-6">Edit Visit</h1>
@@ -117,7 +151,16 @@ const EditVisitPage: React.FC = () => {
         visitDate={visitDate}
         patientData={patientData}
         visit_id={visit_id}
-      ></PatientInfo>
+      />
+      <Prices
+        patientData={patientData}
+        standAloneTestResults={standAloneTestResults}
+        panelResults={panelResults}
+        visit_id={visit_id}
+        setError={setError}
+        setUpdatedInvoiceData={setUpdatedInvoiceData}
+        updatedInvoiceData={updatedInvoiceData}
+      />
       <button
         className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
         onClick={() => setShowTestsTable(true)}
@@ -140,6 +183,7 @@ const EditVisitPage: React.FC = () => {
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
         <TestResultsList
+          refreshResults={refreshResults}
           visit_id={visit_id}
           setError={setError}
           panelResults={panelResults}
@@ -149,6 +193,7 @@ const EditVisitPage: React.FC = () => {
         />
       )}
       <AddTestResultTable
+        refreshResults={refreshResults}
         updatedInvoiceData={updatedInvoiceData}
         setUpdatedInvoiceData={setUpdatedInvoiceData}
         showAdd={showAdd}
@@ -168,6 +213,7 @@ const EditVisitPage: React.FC = () => {
         // setShowPanelsTable={setShowPanelsTable}
       />
       <LabPanelsTable
+        refreshResults={refreshResults}
         setPanelResults={setPanelResults}
         pagination={pagination}
         setStandAloneTestResults={setStandAloneTestResults}
@@ -190,5 +236,4 @@ const EditVisitPage: React.FC = () => {
     </div>
   );
 };
-
 export default EditVisitPage;
