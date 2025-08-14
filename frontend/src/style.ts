@@ -1,7 +1,7 @@
 export const inputForm = "flex flex-col items-center justify-center w-full";
 export const patientInfoCard = "flex flex-col";
-export const patientInfoCardGrid = "grid grid-cols-6 md:grid-cols-6 border rounded-sm shadow-lg shadow-blue-200";
-export const patientInfoCardItem ="mb-2 text-sm font-medium text-gray-700 flex items-center space-x-1";
+export const patientInfoCardGrid = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 border rounded-sm shadow-lg shadow-blue-200";
+export const patientInfoCardItem ="text-sm font-medium text-gray-700 flex items-center space-x-1";
 
 
 export const inputFormTitle = "text-2xl items-center mb-10 text-center mt-5";
