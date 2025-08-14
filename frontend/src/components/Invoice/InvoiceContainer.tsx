@@ -17,7 +17,7 @@ export default function InvoiceContainer() {
   const [error, setError] = useState<string>("");
   const version = useRef(0);
   const [listOfPanels, setListOfPanels] = useState<labPanel[]>([]);
-
+  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
   const [showSignature, setShowSignature] = useState<boolean>(true);
   const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
   useEffect(() => {
@@ -35,6 +35,7 @@ export default function InvoiceContainer() {
           (acc, panel) => acc + (panel.lab_panel_price ?? 0),
           0
         );
+        setDiscountPercentage(data.invoice_data.discount_percentage);
         setTotalPrice(testsTotal + panelsTotal);
         setListOfPanels(data.invoice_data.list_of_lab_panels);
         setPatientInsuranceCompanyRate(
@@ -44,7 +45,7 @@ export default function InvoiceContainer() {
       })
       .catch((err) => setError(err.message || "Failed to load"));
     version.current += 1;
-  }, [visit_id]);
+  }, [discountPercentage, visit_id]);
 
   console.log("patient: ", patient);
   console.log("visisDate: ", visitDate);
@@ -64,6 +65,7 @@ export default function InvoiceContainer() {
       )}
       {!showSignatureOption && (
         <Invoice
+          discount_percentage={discountPercentage}
           showSignature={showSignature}
           list_of_lab_panels={listOfPanels}
           patient_insurance_company_rate={patientInsuranceCompanyRate}

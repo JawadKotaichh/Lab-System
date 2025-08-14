@@ -303,6 +303,7 @@ export function getLabTestColumns(
   setStandAloneTestResults?: React.Dispatch<
     React.SetStateAction<patientTestResult[]>
   >,
+  onAddedRefresh?: () => Promise<void>,
   updatedInvoiceData?: updateInvoiceData,
   setUpdatedInvoiceData?: React.Dispatch<
     React.SetStateAction<updateInvoiceData>
@@ -518,11 +519,12 @@ export function getLabTestColumns(
                 standAloneTestResults,
                 setStandAloneTestResults,
                 setShowTestsTable,
-                setTotalNumberOfTests,
+                // setTotalNumberOfTests,
                 setError,
                 showTestsTable,
-                setTotalPages,
+                // setTotalPages,
                 lab_test_id,
+                refreshResults: onAddedRefresh,
               });
             },
           });
