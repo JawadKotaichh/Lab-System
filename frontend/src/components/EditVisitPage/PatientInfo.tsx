@@ -14,6 +14,8 @@ interface PatientCardParams {
   patientData: patientInfo;
   visit_id: string;
   visitDate: Date;
+  report_date: Date;
+  setReportDate: Dispatch<SetStateAction<Date>>;
   setVisitDate: Dispatch<SetStateAction<Date>>;
 }
 
@@ -22,6 +24,8 @@ const PatientInfo: React.FC<PatientCardParams> = ({
   visit_id,
   visitDate,
   setVisitDate,
+  report_date,
+  setReportDate,
 }: PatientCardParams) => {
   const [error, setError] = useState<string | null>(null);
 
@@ -32,9 +36,27 @@ const PatientInfo: React.FC<PatientCardParams> = ({
     try {
       const currdate = new Date(newVisitDate);
       await api.put(`${visitsApiURL}${visit_id}`, {
-        date: currdate,
+        visit_date: currdate,
       });
       setVisitDate(currdate);
+    } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+
+  const handleReportDateChange = async (
+    new_report_date: string,
+    visit_id: string
+  ) => {
+    try {
+      const currdate = new Date(new_report_date);
+      await api.put(`${visitsApiURL}${visit_id}`, {
+        report_date: currdate,
+      });
+      setReportDate(currdate);
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
@@ -85,6 +107,20 @@ const PatientInfo: React.FC<PatientCardParams> = ({
                 type="date"
                 onChange={(e) =>
                   handleVisitDateChange(e.target.value, visit_id)
+                }
+              />
+            </span>
+          </label>
+        </div>
+        <div className={inputFormAttributeListItem}>
+          <label className={patientInfoCardItem}>
+            <span className="font-bold">Report Date:</span>
+            <span>
+              <input
+                value={new Date(report_date).toISOString().split("T")[0]}
+                type="date"
+                onChange={(e) =>
+                  handleReportDateChange(e.target.value, visit_id)
                 }
               />
             </span>
