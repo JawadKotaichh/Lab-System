@@ -4,10 +4,6 @@ from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import Invoice as DBInvoice
 from ..schemas.schema_Invoice import Invoice, invoiceData, update_invoice
 from ..schemas.schema_Patient import Patient
-
-# from ..schemas.schema_Lab_Test_Type import Lab_test_type
-# from ..schemas.schema_Lab_Panel import Lab_Panel
-# from ..schemas.schema_Lab_Test_Result import Lab_test_result
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
@@ -20,10 +16,6 @@ from ..models import Patient as DBPatient
 from ..models import insurance_company as DBInsurance_company
 from ..models import lab_test_category as DBlab_test_category
 
-# from ..models import lab_test_result as DBLab_test_result
-# from ..models import lab_test_type as DBLab_test_type
-# from ..models import lab_test_category as DBLab_test_category
-# from ..models import lab_panel as DBLab_panel
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
@@ -46,7 +38,7 @@ async def create_invoice(visit_id: str):
         visit_id=PydanticObjectId(visit_id),
         list_of_tests=[],
         list_of_lab_panels=[],
-        visit_date=db_visit.date,
+        visit_date=db_visit.visit_date,
         # total_price_with_insurance=0.0,
         # total_without_insurance=0.0,
     )

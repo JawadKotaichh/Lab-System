@@ -35,6 +35,7 @@ const EditVisitPage: React.FC = () => {
   });
   const [updatedInvoiceData, setUpdatedInvoiceData] =
     useState<updateInvoiceData>({});
+  const [reportDate, setReportDate] = useState<Date>(new Date());
   const [visitDate, setVisitDate] = useState<Date>(new Date());
   const [addError, setAddError] = useState<string>("");
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -64,6 +65,7 @@ const EditVisitPage: React.FC = () => {
         setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
         const res1 = await fetchVisit(visit_id);
         setVisitDate(res1.visit_date);
+        setReportDate(res1.report_date);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -109,6 +111,8 @@ const EditVisitPage: React.FC = () => {
     <div className="p-8 bg-white">
       <h1 className="text-2xl font-semibold mb-6">Edit Visit</h1>
       <PatientInfo
+        report_date={reportDate}
+        setReportDate={setReportDate}
         setVisitDate={setVisitDate}
         visitDate={visitDate}
         patientData={patientData}

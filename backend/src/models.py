@@ -21,7 +21,8 @@ from .schemas.schema_Lab_Panel import LabPanelResponse
 
 class Visit(Document):
     patient_id: PydanticObjectId = Field(...)
-    date: datetime = Field(...)
+    visit_date: datetime = Field(...)
+    report_date: datetime = Field(...)
 
     class Settings:
         name = "visits"

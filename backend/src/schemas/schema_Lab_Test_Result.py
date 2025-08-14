@@ -54,6 +54,7 @@ class paginatedMixedVisitResults(BaseModel):
 
 class resultListData(BaseModel):
     visit_date: datetime
+    report_date: datetime
     patient: Patient
     visit_id: str
     list_of_standalone_test_results: List[patientTestResult]

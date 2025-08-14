@@ -20,9 +20,10 @@ export default function ResultContainer() {
   >([]);
   const [patient, setPatient] = useState<patientInfo>();
   const [visitDate, setVisitDate] = useState<Date>(new Date());
+  const [reportDate, setReportDate] = useState<Date>(new Date());
+
   const [error, setError] = useState<string>("");
   const version = useRef(0);
-  const report_date = new Date();
   const [showSignature, setShowSignature] = useState<boolean>(true);
   const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
 
@@ -32,7 +33,8 @@ export default function ResultContainer() {
         setPatient(data.patient);
         setListOfSandAloneTestResults(data.list_of_standalone_test_results);
         setListOfPanelResults(data.list_of_panel_results);
-        setVisitDate(data.visit_date);
+        setVisitDate(new Date(data.visit_date));
+        setReportDate(new Date(data.report_date));
         setLoading(false);
       })
       .catch((err) => setError(err.message || "Failed to load"));
@@ -56,7 +58,7 @@ export default function ResultContainer() {
       {!showSignatureOption && (
         <ResultList
           showSignature={showSignature}
-          report_date={report_date}
+          report_date={reportDate}
           patient={patient!}
           list_of_panel_results={listOfPanelResults}
           list_of_standalone_test_results={listOfStandAloneTestResults}

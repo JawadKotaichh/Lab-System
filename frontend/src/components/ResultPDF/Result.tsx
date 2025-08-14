@@ -51,7 +51,7 @@ const ResultPdf: React.FC<visitResultData> = ({
           <View style={styles.patientInfoPair}>
             <Text style={styles.patientLabel}>Exam Date:</Text>
             <Text style={styles.patientValue}>
-              {visit_date.toString().split("T")[0]}
+              {visit_date.toISOString().split("T")[0]}
             </Text>
           </View>
           <View style={styles.patientInfoPair}>
