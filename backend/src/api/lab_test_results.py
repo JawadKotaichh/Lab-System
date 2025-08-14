@@ -233,15 +233,15 @@ async def get_result_list(
             {
                 "$match": {
                     "visit.patient_id": db_patient.id,
-                    "visit.date": {"$lt": db_visit.date},
+                    "visit.visit_date": {"$lt": db_visit.visit_date},
                 }
             },
-            {"$sort": {"visit.date": -1}},
+            {"$sort": {"visit.visit_date": -1}},
             {
                 "$group": {
                     "_id": "$lab_test_type_id",
                     "prev_result": {"$first": "$result"},
-                    "prev_date": {"$first": "$visit.date"},
+                    "prev_date": {"$first": "$visit.visit_date"},
                 }
             },
         ]
@@ -256,6 +256,9 @@ async def get_result_list(
     panels_to_list_of_tests = defaultdict(list)
 
     for test_result in current_results:
+        if not test_result.result or not test_result.result.strip():
+            continue
+
         db_lab_test_type = await DBLab_test_type.find_one(
             DBLab_test_type.id == test_result.lab_test_type_id
         )
@@ -338,7 +341,8 @@ async def get_result_list(
         DOB=db_patient.DOB,
     )
     return resultListData(
-        visit_date=db_visit.date,
+        report_date=db_visit.report_date,
+        visit_date=db_visit.visit_date,
         patient=patient,
         visit_id=visit_id,
         list_of_standalone_test_results=list_of_standalone_test_results,

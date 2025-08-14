@@ -86,6 +86,7 @@ export type paginatedMixedVisitResults = {
 };
 export type resultListData = {
   visit_date: Date;
+  report_date: Date;
   patient: patientInfo;
   visit_id: string;
   list_of_standalone_test_results: patientTestResult[];
@@ -315,6 +316,7 @@ export type paginatedVisitData = {
 export type visitData = {
   visit_id: string;
   visit_date: Date;
+  report_date: Date;
   patient: patientInfo;
   completed_tests_results: number;
   total_tests_results: number;

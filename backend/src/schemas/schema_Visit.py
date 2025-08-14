@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field, model_validator
 from datetime import datetime
 from ..schemas.schema_Patient import Patient
 from typing import List
@@ -9,7 +9,8 @@ from ..schemas.schema_Lab_Panel import Lab_Panel
 
 class Visit(BaseModel):
     patient_id: str
-    date: datetime = Field(...)
+    visit_date: datetime = Field(...)
+    report_date: datetime | None = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -17,15 +18,22 @@ class Visit(BaseModel):
         json_schema_extra={
             "example": {
                 "patient_id": "682f96b6b102ec8900f41b2a",
-                "date": "1995-01-15T00:00:00",
+                "visit_date": "1995-01-15T00:00:00",
             }
         },
     )
+
+    @model_validator(mode="before")
+    def set_report_date(cls, values):
+        if values.get("report_date") is None and values.get("visit_date") is not None:
+            values["report_date"] = values["visit_date"]
+        return values
 
 
 class VisitData(BaseModel):
     visit_id: str
     visit_date: datetime
+    report_date: datetime
     patient: Patient
     completed_tests_results: int
     total_tests_results: int
@@ -43,22 +51,6 @@ class visitInvoice(BaseModel):
     patient_insurance_company_rate: float
 
 
-class visitResultTest(BaseModel):
-    name: str
-    result: str
-    unit: str
-    lower_bound: str
-    upper_bound: str
-    lab_panel_name: str | None
-    lab_test_category_name: str
-
-
-class visitResultData(BaseModel):
-    listOfLabTestResults: List[visitResultTest]
-    patient: Patient
-    visit_date: datetime
-
-
 class PaginatedVisitDataList(BaseModel):
     visitsData: List[VisitData]
     TotalNumberOfVisits: int
@@ -66,16 +58,15 @@ class PaginatedVisitDataList(BaseModel):
 
 
 class update_visit_model(BaseModel):
-    # patient_id: Optional[str]
-    date: Optional[datetime]
-
+    visit_date: Optional[datetime] = None
+    report_date: Optional[datetime] = None
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
                 "patient_id": "682b24bc66676a3a442db2f5",
-                "date": "1995-01-15T00:00:00",
+                "visit_date": "1995-01-15T00:00:00",
             }
         },
     )

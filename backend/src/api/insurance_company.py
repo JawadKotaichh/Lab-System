@@ -14,16 +14,6 @@ from beanie import PydanticObjectId
 
 router = APIRouter(prefix="/insurance_company", tags=["insurance_company"])
 
-"""
-    Take offset instead of page number
-    Class Filters : 
-        -> Patient filter w I specify for example name and phone number
-        -> Lab test : name, nssf id, category 
-        -> Visit: 
-    Class Sorting:
-        -> Add arrow up and down and sort
-"""
-
 
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
 async def get_insurance_company_with_page_size(
