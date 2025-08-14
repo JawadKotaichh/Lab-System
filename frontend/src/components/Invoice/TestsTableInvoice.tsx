@@ -8,6 +8,7 @@ const TestsTableInvoice = ({
   total_price,
   patient_insurance_company_rate,
   list_of_lab_panels,
+  discount_percentage,
 }: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
   const testData = list_of_tests.map((t) => [
@@ -61,6 +62,7 @@ const TestsTableInvoice = ({
             ))}
           </View>
         ))}
+
         {panelData.map((panelVals, rowIdx) => (
           <View
             style={[styles.tableRow, { borderBottom: 0.1 }]}
@@ -88,6 +90,7 @@ const TestsTableInvoice = ({
             ))}
           </View>
         ))}
+
         <View style={[styles.tableRow, styles.subTotal]}>
           <View style={styles.subTotalCol}>
             <Text style={[styles.subtotalCellText, { fontWeight: "9000" }]}>
@@ -101,14 +104,27 @@ const TestsTableInvoice = ({
                 { textAlign: "right", fontWeight: "9000" },
               ]}
             >
-              {(total_price * patient_insurance_company_rate).toFixed(2)} $
+              {(
+                total_price * patient_insurance_company_rate -
+                (total_price *
+                  patient_insurance_company_rate *
+                  discount_percentage) /
+                  100
+              ).toFixed(2)}{" "}
+              $
             </Text>
           </View>
         </View>
       </View>
       <View style={[{ textAlign: "center" }, styles.AmountBox]}>
         <Text>
-          {amountToWords(total_price * patient_insurance_company_rate)}
+          {amountToWords(
+            total_price * patient_insurance_company_rate -
+              (total_price *
+                patient_insurance_company_rate *
+                discount_percentage) /
+                100
+          )}
         </Text>
       </View>
     </View>
