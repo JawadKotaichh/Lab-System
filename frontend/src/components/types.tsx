@@ -99,11 +99,13 @@ export type InvoiceWrapperProps = {
   patient: patientInfo;
   visit_date: Date;
   total_price: number;
+  discount_percentage: number;
   patient_insurance_company_rate: number;
   showSignature: boolean;
 };
 export type InvoiceData = {
   visit_id: string;
+  discount_percentage: number;
   list_of_lab_panels: labPanel[];
   list_of_tests: labTest[];
   visit_date: Date;
@@ -118,6 +120,7 @@ export type updateInvoiceData = {
   list_of_lab_panels?: labPanel[];
   visit_id?: string;
   visit_date?: Date;
+  discount_percentage: number;
   patient_insurance_company_rate?: number;
 };
 export type visitResultData = {

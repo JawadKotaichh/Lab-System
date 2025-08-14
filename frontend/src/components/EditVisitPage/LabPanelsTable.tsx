@@ -43,6 +43,7 @@ interface labPanelTableParams {
   >;
   setShowPanelsTable: React.Dispatch<React.SetStateAction<boolean>>;
   setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
+  refreshResults: () => Promise<void>;
 }
 
 const LabPanelsTable: React.FC<labPanelTableParams> = ({
@@ -55,6 +56,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   setPanelResults,
   setStandAloneTestResults,
   setTotalNumberOfTests,
+  refreshResults,
 }: labPanelTableParams) => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
   const [error, setError] = useState<string>("");
@@ -93,7 +95,8 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       setUpdatedInvoiceData(newInvoiceData);
       await updateInvoice(visit_id!, newInvoiceData);
       setShowPanelsTable(false);
-      window.location.reload();
+      void refreshResults();
+      // window.location.reload();
     } catch (err: unknown) {
       console.error("🛑 handleAddLabPanel error:", err);
       let message = "Failed to add lab panel";

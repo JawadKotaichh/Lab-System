@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import BaseModel, Field
 
 from ..schemas.schema_Patient import Patient
 from ..schemas.schema_Lab_Panel import LabPanelResponse
@@ -13,19 +13,10 @@ class Invoice(BaseModel):
     visit_id: str = Field(...)
     visit_date: datetime = Field(...)
     patient_insurance_company_rate: float = Field(...)
+    discount_percentage: float = Field(...)
+
     # total_price_with_insurance: float = Field(...)
     # total_without_insurance: float = Field(...)
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        # json_schema_extra={
-        #     "example": {
-        #         "insurance_company_name": "Bankers",
-        #         "rate": 0.2,
-        #     }
-        # },
-    )
 
 
 class invoiceData(BaseModel):
@@ -39,13 +30,6 @@ class update_invoice(BaseModel):
     visit_id: Optional[str] = None
     visit_date: Optional[datetime] = None
     patient_insurance_company_rate: Optional[float] = None
+    discount_percentage: Optional[float] = None
     # total_price_with_insurance: Optional[float] = None
     # total_without_insurance: Optional[float] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        json_schema_extra={
-            "example": {"insurance_company_name": "Bankers", "rate": 0.2}
-        },
-    )
