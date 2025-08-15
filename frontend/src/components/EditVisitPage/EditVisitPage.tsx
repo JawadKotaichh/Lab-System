@@ -155,8 +155,6 @@ const EditVisitPage: React.FC = () => {
       <Prices
         setUpdatedInvoiceData={setUpdatedInvoiceData}
         patientData={patientData}
-        standAloneTestResults={standAloneTestResults}
-        panelResults={panelResults}
         visit_id={visit_id}
         setError={setError}
         updatedInvoiceData={updatedInvoiceData}

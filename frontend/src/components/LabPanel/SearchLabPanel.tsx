@@ -27,7 +27,6 @@ const SearchLabPanel: React.FC<SearchLabPanelProps> = ({
 }) => {
   const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
 
-  // Debounce search input (500ms delay)
   useEffect(() => {
     const timerId = setTimeout(() => {
       setDebouncedSearch(searchInput);
@@ -36,7 +35,6 @@ const SearchLabPanel: React.FC<SearchLabPanelProps> = ({
     return () => clearTimeout(timerId);
   }, [searchInput]);
 
-  // Fetch search results when debounced value changes
   useEffect(() => {
     const fetchSearchResults = async () => {
       if (!debouncedSearch.trim()) return;

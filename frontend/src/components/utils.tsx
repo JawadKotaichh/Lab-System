@@ -5,8 +5,8 @@ import type {
   insuranceCompanyParams,
   InsuranceFilters,
   lab_test_category_filters,
-  labPanel,
   labPanelFilter,
+  labPanelsWithIdsList,
   labTestCategoryParams,
   labTestFilters,
   monthlySummaryInvoicesParams,
@@ -134,7 +134,7 @@ const fetchLabPanel = async (
 };
 const fetchLabPanelWithTests = async (
   lab_panel_id: string
-): Promise<labPanel> => {
+): Promise<labPanelsWithIdsList> => {
   const url = `${labPanelApiURL}/${lab_panel_id}/test_types`;
   const response = await api.get(url);
   return response.data;

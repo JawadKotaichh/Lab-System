@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import {
-  type patientInfo,
-  type patientPanelResult,
-  type patientTestResult,
-  type updateInvoiceData,
-} from "../types.js";
+import { type patientInfo, type updateInvoiceData } from "../types.js";
 import {
   fetchInvoice,
   getInsuranceCompanyRate,
@@ -18,16 +13,12 @@ interface PricesParams {
   >;
   visit_id: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
-  panelResults: patientPanelResult[];
-  standAloneTestResults: patientTestResult[];
   patientData: patientInfo;
 }
 const Prices: React.FC<PricesParams> = ({
   updatedInvoiceData,
   setError,
   visit_id,
-  standAloneTestResults,
-  panelResults,
   patientData,
   setUpdatedInvoiceData,
 }) => {
@@ -35,40 +26,30 @@ const Prices: React.FC<PricesParams> = ({
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
     useState<number>(0);
   useEffect(() => {
-    const loadPage = async () => {
-      // setLoading(true);
+    const load = async () => {
       setError("");
       try {
-        const testsTotal = standAloneTestResults.reduce(
-          (sum, t) => sum + (Number(t?.lab_test_type?.price) || 0),
+        const tests = updatedInvoiceData.list_of_tests ?? [];
+        const panels = updatedInvoiceData.list_of_lab_panels ?? [];
+
+        const testsTotal = tests.reduce(
+          (sum, t) => sum + (Number(t?.price) || 0),
           0
         );
-
-        const panelsTotal = panelResults.reduce(
+        const panelsTotal = panels.reduce(
           (sum, p) => sum + (Number(p?.lab_panel_price) || 0),
           0
         );
         setTotalPrice(testsTotal + panelsTotal);
-        const patient_insurance_rate = await getInsuranceCompanyRate(
-          patientData.patient_id
-        );
-        setPatientInsuranceCompanyRate(patient_insurance_rate);
+
+        const rate = await getInsuranceCompanyRate(patientData.patient_id);
+        setPatientInsuranceCompanyRate(rate);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       }
-      // finally {
-      //   setLoading(false);
-      // }
     };
-
-    loadPage();
-  }, [
-    panelResults,
-    patientData.patient_id,
-    setError,
-    standAloneTestResults,
-    visit_id,
-  ]);
+    load();
+  }, [updatedInvoiceData, patientData.patient_id, setError]);
 
   const handleDiscountPercentageChange = async (
     newDiscountPercentageStr: string,

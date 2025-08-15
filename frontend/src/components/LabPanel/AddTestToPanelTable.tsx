@@ -8,7 +8,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type { CreateLabPanelParams, labTest } from "../types";
+import type { labPanelsWithIdsList, labTest } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { getLabTestColumns } from "../tableData";
@@ -23,8 +23,8 @@ import GenericTable from "../react-table/GeneralTable";
 
 interface TestsList {
   addError: string;
-  data: CreateLabPanelParams;
-  setData: React.Dispatch<React.SetStateAction<CreateLabPanelParams>>;
+  data: labPanelsWithIdsList;
+  setData: React.Dispatch<React.SetStateAction<labPanelsWithIdsList>>;
   setAddError: React.Dispatch<React.SetStateAction<string>>;
   showAddForLabPanels: boolean;
   setShowAddForLabPanels: React.Dispatch<React.SetStateAction<boolean>>;

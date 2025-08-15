@@ -1,13 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
-import type {
-  CreateLabPanelParams,
-  labTest,
-  labTestCategoryParams,
-} from "../types";
+import React, { useEffect, useState } from "react";
+import type { labPanelsWithIdsList, labTestCategoryParams } from "../types";
 import {
   fetchAllLabTestTypeCategories,
-  fetchLabPanel,
-  fetchLabTestTypePaginated,
+  fetchLabPanelWithTests,
 } from "../utils";
 import {
   inputFormAttributeListItemInput,
@@ -51,113 +46,152 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
     labTestCategoryParams[]
   >([]);
   const navigate = useNavigate();
-  const [labTests, setLabTests] = useState<Record<string, labTest>>({});
-  const [data, setData] = useState<CreateLabPanelParams>({
-    lab_panel_category_id: "",
-    panel_name: "",
-    nssf_id: 0,
-    list_of_test_type_ids: [],
-    lab_panel_price: 0,
+  const [data, setData] = useState<labPanelsWithIdsList>({
+    lab_panel: {
+      lab_tests: [],
+      nssf_id: 0,
+      id: "",
+      panel_name: "",
+      lab_panel_price: 0,
+      lab_panel_category_id: "",
+    },
+    list_of_lab_test_ids: [],
   });
 
   useEffect(() => {
     if (!lab_panel_id) return;
-    fetchLabPanel(lab_panel_id)
+    fetchLabPanelWithTests(lab_panel_id)
       .then((currentPanelData) => {
-        setData({
-          list_of_test_type_ids: currentPanelData.list_of_test_type_ids,
-          panel_name: currentPanelData.panel_name,
-          lab_panel_price: currentPanelData.lab_panel_price,
-          nssf_id: currentPanelData.nssf_id,
-          lab_panel_category_id: currentPanelData.lab_panel_category_id,
-        });
+        setData(currentPanelData);
       })
       .catch((err) => setError(err.message || "Failed to load lab panel"));
   }, [lab_panel_id]);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      fetchLabTestTypePaginated(currentPage, pageSize),
-      fetchAllLabTestTypeCategories(),
-    ])
-      .then(([testData, categoryData]) => {
-        setTotalPages(testData.total_pages);
-        setTotalNumberOfTests(testData.TotalNumberOfTests);
-        const map: Record<string, labTest> = {};
-        testData.lab_tests.forEach((t) => (map[t.lab_test_id] = t));
-        setLabTests(map);
+    fetchAllLabTestTypeCategories()
+      .then((categoryData) => {
         setLabTestCategories(categoryData);
       })
       .catch((err) => setError(err.message || err.toString()))
       .finally(() => setLoading(false));
   }, [currentPage, pageSize]);
 
-  const labTestCategoryById = useMemo(() => {
-    return labTestCategories.reduce<Record<string, string>>((map, c) => {
-      map[c.lab_test_category_id] = c.lab_test_category_name;
-      return map;
-    }, {});
-  }, [labTestCategories]);
+  // useEffect(() => {
+  //   setLoading(true);
+  //   Promise.all([
+  //     fetchLabTestTypePaginated(currentPage, pageSize),
+  //     fetchAllLabTestTypeCategories(),
+  //   ])
+  //     .then(([testData, categoryData]) => {
+  //       setTotalPages(testData.total_pages);
+  //       setTotalNumberOfTests(testData.TotalNumberOfTests);
+  //       setLabTestCategories(categoryData);
+  //     })
+  //     .catch((err) => setError(err.message || err.toString()))
+  //     .finally(() => setLoading(false));
+  // }, [currentPage, pageSize]);
 
   const handleEditTest = (lab_test_id: string) => {
     navigate(`${labTestEditPageURL}${lab_test_id}`);
   };
 
-  const handleRemoveLabTest = (lab_test_id: string) => {
+  const handleRemoveLabTest = async (lab_test_id: string) => {
+    const nextIds = data.list_of_lab_test_ids.filter(
+      (id) => id !== lab_test_id
+    );
+    const prevData = data;
     setData((prev) => ({
       ...prev,
-      list_of_test_type_ids: prev.list_of_test_type_ids.filter(
-        (id) => id !== lab_test_id
-      ),
+      list_of_lab_test_ids: nextIds,
+      lab_panel: {
+        ...prev.lab_panel,
+        lab_tests: (prev.lab_panel.lab_tests ?? []).filter(
+          (t) => t.lab_test_id !== lab_test_id
+        ),
+      },
     }));
+
+    if (!lab_panel_id) return;
+
+    try {
+      await api.put(`${labPanelApiURL}/${lab_panel_id}`, {
+        list_of_test_type_ids: nextIds,
+      });
+    } catch (err: unknown) {
+      setData(prevData);
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
   };
   const handlePanelNameChange = (value: string) => {
     setData((prev) => ({
       ...prev,
-      panel_name: value,
+      lab_panel: { ...prev.lab_panel, panel_name: value },
     }));
   };
   const handlePanelPriceChange = (value: number) => {
     setData((prev) => ({
       ...prev,
-      lab_panel_price: value,
+      lab_panel: { ...prev.lab_panel, lab_panel_price: value },
     }));
   };
   const handlePanelNssfIDChange = (value: number) => {
-    setData((prev) => ({ ...prev, nssf_id: value }));
+    setData((prev) => ({
+      ...prev,
+      lab_panel: { ...prev.lab_panel, nssf_id: value },
+    }));
   };
+
   const handleCategoryChange = (value: string) => {
-    setData((prev) => ({ ...prev, lab_panel_category_id: value }));
+    setData((prev) => ({
+      ...prev,
+      lab_panel: { ...prev.lab_panel, lab_panel_category_id: value },
+    }));
   };
   const handleAddButton = () => setShow(true);
 
   const handleSave = async () => {
     if (
-      !data.panel_name ||
-      data.list_of_test_type_ids.length === 0 ||
-      !data.lab_panel_price ||
-      !data.lab_panel_category_id ||
-      !data.nssf_id
+      !data.lab_panel.panel_name ||
+      data.list_of_lab_test_ids.length === 0 ||
+      !data.lab_panel.lab_panel_price ||
+      !data.lab_panel.lab_panel_category_id ||
+      !data.lab_panel.nssf_id
     ) {
       setState("Please insert all the required fields!");
       return;
     }
     try {
       if (lab_panel_id) {
-        await api.put(`${labPanelApiURL}/${lab_panel_id}`, data);
+        await api.put(`${labPanelApiURL}/${lab_panel_id}`, {
+          panel_name: data.lab_panel.panel_name,
+          nssf_id: data.lab_panel.nssf_id,
+          lab_panel_price: data.lab_panel.lab_panel_price,
+          list_of_test_type_ids: data.list_of_lab_test_ids,
+          lab_panel_category_id: data.lab_panel.lab_panel_category_id,
+        });
       } else {
-        await api.post(labPanelApiURL, data);
+        await api.post(labPanelApiURL, {
+          panel_name: data.lab_panel.panel_name,
+          nssf_id: data.lab_panel.nssf_id,
+          lab_panel_price: data.lab_panel.lab_panel_price,
+          list_of_test_type_ids: data.list_of_lab_test_ids,
+          lab_panel_category_id: data.lab_panel.lab_panel_category_id,
+        });
       }
       navigate(labPanelMainPageURL);
     } catch (err) {
       console.error(err);
     }
   };
-
   if (loading) return <div className="p-4">Loading lab categories...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   console.log("Data: ", data);
+  console.log("lab_panel_id: ", lab_panel_id);
+
   return (
     <div className="p-8 bg-white">
       <h1 className={inputFormTitle}>{title}</h1>
@@ -168,7 +202,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         <input
           className={inputFormAttributeListItemInput + " w-fit"}
           type={"text"}
-          value={data.panel_name || ""}
+          value={data.lab_panel.panel_name || ""}
           placeholder={"Enter Lab Panel Name"}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
@@ -176,13 +210,13 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           onChange={(e) => handlePanelNameChange(e.target.value)}
         />
         <label className={inputFormAttributeListItemLabel + " p-3"}>
-          <span className="text-xl mr-5">Price: $</span>
+          <span className="text-xl mr-5">L:</span>
         </label>
         <input
           className={inputFormAttributeListItemInput + " w-fit"}
           type={"number"}
-          value={data.lab_panel_price || 0}
-          placeholder={"Enter Lab Panel price"}
+          value={data.lab_panel.lab_panel_price || 0}
+          placeholder={"Enter Lab Panel L"}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
@@ -194,7 +228,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         <input
           className={inputFormAttributeListItemInput + " w-fit"}
           type={"number"}
-          value={data.nssf_id || 0}
+          value={data.lab_panel.nssf_id || 0}
           placeholder={"Enter Lab Panel nssf Id"}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
@@ -206,7 +240,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         </label>
         <select
           className={inputFormAttributeListItemInput}
-          value={data.lab_panel_category_id || ""}
+          value={data.lab_panel.lab_panel_category_id || ""}
           onChange={(e) => handleCategoryChange(e.target.value)}
         >
           <option value="" disabled>
@@ -232,18 +266,13 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           totalPages={totalPages}
           setCurrentPage={setCurrentPage}
         />
-        <span>
-          {data.list_of_test_type_ids.length === 0
-            ? "No tests in this panel yet."
-            : ""}
-        </span>
 
         <button className={tableHandleButton} onClick={handleAddButton}>
           Add Test
         </button>
       </div>
 
-      {data.list_of_test_type_ids.length > 0 && (
+      {data.lab_panel.lab_tests.length > 0 && (
         <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
           <thead>
             <tr>
@@ -251,22 +280,19 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
               <th className={tableItemPanel}>Lab Test</th>
               <th className={tableItemPanel}>Category</th>
               <th className={tableItemPanel}>Unit</th>
-              <th className={tableItemPanel}>Price</th>
+              <th className={tableItemPanel}>L</th>
               <th className={tableItemPanel}>Normal Value</th>
               <th className={tableItemPanel}>Edit</th>
               <th className={tableItemPanel}>Remove</th>
             </tr>
           </thead>
           <tbody>
-            {data.list_of_test_type_ids.map((id) => {
-              const t = labTests[id]!;
+            {data.lab_panel.lab_tests.map((t) => {
               return (
-                <tr key={id}>
+                <tr key={t.lab_test_id}>
                   <td className={tableItem}>{t.nssf_id}</td>
                   <td className={tableItem}>{t.name}</td>
-                  <td className={tableItem}>
-                    {labTestCategoryById[t.lab_test_category_id]}
-                  </td>
+                  <td className={tableItem}>{t.lab_test_category_name}</td>
                   <td className={tableItem}>{t.unit}</td>
                   <td className={tableItem}>{t.price}</td>
                   <td className={tableItem}>
@@ -281,7 +307,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
                   <td className={tableItem}>
                     <button
                       className={tableHandleButton}
-                      onClick={() => handleEditTest(id)}
+                      onClick={() => handleEditTest(t.lab_test_id)}
                     >
                       Edit
                     </button>
@@ -289,7 +315,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
                   <td className={tableItem}>
                     <button
                       className={tableDeleteButton}
-                      onClick={() => handleRemoveLabTest(id)}
+                      onClick={() => handleRemoveLabTest(t.lab_test_id)}
                     >
                       Remove
                     </button>
@@ -316,6 +342,11 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         Save
       </button>
       <h1 className={stateStyle}>{state}</h1>
+      <span>
+        {data.list_of_lab_test_ids.length === 0
+          ? "No tests in this panel yet."
+          : ""}
+      </span>
     </div>
   );
 };

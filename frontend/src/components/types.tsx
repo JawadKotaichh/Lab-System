@@ -1,3 +1,6 @@
+export type description_only = {
+  description?: string;
+};
 export type upper_bound_only = {
   description?: string;
   upper_bound_value: number;
@@ -20,11 +23,13 @@ export type positive_or_negative = {
 export type normal_value_by_gender = {
   description?: string;
   male_normal_value_type:
+    | description_only
     | upper_and_lower_bound_only
     | positive_or_negative
     | upper_bound_only
     | lower_bound_only;
   female_normal_value_type:
+    | description_only
     | upper_and_lower_bound_only
     | positive_or_negative
     | upper_bound_only
@@ -32,6 +37,7 @@ export type normal_value_by_gender = {
 };
 
 export type NV =
+  | description_only
   | upper_and_lower_bound_only
   | upper_bound_only
   | lower_bound_only
@@ -39,6 +45,7 @@ export type NV =
   | normal_value_by_gender;
 
 export type NVPartial =
+  | Partial<description_only>
   | Partial<upper_and_lower_bound_only>
   | Partial<upper_bound_only>
   | Partial<lower_bound_only>
@@ -46,6 +53,7 @@ export type NVPartial =
   | Partial<normal_value_by_gender>;
 
 export type NVType =
+  | "description_only"
   | "upper_and_lower_bound_only"
   | "upper_bound_only"
   | "lower_bound_only"
@@ -53,6 +61,7 @@ export type NVType =
   | "normal_value_by_gender";
 
 export type GenderNV =
+  | description_only
   | upper_and_lower_bound_only
   | upper_bound_only
   | lower_bound_only
@@ -172,6 +181,10 @@ export type paginatedVisitResults = {
   TotalNumberOfLabTestResults: number;
   total_pages: number;
 };
+export type labPanelsWithIdsList = {
+  lab_panel: labPanel;
+  list_of_lab_test_ids: string[];
+};
 
 export type labTest = {
   lab_test_id: string;
@@ -195,6 +208,7 @@ export type labPanel = {
   panel_name: string;
   lab_tests: labTest[];
   lab_panel_price?: number;
+  lab_panel_category_id?: string;
 };
 export type CreateLabTestParams = {
   lab_test_category_id: string;
@@ -203,6 +217,7 @@ export type CreateLabTestParams = {
   unit: string;
   price: number;
   normal_value_list: (
+    | description_only
     | upper_and_lower_bound_only
     | upper_bound_only
     | lower_bound_only
@@ -278,6 +293,7 @@ export interface CreateLabTestType {
   unit: string;
   price: number;
   normal_value_list:
+    | description_only
     | upper_and_lower_bound_only
     | upper_bound_only
     | lower_bound_only

@@ -13,6 +13,7 @@ from .schemas.schema_Lab_Test_Type import (
     PositiveOrNegative,
     UpperAndLowerBound,
     UpperBoundOnly,
+    DescriptionOnly,
     LowerBoundOnly,
 )
 
@@ -47,6 +48,7 @@ class lab_test_type(Document):
     price: int = Field(...)
     normal_value_list: List[
         Union[
+            DescriptionOnly,
             NormalValueByGender,
             UpperBoundOnly,
             LowerBoundOnly,

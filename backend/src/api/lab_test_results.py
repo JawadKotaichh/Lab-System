@@ -537,7 +537,7 @@ async def delete_lab_panel_result(visit_id: str, lab_panel_id: str):
             detail=f"Lab panel of id: {lab_panel_id} not found",
         )
     lab_test_results_to_be_deleted = DBLab_test_result.find(
-        DBLab_test_result.lab_panel_id == lab_panel_id,
+        DBLab_test_result.lab_panel_id == PydanticObjectId(lab_panel_id),
         DBLab_test_result.visit_id == PydanticObjectId(visit_id),
     )
     await lab_test_results_to_be_deleted.delete()

@@ -5,7 +5,7 @@ from ..models import lab_test_category as DBLab_test_category
 from ..schemas.schema_Lab_Panel import (
     Lab_Panel,
     LabPanelResponseTestsIDs,
-    LabPanelResponseTestsTypes,
+    LabPanelWithIdsListOut,
     update_Lab_Panel_model,
     LabPanelResponse,
     LabPanelPaginatedResponse,
@@ -223,7 +223,7 @@ async def getLabPanelWithListOfIDs(lab_panel_id: str):
     return output
 
 
-@router.get("/{lab_panel_id}/test_types", response_model=LabPanelResponseTestsTypes)
+@router.get("/{lab_panel_id}/test_types", response_model=LabPanelWithIdsListOut)
 async def getLabPanelWithListOfTests(lab_panel_id: str):
     if not PydanticObjectId.is_valid(lab_panel_id):
         raise HTTPException(
@@ -237,6 +237,9 @@ async def getLabPanelWithListOfTests(lab_panel_id: str):
         )
 
     testsList: List[Lab_test_type] = []
+    testsIdsList: List[str] = []
+    for test_type_id in db_lab_panel.list_of_test_type_ids:
+        testsIdsList.append(str(test_type_id))
     for test_type_id in db_lab_panel.list_of_test_type_ids:
         db_lab_test = await DBLab_test_type.find_one(DBLab_test_type.id == test_type_id)
         if not db_lab_test:
@@ -263,14 +266,16 @@ async def getLabPanelWithListOfTests(lab_panel_id: str):
             normal_value_list=db_lab_test.normal_value_list,
         )
         testsList.append(lab_test)
-
-    output: LabPanelResponseTestsTypes = LabPanelResponseTestsTypes(
-        lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
-        nssf_id=db_lab_panel.nssf_id,
+    lab_panel_response: LabPanelResponse = LabPanelResponse(
         id=str(db_lab_panel.id),
+        nssf_id=db_lab_panel.nssf_id,
         panel_name=db_lab_panel.panel_name,
-        lab_tests=testsList,
         lab_panel_price=db_lab_panel.lab_panel_price,
+        lab_tests=testsList,
+        lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
+    )
+    output: LabPanelWithIdsListOut = LabPanelWithIdsListOut(
+        lab_panel=lab_panel_response, list_of_lab_test_ids=testsIdsList
     )
     return output
 

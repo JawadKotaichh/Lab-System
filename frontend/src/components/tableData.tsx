@@ -2,8 +2,8 @@ import React from "react";
 import { tableHandleButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
 import type {
-  CreateLabPanelParams,
   insuranceCompanyParams,
+  labPanelsWithIdsList,
   labTest,
   labTestCategoryParams,
   lower_bound_only,
@@ -290,8 +290,8 @@ export function getLabTestColumns(
   showAdd: boolean,
   showAddForLabPanels?: boolean,
   setShowAddForLabPanels?: React.Dispatch<React.SetStateAction<boolean>>,
-  data?: CreateLabPanelParams,
-  setData?: React.Dispatch<React.SetStateAction<CreateLabPanelParams>>,
+  data?: labPanelsWithIdsList,
+  setData?: React.Dispatch<React.SetStateAction<labPanelsWithIdsList>>,
   setAddError?: React.Dispatch<React.SetStateAction<string>>,
   pagination?: PaginationState,
   setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>,
@@ -473,6 +473,7 @@ export function getLabTestColumns(
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
         const { lab_test_id } = row.original;
+
         const items: {
           label: string;
           onClick: () => void;
@@ -534,6 +535,7 @@ export function getLabTestColumns(
             onClick: () =>
               handleAdd({
                 lab_test_id,
+                lab_test: row.original,
                 data,
                 setAddError,
                 setShowAddForLabPanels,
