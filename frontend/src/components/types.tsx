@@ -59,6 +59,12 @@ export type GenderNV =
   | positive_or_negative;
 export type GenderType = Exclude<NVType, "normal_value_by_gender">;
 
+export type monthlySummaryInvoicesParams = {
+  insurance_company_id: string;
+  start_date: Date;
+  end_date: Date;
+};
+
 export type patientTestResult = {
   lab_test_result_id: string;
   lab_test_type: labTest;

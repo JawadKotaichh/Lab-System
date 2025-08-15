@@ -25,6 +25,12 @@ class invoiceData(BaseModel):
     invoice_data: Invoice
 
 
+class monthlySummaryInvoicesParams(BaseModel):
+    insurance_company_id: str
+    start_date: datetime
+    end_date: datetime
+
+
 class update_invoice(BaseModel):
     list_of_tests: Optional[List[Lab_test_type]] = None
     list_of_lab_panels: Optional[List[LabPanelResponse]] = None
