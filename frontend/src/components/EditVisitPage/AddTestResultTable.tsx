@@ -8,12 +8,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type {
-  labTest,
-  patientPanelResult,
-  patientTestResult,
-  updateInvoiceData,
-} from "../types";
+import type { labTest, patientPanelResult, patientTestResult } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { getLabTestColumns } from "../tableData";
@@ -27,10 +22,10 @@ import {
 import GenericTable from "../react-table/GeneralTable";
 
 interface TestsList {
-  updatedInvoiceData: updateInvoiceData;
-  setUpdatedInvoiceData: React.Dispatch<
-    React.SetStateAction<updateInvoiceData>
-  >;
+  // updatedInvoiceData: updateInvoiceData;
+  // setUpdatedInvoiceData: React.Dispatch<
+  //   React.SetStateAction<updateInvoiceData>
+  // >;
   addError: string;
   showTestsTable: boolean;
   error: string;
@@ -62,10 +57,10 @@ const AddTestResultTable: React.FC<TestsList> = ({
   showAdd,
   error,
   setError,
-  updatedInvoiceData,
+  // updatedInvoiceData,
   refreshResults,
-  setUpdatedInvoiceData,
-}: TestsList) => {
+}: // setUpdatedInvoiceData,
+TestsList) => {
   const [data, setData] = useState<labTest[]>([]);
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
@@ -109,8 +104,6 @@ const AddTestResultTable: React.FC<TestsList> = ({
     standAloneTestResults,
     setStandAloneTestResults,
     refreshResults,
-    updatedInvoiceData,
-    setUpdatedInvoiceData,
     showTestsTable,
     setShowTestsTable,
     setTotalPages,
