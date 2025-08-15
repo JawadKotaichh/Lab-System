@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
-import type {
-  labPanel,
-  patientPanelResult,
-  patientTestResult,
-  updateInvoiceData,
-} from "../types";
+import type { labPanel, patientPanelResult, patientTestResult } from "../types";
 import {
   fetchLabPanelsPaginated,
-  fetchLabPanelWithTests,
   fetchLabTestResultsAndPanelsPaginated,
-  updateInvoice,
+  rebuildInvoice,
 } from "../utils";
 import {
   pageListTitle,
@@ -33,10 +27,10 @@ interface labPanelTableParams {
   pagination: PaginationState;
   visit_id: string;
   showPanelsTable: boolean;
-  updatedInvoiceData: updateInvoiceData;
-  setUpdatedInvoiceData: React.Dispatch<
-    React.SetStateAction<updateInvoiceData>
-  >;
+  // updatedInvoiceData: updateInvoiceData;
+  // setUpdatedInvoiceData: React.Dispatch<
+  //   React.SetStateAction<updateInvoiceData>
+  // >;
   setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
   setStandAloneTestResults: React.Dispatch<
     React.SetStateAction<patientTestResult[]>
@@ -50,8 +44,8 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   visit_id,
   showPanelsTable,
   setShowPanelsTable,
-  updatedInvoiceData,
-  setUpdatedInvoiceData,
+  // updatedInvoiceData,
+  // setUpdatedInvoiceData,
   pagination,
   setPanelResults,
   setStandAloneTestResults,
@@ -82,18 +76,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       setPanelResults(res.list_of_panel_results);
       setTotalPages(res.total_pages);
       setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
-      const fetchedPanels = await Promise.all(
-        res.list_of_panel_results.map((p) =>
-          fetchLabPanelWithTests(p.lab_panel_id)
-        )
-      );
-      console.log("fetchedPanels: ", fetchedPanels);
-      const newInvoiceData: updateInvoiceData = {
-        ...updatedInvoiceData,
-        list_of_lab_panels: fetchedPanels,
-      };
-      setUpdatedInvoiceData(newInvoiceData);
-      await updateInvoice(visit_id!, newInvoiceData);
+      rebuildInvoice(visit_id);
       setShowPanelsTable(false);
       void refreshResults();
       // window.location.reload();
