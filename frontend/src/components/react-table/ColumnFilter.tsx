@@ -24,7 +24,7 @@ export function ColumnFilter<TData, TValue>({
 }) {
   const initial = (column.getFilterValue() as string) ?? "";
   const [draft, setDraft] = useState(initial);
-  const debounced = useDebounce(draft, 500);
+  const debounced = useDebounce(draft, 1000);
 
   useEffect(() => {
     const current = (column.getFilterValue() as string) ?? "";
