@@ -1,9 +1,13 @@
 from collections import defaultdict
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
-
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import Invoice as DBInvoice
-from ..schemas.schema_Invoice import Invoice, invoiceData, update_invoice
+from ..schemas.schema_Invoice import (
+    Invoice,
+    invoiceData,
+    update_invoice,
+)
 from ..schemas.schema_Patient import Patient
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -26,6 +30,107 @@ from ..models import lab_test_type as DBLab_test_type
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
 
+# def get_total_price(
+#     listOfLabTests: List[Lab_test_type], listOfLabPanels: List[LabPanelResponse]
+# ):
+#     total_price = 0.0
+#     for test in listOfLabTests:
+#         total_price += test.price
+#     for panel in listOfLabPanels:
+#         total_price += panel.lab_panel_price
+#     return total_price
+
+
+@router.get(
+    "/{insurance_company_id}/get_monthly_summary", response_model=List[invoiceData]
+)
+async def get_monthly_summary_invoice(
+    insurance_company_id: str,
+    start_date: datetime = Query(...),
+    end_date: datetime = Query(...),
+):
+    if not PydanticObjectId.is_valid(insurance_company_id):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid insurance company ID: {insurance_company_id}",
+        )
+    if end_date < start_date:
+        raise HTTPException(status_code=400, detail="end_date must be >= start_date")
+    filters = {
+        "insurance_company_id": PydanticObjectId(insurance_company_id),
+        "visit_date": {"$gte": start_date, "$lte": end_date},
+    }
+    all_invoices = DBInvoice.find(filters)
+
+    listOfInvoices: List[invoiceData] = []
+    async for invoice in all_invoices:
+        db_visit = await DBVisit.get(invoice.visit_id)
+        if not db_visit:
+            raise HTTPException(
+                status_code=400, detail=f"Visit Id:{invoice.visit_id} not found!"
+            )
+        db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+        if not db_patient:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Patient of ID: {db_visit.patient_id} not found!",
+            )
+
+        db_insurance_company = await DBInsurance_company.find_one(
+            DBInsurance_company.id == db_patient.insurance_company_id
+        )
+        if not db_insurance_company:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insurance Company of ID: {db_patient.insurance_company_id} not found!",
+            )
+        patient_insurance_company_rate = db_insurance_company.rate
+        currentPatient = Patient(
+            insurance_company_name=db_insurance_company.insurance_company_name,
+            DOB=db_patient.DOB,
+            patient_id=str(db_patient.id),
+            name=db_patient.name,
+            gender=db_patient.gender,
+            phone_number=db_patient.phone_number,
+            insurance_company_id=str(db_patient.insurance_company_id),
+        )
+        list_of_test_types: List[Lab_test_type] = []
+        for test in invoice.list_of_tests:
+            db_category = await DBlab_test_category.find_one(
+                DBlab_test_category.id == PydanticObjectId(test.lab_test_category_id)
+            )
+            if db_category is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Lab Test category {test.lab_test_category_id} not found",
+                )
+            lab_test = Lab_test_type(
+                lab_test_id=test.id,
+                lab_test_category_name=db_category.lab_test_category_name,
+                nssf_id=test.nssf_id,
+                lab_test_category_id=str(test.lab_test_category_id),
+                name=test.name,
+                unit=test.unit,
+                price=test.price,
+                normal_value_list=test.normal_value_list,
+            )
+            list_of_test_types.append(lab_test)
+        current_invoice = Invoice(
+            discount_percentage=invoice.discount_percentage,
+            insurance_company_id=str(invoice.insurance_company_id),
+            list_of_tests=list_of_test_types,
+            list_of_lab_panels=invoice.list_of_lab_panels,
+            visit_date=invoice.visit_date,
+            patient_insurance_company_rate=patient_insurance_company_rate,
+            visit_id=str(db_visit.id),
+        )
+        current_invoice_data = invoiceData(
+            patient=currentPatient, invoice_data=current_invoice
+        )
+        listOfInvoices.append(current_invoice_data)
+    return listOfInvoices
+
+
 @router.put("/{visit_id}/update_invoice", response_model=DBInvoice)
 async def update_current_invoice(visit_id: str, update_data: update_invoice):
     if not PydanticObjectId.is_valid(visit_id):
@@ -35,10 +140,7 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         raise HTTPException(
             status_code=400, detail=f"Visit of Id:{visit_id} not found!"
         )
-    existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
 
-    # if not existing_invoice:
-    #     await create_invoice(visit_id=visit_id,)
     existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
