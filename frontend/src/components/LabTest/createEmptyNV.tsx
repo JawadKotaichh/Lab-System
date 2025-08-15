@@ -10,6 +10,11 @@ const createEmptyNormalValues = (t: NVType): NV => {
       return { description: "", lower_bound_value: 0 };
     case "positive_or_negative":
       return { description: "", normal_value: "" };
+    case "description_only": {
+      return {
+        description: "",
+      };
+    }
     case "normal_value_by_gender": {
       const inner: upper_and_lower_bound_only = {
         description: "",

@@ -83,7 +83,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
           <th className="h-8 px-0 py-2">Test</th>
           <th className="h-8 px-0 py-2">Result</th>
           <th className="h-8 px-0 py-2">Unit</th>
-          <th className="h-8 px-0 py-2">Price</th>
+          <th className="h-8 px-0 py-2">L</th>
           <th className="h-8 px-0 py-2">Normal Value</th>
           <th className="h-8 px-0 py-2">Remove</th>
         </tr>
@@ -122,7 +122,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 {r.lab_test_type.unit}
               </td>
               <td className="border rounded-b-sm  px-4 py-2">
-                ${r.lab_test_type.price.toFixed(2)}
+                {r.lab_test_type.price}
               </td>
               <td className="border rounded-b-sm  px-4 py-2">
                 {r.lab_test_type.normal_value_list?.length ? (
@@ -147,9 +147,13 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
         {panelResults.map((panel) => (
           <>
             <tr>
-              <td className="border rounded-b-sm px-4 py-2" colSpan={6}>
+              <td className="border rounded-b-sm px-4 py-2" colSpan={4}>
                 {panel.lab_panel_name}
               </td>
+              <td className="border rounded-b-sm px-4 py-2">
+                {panel.lab_panel_price}
+              </td>
+              <td></td>
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
@@ -187,9 +191,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 <td className="border rounded-b-sm px-4 py-2">
                   {r.lab_test_type.unit}
                 </td>
-                <td className="border rounded-b-sm  px-4 py-2">
-                  ${panel.lab_panel_price.toFixed(2)}
-                </td>
+                <td></td>
                 <td className="border rounded-b-sm  px-4 py-2">
                   {r.lab_test_type.normal_value_list?.length ? (
                     r.lab_test_type.normal_value_list.map((nv, i) => (

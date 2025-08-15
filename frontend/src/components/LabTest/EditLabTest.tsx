@@ -176,7 +176,6 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
     if (
       data.name.trim() === "" ||
       data.lab_test_category_id.trim() === "" ||
-      data.unit.trim() === "" ||
       !Number.isFinite(data.price) ||
       !Number.isFinite(data.nssf_id)
     ) {
@@ -294,6 +293,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
             <option value="lower_bound_only">Lower Bound Only</option>
             <option value="positive_or_negative">Positive / Negative</option>
             <option value="normal_value_by_gender">By Gender</option>
+            <option value="description_only">Description Only</option>
           </select>
           <button
             type="button"
@@ -336,6 +336,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
                         Positive / Negative
                       </option>
                       <option value="normal_value_by_gender">By Gender</option>
+                      <option value="description_only">Description Only</option>
                     </select>
                   </div>
 

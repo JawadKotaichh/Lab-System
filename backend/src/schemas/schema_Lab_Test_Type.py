@@ -3,6 +3,10 @@ from pydantic import ConfigDict, BaseModel, Field
 from typing import Union
 
 
+class DescriptionOnly(BaseModel):
+    description: Optional[str]
+
+
 class UpperBoundOnly(BaseModel):
     description: Optional[str]
     upper_bound_value: float
@@ -44,6 +48,7 @@ class Lab_test_type(BaseModel):
     price: int = Field(...)
     normal_value_list: List[
         Union[
+            DescriptionOnly,
             NormalValueByGender,
             UpperBoundOnly,
             LowerBoundOnly,
@@ -77,6 +82,7 @@ class update_Lab_test_type_model(BaseModel):
     normal_value_list: Optional[
         List[
             Union[
+                DescriptionOnly,
                 NormalValueByGender,
                 UpperBoundOnly,
                 LowerBoundOnly,

@@ -45,6 +45,12 @@ class LabPanelResponseTestsTypes(BaseModel):
     lab_panel_price: float
     lab_tests: List[Lab_test_type]
     lab_panel_category_id: str
+    list_of_test_type_ids: List[str]
+
+
+class LabPanelWithIdsListOut(BaseModel):
+    lab_panel: LabPanelResponse
+    list_of_lab_test_ids: List[str]
 
 
 class LabPanelPaginatedResponse(BaseModel):

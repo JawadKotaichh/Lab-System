@@ -106,7 +106,7 @@ const LabPanelsList = () => {
                           {lp.panel_name}
                         </span>
                         <span className="font-bold text-xl text-left">
-                          Price: {lp.lab_panel_price} $
+                          L: {lp.lab_panel_price}
                         </span>
                         <span className="font-bold text-xl text-left">
                           Nssf Id: {lp.nssf_id}
@@ -133,34 +133,32 @@ const LabPanelsList = () => {
                     <th className={tableItemPanel}>Lab Test</th>
                     <th className={tableItemPanel}>Category</th>
                     <th className={tableItemPanel}>Unit</th>
-                    <th className={tableItemPanel}>Price</th>
+                    <th className={tableItemPanel}>L</th>
                     <th className={tableItemPanel}>Normal Value</th>
                   </tr>
 
                   {lp.lab_tests.map((test) => {
                     return (
-                      <>
-                        <tr>
-                          <React.Fragment key={test.lab_test_id}>
-                            <td className={tableItem}>{test.nssf_id}</td>
-                            <td className={tableItem}>{test.name}</td>
-                            <td className={tableItem}>
-                              {test.lab_test_category_name}
-                            </td>
-                            <td className={tableItem}>{test.unit}</td>
-                            <td className={tableItem}>{test.price}</td>
-                            <td className={tableItem}>
-                              {test.normal_value_list?.length ? (
-                                test.normal_value_list.map((nv, i) => (
-                                  <div key={i}>{renderNormalValue(nv)}</div>
-                                ))
-                              ) : (
-                                <span className="text-gray-400">—</span>
-                              )}
-                            </td>
-                          </React.Fragment>
-                        </tr>
-                      </>
+                      <tr>
+                        <React.Fragment key={test.lab_test_id}>
+                          <td className={tableItem}>{test.nssf_id}</td>
+                          <td className={tableItem}>{test.name}</td>
+                          <td className={tableItem}>
+                            {test.lab_test_category_name}
+                          </td>
+                          <td className={tableItem}>{test.unit}</td>
+                          <td className={tableItem}>{test.price}</td>
+                          <td className={tableItem}>
+                            {test.normal_value_list?.length ? (
+                              test.normal_value_list.map((nv, i) => (
+                                <div key={i}>{renderNormalValue(nv)}</div>
+                              ))
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                        </React.Fragment>
+                      </tr>
                     );
                   })}
                 </React.Fragment>
