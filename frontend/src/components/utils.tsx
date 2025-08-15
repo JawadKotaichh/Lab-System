@@ -42,6 +42,16 @@ const fetchVisit = async (visit_id: string): Promise<visitData> => {
   return response.data;
 };
 // Invoice
+const rebuildInvoice = async (
+  visit_id: string
+): Promise<fetchedInvoiceData> => {
+  const url = `${invoicesApiURL}/${visit_id}/rebuild_invoice`;
+  const response = await api.get(url);
+  return response.data;
+};
+const create_invoice = async (visit_id: string, patient: patientInfo) => {
+  await api.post(`${invoicesApiURL}/${visit_id}/create_empty_invoice`, patient);
+};
 const fetchInvoice = async (visit_id: string): Promise<fetchedInvoiceData> => {
   const url = `${invoicesApiURL}/${visit_id}/fetch_invoice`;
   const response = await api.get(url);
@@ -257,3 +267,5 @@ export { updateInvoice };
 export { fetchLabTestResultsAndPanelsPaginated };
 export { fetchVisit };
 export { getInsuranceCompanyRate };
+export { rebuildInvoice };
+export { create_invoice };

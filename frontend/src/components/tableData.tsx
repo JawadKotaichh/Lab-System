@@ -12,7 +12,6 @@ import type {
   patientPanelResult,
   patientTestResult,
   positive_or_negative,
-  updateInvoiceData,
   upper_and_lower_bound_only,
   upper_bound_only,
   visitData,
@@ -304,10 +303,6 @@ export function getLabTestColumns(
     React.SetStateAction<patientTestResult[]>
   >,
   onAddedRefresh?: () => Promise<void>,
-  updatedInvoiceData?: updateInvoiceData,
-  setUpdatedInvoiceData?: React.Dispatch<
-    React.SetStateAction<updateInvoiceData>
-  >,
   showTestsTable?: boolean,
   setShowTestsTable?: React.Dispatch<React.SetStateAction<boolean>>,
   setTotalPages?: React.Dispatch<React.SetStateAction<number>>,
@@ -508,8 +503,6 @@ export function getLabTestColumns(
                 );
               }
               handleAddLabTest({
-                updatedInvoiceData,
-                setUpdatedInvoiceData,
                 pagination,
                 setPagination,
                 visit_id,
