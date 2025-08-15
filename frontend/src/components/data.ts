@@ -135,6 +135,31 @@ export const labTestResultApiURL="/lab_tests_results";
 
 // invoice
 export const invoicesApiURL = "/invoices";
+export const listOfAttributesInvoice = [
+  {
+    subItem: "Insurance Company",
+    attributeName: "insurance_company_id",
+    typeOfInput: "Selection",
+    icon: "User",
+    placeHolder: "Choose Insurance Company",
+  },
+  {
+    subItem: "Start Date",
+    attributeName: "start_date",
+    typeOfInput: "date",
+    icon: "Calendar",
+    placeHolder: "Enter start date",
+  },
+{
+    subItem: "End Date",
+    attributeName: "end_date",
+    typeOfInput: "date",
+    icon: "Calendar",
+    placeHolder: "Enter end date",
+  },
+];
+
+
 
 
 export{labTestCategoryMainPageURL};

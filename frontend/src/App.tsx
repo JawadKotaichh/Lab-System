@@ -17,6 +17,8 @@ import LabTestCategoryTable from "./components/LabCategory/LabTestCategoryTable"
 import VisitsTable from "./components/Visits/VisitsTable";
 import InvoiceContainer from "./components/Invoice/InvoiceContainer";
 import ResultContainer from "./components/ResultPDF/ResultContainer";
+import MonthlySummary from "./components/MonthlySummary/MonthlySummary";
+import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryContainer";
 
 type NavItem = {
   to: string;
@@ -132,6 +134,12 @@ const App: React.FC = () => {
           />
           <Route path="/invoice/:visit_id" element={<InvoiceContainer />} />
           <Route path="/result/:visit_id" element={<ResultContainer />} />
+          <Route path="/monthly-summary" element={<MonthlySummary />} />
+          <Route
+            path="/summary-invoice/:insurance_company_id"
+            element={<InvoiceSummaryContainer />}
+          />
+
           <Route path="*" element={<h2 className="p-8">Page not found</h2>} />
         </Routes>
       </main>
