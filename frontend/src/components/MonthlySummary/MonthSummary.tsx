@@ -19,7 +19,7 @@ import type {
 import { fetchAllInsuranceCompanies, getMonthlyInvoiceSummary } from "../utils";
 import { useNavigate } from "react-router-dom";
 
-const MonthlySummary = () => {
+const MonthSummary = () => {
   const [state, setState] = useState<string>("");
   const [data, setData] = useState<monthlySummaryInvoicesParams>({
     insurance_company_id: "",
@@ -101,7 +101,7 @@ const MonthlySummary = () => {
 
   return (
     <div className={inputForm}>
-      <h1 className={inputFormTitle}>Monthly Summary</h1>
+      <h1 className={inputFormTitle}>Month Summary</h1>
       <div className={inputFormAttributeCategoryList}>
         {listOfAttributesInvoice.map((i) => (
           <div className={inputFormAttributeListItem}>
@@ -168,4 +168,4 @@ const MonthlySummary = () => {
     </div>
   );
 };
-export default MonthlySummary;
+export default MonthSummary;
