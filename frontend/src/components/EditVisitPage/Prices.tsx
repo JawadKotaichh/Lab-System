@@ -6,7 +6,11 @@ import {
   type patientTestResult,
   type updateInvoiceData,
 } from "../types.js";
-import { getInsuranceCompanyRate, updateInvoice } from "../utils.js";
+import {
+  fetchInvoice,
+  getInsuranceCompanyRate,
+  updateInvoice,
+} from "../utils.js";
 interface PricesParams {
   updatedInvoiceData: updateInvoiceData;
   setUpdatedInvoiceData: React.Dispatch<
@@ -20,12 +24,12 @@ interface PricesParams {
 }
 const Prices: React.FC<PricesParams> = ({
   updatedInvoiceData,
-  setUpdatedInvoiceData,
   setError,
   visit_id,
   standAloneTestResults,
   panelResults,
   patientData,
+  setUpdatedInvoiceData,
 }) => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
@@ -72,12 +76,9 @@ const Prices: React.FC<PricesParams> = ({
   ) => {
     try {
       const discount = Number(newDiscountPercentageStr || 0);
-      const next: updateInvoiceData = {
-        ...updatedInvoiceData,
-        discount_percentage: discount,
-      };
-      setUpdatedInvoiceData(next);
-      await updateInvoice(visit_id, next);
+      await updateInvoice(visit_id, { discount_percentage: discount });
+      const fetched_invoice = await fetchInvoice(visit_id);
+      setUpdatedInvoiceData(fetched_invoice.invoice_data);
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) setError(err.message);
@@ -122,7 +123,7 @@ const Prices: React.FC<PricesParams> = ({
             {totalPrice * patientInsuranceCompanyRate -
               totalPrice *
                 patientInsuranceCompanyRate *
-                (updatedInvoiceData.discount_percentage / 100)}{" "}
+                (updatedInvoiceData.discount_percentage! / 100)}{" "}
             $
           </td>
         </tr>

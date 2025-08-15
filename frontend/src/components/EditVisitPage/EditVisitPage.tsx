@@ -98,8 +98,8 @@ const EditVisitPage: React.FC = () => {
         const res1 = await fetchVisit(visit_id);
         setVisitDate(res1.visit_date);
         setReportDate(res1.report_date);
-        const inv = await fetchInvoice(visit_id);
-        if (inv) setUpdatedInvoiceData(inv.invoice_data);
+        const fetched_invoice = await fetchInvoice(visit_id);
+        setUpdatedInvoiceData(fetched_invoice.invoice_data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -153,12 +153,12 @@ const EditVisitPage: React.FC = () => {
         visit_id={visit_id}
       />
       <Prices
+        setUpdatedInvoiceData={setUpdatedInvoiceData}
         patientData={patientData}
         standAloneTestResults={standAloneTestResults}
         panelResults={panelResults}
         visit_id={visit_id}
         setError={setError}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
         updatedInvoiceData={updatedInvoiceData}
       />
       <button
@@ -194,8 +194,8 @@ const EditVisitPage: React.FC = () => {
       )}
       <AddTestResultTable
         refreshResults={refreshResults}
-        updatedInvoiceData={updatedInvoiceData}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
+        // updatedInvoiceData={updatedInvoiceData}
+        // setUpdatedInvoiceData={setUpdatedInvoiceData}
         showAdd={showAdd}
         addError={addError}
         visit_id={visit_id}
@@ -218,8 +218,8 @@ const EditVisitPage: React.FC = () => {
         pagination={pagination}
         setStandAloneTestResults={setStandAloneTestResults}
         setTotalNumberOfTests={setTotalNumberOfTests}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
-        updatedInvoiceData={updatedInvoiceData}
+        // setUpdatedInvoiceData={setUpdatedInvoiceData}
+        // updatedInvoiceData={updatedInvoiceData}
         showPanelsTable={showPanelsTable}
         setShowPanelsTable={setShowPanelsTable}
         visit_id={visit_id}

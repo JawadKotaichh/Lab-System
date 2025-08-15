@@ -2,8 +2,8 @@ import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
 import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
-import { createVisit, fetchLabTestResultsAndPanelsPaginated, updateInvoice } from "./utils";
-import type { CreateLabPanelParams, patientInfo, patientPanelResult, patientTestResult, updateInvoiceData } from "./types";
+import { create_invoice, createVisit, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice } from "./utils";
+import type { CreateLabPanelParams, patientInfo, patientPanelResult, patientTestResult } from "./types";
 import type { PaginationState } from "@tanstack/react-table";
 
 interface deleteElement {
@@ -85,6 +85,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     try {
       const resp = await createVisit(patient.patient_id);
       const newVisit = resp.data;
+      await create_invoice(newVisit._id,patient);
       navigate(`/visits/${newVisit._id}`, {
         state: {
           patientData: {
@@ -117,12 +118,9 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
     setError: React.Dispatch<React.SetStateAction<string>>;
     refreshResults?: () => Promise<void>;
-    updatedInvoiceData?: updateInvoiceData,
-      setUpdatedInvoiceData?: React.Dispatch<
-        React.SetStateAction<updateInvoiceData>
-      >,
+   
   }
-  export const handleAddLabTest = async ({updatedInvoiceData,setUpdatedInvoiceData,pagination,setError,refreshResults,lab_test_id,panelResults,setPanelResults,setStandAloneTestResults,standAloneTestResults,setAddError,setShowTestsTable,visit_id,
+  export const handleAddLabTest = async ({pagination,setError,refreshResults,lab_test_id,panelResults,setPanelResults,setStandAloneTestResults,standAloneTestResults,setAddError,setShowTestsTable,visit_id,
   }:addLabTestParams) => {
     if (standAloneTestResults.some((r) => r.lab_test_type_id === lab_test_id)) {
       setAddError("This test already exists.");
@@ -161,19 +159,8 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
       setStandAloneTestResults(updated.list_of_standalone_test_results);
       setPanelResults(updated.list_of_panel_results);
       if (refreshResults) await refreshResults(); 
+      rebuildInvoice(visit_id);
       setShowTestsTable(false);
-      const fetchedTestTypes = updated.list_of_standalone_test_results.map(
-        (test) => test.lab_test_type
-      );
-       
-        if (setUpdatedInvoiceData){
-          const newInvoiceData: updateInvoiceData = {
-              ...updatedInvoiceData!,
-              list_of_tests: fetchedTestTypes,
-            };
-          setUpdatedInvoiceData(newInvoiceData);
-          await updateInvoice(visit_id!, newInvoiceData);
-        }
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
