@@ -9,6 +9,7 @@ import type {
   labPanelFilter,
   labTestCategoryParams,
   labTestFilters,
+  monthlySummaryInvoicesParams,
   paginatedlabPanel,
   paginatedlabTest,
   paginatedMixedVisitResults,
@@ -62,6 +63,15 @@ const updateInvoice = async (
   updated_data: updateInvoiceData
 ) => {
   await api.put(`${invoicesApiURL}/${visit_id}/update_invoice`, updated_data);
+};
+const getMonthlyInvoiceSummary = async (
+  searchData: monthlySummaryInvoicesParams
+): Promise<fetchedInvoiceData[]> => {
+  const res = await api.get(
+    `${invoicesApiURL}/${searchData.insurance_company_id}/get_monthly_summary`,
+    { params: searchData }
+  );
+  return res.data;
 };
 
 // Result
@@ -269,3 +279,4 @@ export { fetchVisit };
 export { getInsuranceCompanyRate };
 export { rebuildInvoice };
 export { create_invoice };
+export { getMonthlyInvoiceSummary };
