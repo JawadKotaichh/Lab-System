@@ -178,8 +178,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
       data.lab_test_category_id.trim() === "" ||
       data.unit.trim() === "" ||
       !Number.isFinite(data.price) ||
-      !Number.isFinite(data.nssf_id) ||
-      data.normal_value_list.length === 0
+      !Number.isFinite(data.nssf_id)
     ) {
       setState("Please insert all the required fields!");
       return;
