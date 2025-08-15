@@ -24,6 +24,8 @@ export default function renderNormalValue(
         return prefix + `${ge} ${fmt(r.lower_bound_value)}`;
       if ("upper_bound_value" in r)
         return prefix + `${le} ${fmt(r.upper_bound_value)}`;
+      if ("description" in rec) return prefix;
+
       return "—";
     };
 
@@ -42,6 +44,6 @@ export default function renderNormalValue(
     return prefix + `${ge} ${fmt(rec.lower_bound_value)}`;
   if ("upper_bound_value" in rec)
     return prefix + `${le} ${fmt(rec.upper_bound_value)}`;
-  if ("description_only" in rec) return prefix;
+  if ("description" in rec) return prefix;
   return "—";
 }
