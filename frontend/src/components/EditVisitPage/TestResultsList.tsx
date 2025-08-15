@@ -3,6 +3,7 @@ import api from "../../api.js";
 import { labTestResultApiURL } from "../data.js";
 import React from "react";
 import renderNormalValue from "../renderNormalValue.js";
+import { rebuildInvoice } from "../utils.js";
 
 interface ShowResultsListParams {
   panelResults: patientPanelResult[];
@@ -53,8 +54,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     try {
       await api.delete(url);
       void refreshResults();
-
-      // window.location.reload();
+      rebuildInvoice(visit_id);
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
@@ -66,7 +66,8 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     const url = `${labTestResultApiURL}/delete_panels/${visit_id}/${lab_panel_id}`;
     try {
       await api.delete(url);
-      window.location.reload();
+      rebuildInvoice(visit_id);
+      void refreshResults();
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {

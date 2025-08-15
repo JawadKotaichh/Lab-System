@@ -120,7 +120,7 @@ export type updateInvoiceData = {
   list_of_lab_panels?: labPanel[];
   visit_id?: string;
   visit_date?: Date;
-  discount_percentage: number;
+  discount_percentage?: number;
   patient_insurance_company_rate?: number;
 };
 export type visitResultData = {

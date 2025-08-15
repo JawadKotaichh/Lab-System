@@ -1,3 +1,4 @@
+from collections import defaultdict
 from fastapi import APIRouter, HTTPException, status
 
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
@@ -7,7 +8,7 @@ from ..schemas.schema_Patient import Patient
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
-from typing import List
+from typing import Dict, List
 from math import ceil
 from fastapi import Query
 from beanie import PydanticObjectId
@@ -15,38 +16,14 @@ from ..models import Visit as DBVisit
 from ..models import Patient as DBPatient
 from ..models import insurance_company as DBInsurance_company
 from ..models import lab_test_category as DBlab_test_category
-
+from ..models import lab_test_result as DBLab_test_result
+from ..models import lab_panel as DBLab_panel
+from ..schemas.schema_Lab_Panel import LabPanelResponse
+from ..schemas.schema_Lab_Test_Result import Lab_test_result
+from ..models import lab_test_category as DBLab_test_category
+from ..models import lab_test_type as DBLab_test_type
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
-
-
-@router.post(
-    "/{visit_id}/create_empty_invoice",
-    response_model=DBInvoice,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a new empty invoice",
-)
-async def create_invoice(visit_id: str):
-    if not PydanticObjectId.is_valid(visit_id):
-        raise HTTPException(status_code=400, detail="Invalid Visit ID")
-    db_visit = await DBVisit.find_one(DBVisit.id == PydanticObjectId(visit_id))
-    if not db_visit:
-        raise HTTPException(
-            status_code=400, detail=f"Visit with id: ${visit_id} not found!"
-        )
-    db_invoice = DBInvoice(
-        visit_id=PydanticObjectId(visit_id),
-        list_of_tests=[],
-        list_of_lab_panels=[],
-        visit_date=db_visit.visit_date,
-        discount_percentage=0.0,
-        # total_price_with_insurance=0.0,
-        # total_without_insurance=0.0,
-    )
-    new_invoice = await db_invoice.insert()
-    if not new_invoice:
-        raise HTTPException(status_code=404, detail="Invoice was not created")
-    return new_invoice
 
 
 @router.put("/{visit_id}/update_invoice", response_model=DBInvoice)
@@ -60,8 +37,8 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         )
     existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
 
-    if not existing_invoice:
-        await create_invoice(visit_id=visit_id)
+    # if not existing_invoice:
+    #     await create_invoice(visit_id=visit_id,)
     existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
@@ -96,9 +73,205 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
 
     if update_data.list_of_lab_panels is not None:
         existing_invoice.list_of_lab_panels = update_data.list_of_lab_panels
+    if update_data.insurance_company_id is not None:
+        existing_invoice.insurance_company_id = update_data.insurance_company_id
     await existing_invoice.replace()
 
     return existing_invoice
+
+
+@router.get("/{visit_id}/rebuild_invoice", response_model=invoiceData)
+async def rebuild_invoice(visit_id: str):
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(status_code=400, detail="Invalid Visit ID")
+    db_visit = await DBVisit.get(PydanticObjectId(visit_id))
+    if not db_visit:
+        raise HTTPException(status_code=400, detail=f"Visit Id:{visit_id} not found!")
+
+    db_list_of_lab_tests_results = DBLab_test_result.find(
+        DBLab_test_result.visit_id == PydanticObjectId(visit_id)
+    )
+    if not db_list_of_lab_tests_results:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No test result found for visit with id: {visit_id}!",
+        )
+
+    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+    if not db_patient:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Patient of ID: {db_visit.patient_id} not found!",
+        )
+
+    db_insurance_company = await DBInsurance_company.find_one(
+        DBInsurance_company.id == db_patient.insurance_company_id
+    )
+    if not db_insurance_company:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insurance Company of ID: {db_patient.insurance_company_id} not found!",
+        )
+    patient_insurance_company_rate = db_insurance_company.rate
+    currentPatient = Patient(
+        insurance_company_name=db_insurance_company.insurance_company_name,
+        DOB=db_patient.DOB,
+        patient_id=str(db_patient.id),
+        name=db_patient.name,
+        gender=db_patient.gender,
+        phone_number=db_patient.phone_number,
+        insurance_company_id=str(db_patient.insurance_company_id),
+    )
+    visit_date = db_visit.visit_date
+
+    listOfTests: List[Lab_test_type] = []
+    listOfPanels: List[LabPanelResponse] = []
+    list_of_individual_test_results: List[Lab_test_result] = []
+    panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
+
+    async for lab_result in db_list_of_lab_tests_results:
+        db_lab_test_type = await DBLab_test_type.find_one(
+            DBLab_test_type.id == lab_result.lab_test_type_id
+        )
+        if not db_lab_test_type:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Lab test type: {lab_result.lab_test_type_id} not found!",
+            )
+        category = await DBLab_test_category.find_one(
+            DBLab_test_category.id == db_lab_test_type.lab_test_category_id
+        )
+        if not category:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Lab test category: {db_lab_test_type.lab_test_category_id} not found!",
+            )
+        if lab_result.lab_panel_id:
+            panel_to_list_of_tests[lab_result.lab_panel_id].append(lab_result)
+        else:
+            list_of_individual_test_results.append(lab_result)
+            currentLabTest = Lab_test_type(
+                name=db_lab_test_type.name,
+                lab_test_id=str(db_lab_test_type.id),
+                lab_test_category_name=category.lab_test_category_name,
+                nssf_id=db_lab_test_type.nssf_id,
+                lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
+                unit=db_lab_test_type.unit,
+                price=db_lab_test_type.price,
+                normal_value_list=db_lab_test_type.normal_value_list,
+            )
+            listOfTests.append(currentLabTest)
+
+    # totalPrice = 0.0
+
+    # for individual_test in list_of_individual_test_results:
+    # lab_test = await DBLab_test_type.get(
+    #     PydanticObjectId(individual_test.lab_test_type_id)
+    # )
+    # if lab_test:
+    #     totalPrice += lab_test.price
+    lab_tests: List[Lab_test_type] = []
+    for panel_id in panel_to_list_of_tests:
+        current_list_of_lab_results: List[Lab_test_result] = panel_to_list_of_tests[
+            panel_id
+        ]
+        for lab_result in current_list_of_lab_results:
+            db_lab_test_type = await DBLab_test_type.find_one(
+                DBLab_test_type.id == lab_result.lab_test_type_id
+            )
+            if not db_lab_test_type:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Lab test type: {lab_result.lab_test_type_id} not found!",
+                )
+            category = await DBLab_test_category.find_one(
+                DBLab_test_category.id == db_lab_test_type.lab_test_category_id
+            )
+            if not category:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Lab test category: {db_lab_test_type.lab_test_category_id} not found!",
+                )
+            currentLabTest = Lab_test_type(
+                name=db_lab_test_type.name,
+                lab_test_id=str(db_lab_test_type.id),
+                lab_test_category_name=category.lab_test_category_name,
+                nssf_id=db_lab_test_type.nssf_id,
+                lab_test_category_id=str(db_lab_test_type.lab_test_category_id),
+                unit=db_lab_test_type.unit,
+                price=db_lab_test_type.price,
+                normal_value_list=db_lab_test_type.normal_value_list,
+            )
+            lab_tests.append(currentLabTest)
+
+        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.id == panel_id)
+        if not db_lab_panel:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid lab panel id: {panel_id}"
+            )
+
+        lab_panel = LabPanelResponse(
+            id=str(db_lab_panel.id),
+            nssf_id=db_lab_panel.nssf_id,
+            panel_name=db_lab_panel.panel_name,
+            lab_tests=lab_tests,
+            lab_panel_price=db_lab_panel.lab_panel_price,
+            lab_panel_category_id=str(db_lab_panel.lab_panel_category_id),
+        )
+        listOfPanels.append(lab_panel)
+        # totalPrice += db_lab_panel.lab_panel_price
+
+    db_invoice = await DBInvoice.find_one(
+        DBInvoice.visit_id == PydanticObjectId(visit_id)
+    )
+    if not db_invoice:
+        raise HTTPException(
+            status_code=400, detail=f"Invoice with visit id: {visit_id} not found"
+        )
+    current_invoice_data = Invoice(
+        insurance_company_id=str(db_patient.insurance_company_id),
+        list_of_tests=listOfTests,
+        list_of_lab_panels=listOfPanels,
+        visit_id=visit_id,
+        visit_date=visit_date,
+        patient_insurance_company_rate=patient_insurance_company_rate,
+        discount_percentage=db_invoice.discount_percentage,
+    )
+    db_invoice.list_of_lab_panels = listOfPanels
+    db_invoice.list_of_tests = listOfTests
+    await db_invoice.replace()
+    output = invoiceData(patient=currentPatient, invoice_data=current_invoice_data)
+    return output
+
+
+@router.post(
+    "/{visit_id}/create_empty_invoice",
+    response_model=DBInvoice,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new empty invoice",
+)
+async def create_invoice(visit_id: str, patient: Patient):
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(status_code=400, detail="Invalid Visit ID")
+    db_visit = await DBVisit.find_one(DBVisit.id == PydanticObjectId(visit_id))
+    if not db_visit:
+        raise HTTPException(
+            status_code=400, detail=f"Visit with id: ${visit_id} not found!"
+        )
+    db_invoice = DBInvoice(
+        visit_id=PydanticObjectId(visit_id),
+        list_of_tests=[],
+        list_of_lab_panels=[],
+        visit_date=db_visit.visit_date,
+        discount_percentage=0.0,
+        insurance_company_id=patient.insurance_company_id,
+        # total_price_with_insurance=0.0,
+        # total_without_insurance=0.0,
+    )
+    new_invoice = await db_invoice.insert()
+    if not new_invoice:
+        raise HTTPException(status_code=404, detail="Invoice was not created")
+    return new_invoice
 
 
 @router.get("/{visit_id}/fetch_invoice", response_model=invoiceData)
@@ -168,6 +341,7 @@ async def get_invoice(visit_id: str):
         list_of_lab_panels=db_invoice.list_of_lab_panels,
         visit_date=db_invoice.visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
+        insurance_company_id=str(db_patient.insurance_company_id),
         # total_price_with_insurance=db_invoice.total_price_with_insurance,
         # total_without_insurance=db_invoice.total_without_insurance,
     )
@@ -237,6 +411,7 @@ async def get_invoices_with_page_size(
             list_of_tests=invoice.list_of_tests,
             visit_id=invoice.visit_id,
             visit_date=invoice.visit_date,
+            insurance_company_id=str(db_patient.insurance_company_id),
             patient_insurance_company_rate=patient_insurance_company_rate,
             # total_price_with_insurance=invoice.total_price_with_insurance,
             # total_without_insurance=invoice.total_without_insurance,

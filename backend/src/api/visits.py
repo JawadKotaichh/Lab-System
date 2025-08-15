@@ -77,7 +77,7 @@ async def get_invoice(visit_id: str):
         phone_number=db_patient.phone_number,
         insurance_company_id=str(db_patient.insurance_company_id),
     )
-    visit_date = db_visit.date
+    visit_date = db_visit.visit_date
 
     listOfTests: List[Lab_test_type] = []
     listOfPanels: List[Lab_Panel] = []
