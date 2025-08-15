@@ -30,6 +30,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: "/visits", label: "Visits", end: true },
   { to: "/patients", label: "Patients" },
+  { to: "/monthly-summary", label: "Month Summary" },
 ];
 
 const App: React.FC = () => {
