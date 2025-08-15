@@ -15,10 +15,14 @@ import { styles } from "./InvoiceSummaryStyle";
 export interface SummaryInvoice {
   summaryData: fetchedInvoiceData[];
   showSignature: boolean;
+  start_date: Date;
+  end_date: Date;
 }
 const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
   summaryData,
   showSignature,
+  start_date,
+  end_date,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -32,14 +36,24 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
             </Text>
           </View>
           <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Month:</Text>
+            <Text style={styles.patientLabel}>From:</Text>
             <Text style={styles.patientValue}>
-              {summaryData[0].patient.insurance_company_name}
+              {start_date
+                ? new Date(start_date).toISOString().split("T")[0]
+                : null}
+            </Text>
+          </View>
+          <View style={styles.patientInfoPair}>
+            <Text style={styles.patientLabel}>To:</Text>
+            <Text style={styles.patientValue}>
+              {end_date ? new Date(end_date).toISOString().split("T")[0] : null}
             </Text>
           </View>
         </View>
       </View>
       <InvoiceSummaryTable
+        start_date={start_date}
+        end_date={end_date}
         summaryData={summaryData}
         showSignature={showSignature}
       />
@@ -61,10 +75,14 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
 export default function InvoiceSummaryList({
   summaryData,
   showSignature,
+  start_date,
+  end_date,
 }: SummaryInvoice) {
   return (
     <PDFViewer width="100%" height="100%">
       <InvoiceSummaryPDF
+        end_date={end_date}
+        start_date={start_date}
         summaryData={summaryData}
         showSignature={showSignature}
       />

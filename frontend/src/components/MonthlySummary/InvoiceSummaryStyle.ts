@@ -66,13 +66,15 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   patientInfoRow: {
+    justifyContent: 'center', 
+    alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 4,
   },
   patientInfoPair: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop:5,
     flex: 1,               
   },
