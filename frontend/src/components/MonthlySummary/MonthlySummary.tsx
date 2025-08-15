@@ -72,7 +72,11 @@ const MonthlySummary = () => {
       });
 
       navigate(`/summary-invoice/${data.insurance_company_id}`, {
-        state: { summaryData: response },
+        state: {
+          summaryData: response,
+          start_date: data.start_date,
+          end_date: data.end_date,
+        },
       });
     } catch (err) {
       if (err instanceof Error) {
