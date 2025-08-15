@@ -17,8 +17,8 @@ import LabTestCategoryTable from "./components/LabCategory/LabTestCategoryTable"
 import VisitsTable from "./components/Visits/VisitsTable";
 import InvoiceContainer from "./components/Invoice/InvoiceContainer";
 import ResultContainer from "./components/ResultPDF/ResultContainer";
-import MonthlySummary from "./components/MonthlySummary/MonthlySummary";
 import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryContainer";
+import MonthSummary from "./components/MonthlySummary/MonthSummary";
 
 type NavItem = {
   to: string;
@@ -135,7 +135,7 @@ const App: React.FC = () => {
           />
           <Route path="/invoice/:visit_id" element={<InvoiceContainer />} />
           <Route path="/result/:visit_id" element={<ResultContainer />} />
-          <Route path="/monthly-summary" element={<MonthlySummary />} />
+          <Route path="/monthly-summary" element={<MonthSummary />} />
           <Route
             path="/summary-invoice/:insurance_company_id"
             element={<InvoiceSummaryContainer />}
