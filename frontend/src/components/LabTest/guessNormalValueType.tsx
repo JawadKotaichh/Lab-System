@@ -34,5 +34,6 @@ export const guessNVType = (v: NV): NVType => {
   if (isUAndL(v)) return "upper_and_lower_bound_only";
   if (isUpperOnly(v)) return "upper_bound_only";
   if (isLowerOnly(v)) return "lower_bound_only";
-  return "positive_or_negative";
+  if (isPosNeg(v)) return "positive_or_negative";
+  return "description_only";
 };
