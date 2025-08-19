@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { labPanel } from "../types";
+import type { labPanel, labPanelFilter } from "../types";
 import { fetchLabPanelsPaginated } from "../utils";
 import {
   pageListTitle,
@@ -20,6 +20,15 @@ import Pagination from "../Pagination";
 import SearchLabPanel from "./SearchLabPanel";
 import renderNormalValue from "../renderNormalValue";
 
+function useDebounced<T>(value: T, delay = 500) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return v;
+}
+
 const LabPanelsList = () => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
   const [error, setError] = useState<string>("");
@@ -32,6 +41,8 @@ const LabPanelsList = () => {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState<string>("");
 
+  const debouncedSearch = useDebounced(searchInput, 500);
+
   const handleCreateLabPanel = () => {
     navigate(labPanelCreatePageURL);
   };
@@ -39,34 +50,72 @@ const LabPanelsList = () => {
   const handleEditLabPanel = (lab_panel_id: string) => {
     navigate(`${labPanelEditPageURL}${lab_panel_id}`);
   };
-  const handleDeleteLabPanel = (lab_panel_id: string) => {
+
+  const handleDeleteLabPanel = async (lab_panel_id: string) => {
     if (!window.confirm("Are you sure you want to delete this lab panel?")) {
       return;
     }
     try {
-      api.delete(`${labPanelApiURL}/${lab_panel_id}`);
-      window.location.reload();
+      await api.delete(`${labPanelApiURL}/${lab_panel_id}`);
+      setAvailableLabPanels((prev) =>
+        prev.filter((p) => p.id !== lab_panel_id)
+      );
+      setTotalNumberOfLabPanels((n) => Math.max(0, n - 1));
+      setTimeout(() => {
+        if (availableLabPanels.length === 1 && currentPage > 1) {
+          setCurrentPage((p) => p - 1);
+        }
+      }, 0);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
   };
 
   useEffect(() => {
-    setLoading(true);
-    fetchLabPanelsPaginated(currentPage, pageSize)
-      .then((panelData) => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    let canceled = false;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+
+        let filters: labPanelFilter | undefined = undefined;
+        if (debouncedSearch.trim()) {
+          filters = { panel_name: debouncedSearch.trim() };
+        }
+
+        const panelData = await fetchLabPanelsPaginated(
+          currentPage,
+          pageSize,
+          filters
+        );
+
+        if (canceled) return;
+
         setAvailableLabPanels(panelData.lab_panels);
         setTotalPages(panelData.total_pages);
         setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
-      })
-      .catch((err) => setError(err.message || err.toString()))
-      .finally(() => setLoading(false));
-  }, [currentPage, pageSize]);
+      } catch (err) {
+        if (!canceled) {
+          setError(err instanceof Error ? err.message : "An error occurred");
+        }
+      } finally {
+        if (!canceled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      canceled = true;
+    };
+  }, [currentPage, pageSize, debouncedSearch]);
 
   if (loading) return <div className="p-4">Loading lab panels...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+
   return (
     <div className="p-8 bg-white">
       <h1 className={pageListTitle}>Lab Panels List</h1>
@@ -83,16 +132,10 @@ const LabPanelsList = () => {
               Create Lab Panel
             </button>
           </div>
+
           <SearchLabPanel
             searchInput={searchInput}
             setSearchInput={setSearchInput}
-            pageSize={pageSize}
-            setAvailableLabPanels={setAvailableLabPanels}
-            setError={setError}
-            currentPage={currentPage}
-            setTotalPages={setTotalPages}
-            setTotalNumberOfLabPanels={setTotalNumberOfLabPanels}
-            setLoading={setLoading}
           />
 
           <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
@@ -137,34 +180,31 @@ const LabPanelsList = () => {
                     <th className={tableItemPanel}>Normal Value</th>
                   </tr>
 
-                  {lp.lab_tests.map((test) => {
-                    return (
-                      <tr>
-                        <React.Fragment key={test.lab_test_id}>
-                          <td className={tableItem}>{test.nssf_id}</td>
-                          <td className={tableItem}>{test.name}</td>
-                          <td className={tableItem}>
-                            {test.lab_test_category_name}
-                          </td>
-                          <td className={tableItem}>{test.unit}</td>
-                          <td className={tableItem}>{test.price}</td>
-                          <td className={tableItem}>
-                            {test.normal_value_list?.length ? (
-                              test.normal_value_list.map((nv, i) => (
-                                <div key={i}>{renderNormalValue(nv)}</div>
-                              ))
-                            ) : (
-                              <span className="text-gray-400">—</span>
-                            )}
-                          </td>
-                        </React.Fragment>
-                      </tr>
-                    );
-                  })}
+                  {lp.lab_tests.map((test) => (
+                    <tr key={test.lab_test_id}>
+                      <td className={tableItem}>{test.nssf_id}</td>
+                      <td className={tableItem}>{test.name}</td>
+                      <td className={tableItem}>
+                        {test.lab_test_category_name}
+                      </td>
+                      <td className={tableItem}>{test.unit}</td>
+                      <td className={tableItem}>{test.price}</td>
+                      <td className={tableItem}>
+                        {test.normal_value_list?.length ? (
+                          test.normal_value_list.map((nv, i) => (
+                            <div key={i}>{renderNormalValue(nv)}</div>
+                          ))
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
                 </React.Fragment>
               ))}
             </tbody>
           </table>
+
           <Pagination
             TotalNumberOfPaginatedItems={totalNumberOfLabPanels}
             setPageSize={setPageSize}
@@ -178,4 +218,5 @@ const LabPanelsList = () => {
     </div>
   );
 };
+
 export default LabPanelsList;
