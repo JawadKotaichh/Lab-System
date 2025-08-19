@@ -1,79 +1,16 @@
-import React, { useEffect, useState } from "react";
-import type { labPanel, labPanelFilter } from "../types";
-import { fetchLabPanelsPaginated } from "../utils";
+import React from "react";
 
 interface SearchLabPanelProps {
   searchInput: string;
   setSearchInput: (value: string) => void;
-  setAvailableLabPanels: React.Dispatch<React.SetStateAction<labPanel[]>>;
-  setError: (error: string) => void;
-  setLoading: (loading: boolean) => void;
-  currentPage: number;
-  setTotalPages: (pages: number) => void;
-  setTotalNumberOfLabPanels: (count: number) => void;
-  pageSize: number;
 }
 
 const SearchLabPanel: React.FC<SearchLabPanelProps> = ({
   searchInput,
   setSearchInput,
-  setAvailableLabPanels,
-  setError,
-  setLoading,
-  currentPage,
-  setTotalPages,
-  setTotalNumberOfLabPanels,
-  pageSize,
 }) => {
-  const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
-
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 500);
-
-    return () => clearTimeout(timerId);
-  }, [searchInput]);
-
-  useEffect(() => {
-    const fetchSearchResults = async () => {
-      if (!debouncedSearch.trim()) return;
-
-      try {
-        setLoading(true);
-        const filters: labPanelFilter = {};
-        filters.panel_name = debouncedSearch;
-        const response = await fetchLabPanelsPaginated(
-          currentPage,
-          pageSize,
-          filters
-        );
-
-        setAvailableLabPanels(response.lab_panels);
-        setTotalPages(response.total_pages);
-        setTotalNumberOfLabPanels(response.TotalNumberOfPanels);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSearchResults();
-  }, [
-    debouncedSearch,
-    currentPage,
-    pageSize,
-    setAvailableLabPanels,
-    setError,
-    setLoading,
-    setTotalPages,
-    setTotalNumberOfLabPanels,
-  ]);
-
   const handleClearSearch = () => {
     setSearchInput("");
-    setDebouncedSearch("");
   };
 
   return (
@@ -88,6 +25,7 @@ const SearchLabPanel: React.FC<SearchLabPanelProps> = ({
         />
         {searchInput && (
           <button
+            type="button"
             onClick={handleClearSearch}
             className="absolute right-3 text-gray-500 hover:text-gray-700"
           >
