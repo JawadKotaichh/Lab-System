@@ -30,6 +30,8 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    environment:
+      - PYTHONPATH=/app
     networks:
       - lab-system-app
   mongo:
