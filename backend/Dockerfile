@@ -1,10 +1,10 @@
-FROM python:3
+FROM python:3.11-slim
 
-WORKDIR /usr/src/app
-COPY requirements.txt ./
-
-RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
+WORKDIR /app
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r ./requirements.txt
+COPY src ./src
 
 EXPOSE 8000
 
-CMD [ "python","./src/app.py" ]
+CMD ["uvicorn", "src.main_app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -79,10 +79,14 @@ TestsList) => {
     setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
 
   const handleSetPage = (page: number) => {
-    setPagination((old) => ({ ...old, pageIndex: page - 1 }));
+    setPagination((old: PaginationState) => ({ ...old, pageIndex: page - 1 }));
   };
   const handleSetPageSize = (size: number) => {
-    setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
+    setPagination((old: PaginationState) => ({
+      ...old,
+      pageSize: size,
+      pageIndex: 0,
+    }));
   };
 
   const labTestCols = getLabTestColumns(
