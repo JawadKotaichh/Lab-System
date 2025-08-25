@@ -2,14 +2,14 @@ import uvicorn
 import asyncio
 from fastapi import FastAPI
 from .db import init_db
-from .api.patients import router as patients_router
-from .api.visits import router as visits_router
-from .api.lab_test_results import router as lab_test_results_router
-from .api.lab_test_type import router as lab_test_type_router
-from .api.lab_test_category import router as lab_test_category_router
-from .api.insurance_company import router as insurance_comapny_router
-from .api.lab_panel import router as lab_panel_router
-from .api.invoice import router as invoice_router
+from src.api.patients import router as patients_router
+from src.api.visits import router as visits_router
+from src.api.lab_test_results import router as lab_test_results_router
+from src.api.lab_test_type import router as lab_test_type_router
+from src.api.lab_test_category import router as lab_test_category_router
+from src.api.insurance_company import router as insurance_comapny_router
+from src.api.lab_panel import router as lab_panel_router
+from src.api.invoice import router as invoice_router
 from fastapi_pagination import add_pagination
 from fastapi.middleware.cors import CORSMiddleware
 
