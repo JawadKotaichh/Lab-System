@@ -2,9 +2,9 @@ name: Lab_System
 
 services:
   backend:
-    project: ./backend
-    language: python
-    host: containerapp
+    #project: ./backend
+    #language: python
+    #host: containerapp
     environment:
       - MONGODB_URL=${MONGODB_URL}
     image: backend-test
