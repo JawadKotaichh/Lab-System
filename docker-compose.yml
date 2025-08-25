@@ -1,0 +1,60 @@
+name: Lab_System
+
+services:
+  backend:
+    project: ./backend
+    language: python
+    host: containerapp
+    environment:
+      - MONGODB_URL=${MONGODB_URL}
+    image: backend-test
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      
+
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    networks:
+      - lab-system-app
+
+  frontend:
+    stdin_open: true
+    image: frontend-test
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - lab-system-app
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    networks:
+      - lab-system-app
+    volumes:
+      - mongo-data:/data/db
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - lab-system-app
+networks:
+  lab-system-app:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local 

@@ -14,7 +14,7 @@ from .models import (
 
 
 async def init_db():
-    mongodb_url = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+    mongodb_url = os.getenv("MONGODB_URL", "mongodb://mongo:27017")
     client = AsyncIOMotorClient(mongodb_url)
     await init_beanie(
         database=client["lab_system"],
