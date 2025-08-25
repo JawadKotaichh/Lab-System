@@ -28,6 +28,7 @@ from ..schemas.schema_Patient import Patient
 from ..models import lab_test_type as DBLab_test_type
 from ..models import insurance_company as DBInsurance_company
 
+
 router = APIRouter(prefix="/visits", tags=["visits"])
 
 

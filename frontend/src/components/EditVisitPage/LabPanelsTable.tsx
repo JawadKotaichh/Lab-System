@@ -141,13 +141,6 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
                     <SearchLabPanel
                       searchInput={searchInput}
                       setSearchInput={setSearchInput}
-                      pageSize={pageSize}
-                      setAvailableLabPanels={setAvailableLabPanels}
-                      setError={setError}
-                      currentPage={currentPage}
-                      setTotalPages={setTotalPages}
-                      setTotalNumberOfLabPanels={setTotalNumberOfLabPanels}
-                      setLoading={setLoading}
                     />
 
                     <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
