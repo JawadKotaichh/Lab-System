@@ -14,6 +14,7 @@ import type {
   positive_or_negative,
   upper_and_lower_bound_only,
   upper_bound_only,
+  description_only,
   visitData,
 } from "./types";
 import {
@@ -313,8 +314,9 @@ export function getLabTestColumns(
     | upper_bound_only
     | lower_bound_only;
   type NormalValue = BoundsNV | positive_or_negative | normal_value_by_gender;
-  type GenderInnerNV = BoundsNV | positive_or_negative;
-
+  type GenderInnerNV = BoundsNV | positive_or_negative | description_only;
+  const isBoundsNV = (x: GenderInnerNV): x is BoundsNV =>
+    "upper_bound_value" in x || "lower_bound_value" in x;
   const fmtBounds = (x: BoundsNV) => {
     if ("upper_bound_value" in x && "lower_bound_value" in x) {
       return `${x.lower_bound_value} – ${x.upper_bound_value}`;
@@ -323,8 +325,12 @@ export function getLabTestColumns(
     return `≥ ${x.lower_bound_value}`;
   };
 
-  const fmtGenderInner = (x: GenderInnerNV) =>
-    "normal_value" in x ? x.normal_value : fmtBounds(x);
+  const fmtGenderInner = (x: GenderInnerNV) => {
+    if ("normal_value" in x) return x.normal_value;
+    if (isBoundsNV(x)) return fmtBounds(x);
+    if ("description" in x) return x.description || "—";
+    return "—";
+  };
 
   const toNormalValueText = (row: labTest): string => {
     return (row.normal_value_list ?? [])
