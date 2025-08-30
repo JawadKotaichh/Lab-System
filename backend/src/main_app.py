@@ -25,7 +25,6 @@ app.include_router(insurance_comapny_router)
 app.include_router(lab_test_category_router)
 app.include_router(lab_panel_router)
 app.include_router(invoice_router)
-
 origins = [
     "http://20.174.9.177:5173",
     "https://ambitious-desert-050805403.2.azurestaticapps.net",
