@@ -2,6 +2,8 @@ from datetime import datetime
 from pydantic import Field
 from typing import List
 
+# TODO: take the database name from env variables
+
 from beanie import Document, PydanticObjectId
 
 from typing import Union
