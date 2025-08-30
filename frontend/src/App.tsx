@@ -41,7 +41,7 @@ const App: React.FC = () => {
     "px-3 py-2 rounded-md text-gray-700 hover:text-white hover:bg-gradient-to-r from-blue-400 to-emerald-400 transition";
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <nav className="bg-white shadow w-full border-b">
         <div className="flex items-center h-20">
           <div className="pl-4">
@@ -73,7 +73,6 @@ const App: React.FC = () => {
           </div>
         </div>
       </nav>
-
       <main>
         <Routes>
           <Route path="/visits" element={<VisitsTable />} />
