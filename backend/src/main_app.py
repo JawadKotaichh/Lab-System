@@ -27,7 +27,7 @@ app.include_router(lab_panel_router)
 app.include_router(invoice_router)
 origins = [
     "http://20.174.9.177:5173",
-    "https://ambitious-desert-050805403.2.azurestaticapps.net",
+    "https://polite-moss-0fc7dd303.1.azurestaticapps.net",
     "http://20.174.9.177:8080",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
