@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     env:
-      VITE_API_BASE_URL: "https://lab-backend-api.orangesmoke-ab796300.westeurope.azurecontainerapps.io"
+      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
     permissions:
        id-token: write
        contents: read
@@ -58,5 +58,6 @@ jobs:
         uses: Azure/static-web-apps-deploy@v1
         with:
           action: "close"
+
 
 
