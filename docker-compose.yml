@@ -7,7 +7,7 @@ services:
     #host: containerapp
     environment:
       - MONGODB_URL=${MONGODB_URL}
-    image: labsystemapicontainerapp.azurecr.io/lab_system_container_app:latest
+    image: labsystemreg.azurecr.io/lab_system_backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
