@@ -27,7 +27,7 @@ app.include_router(lab_panel_router)
 app.include_router(invoice_router)
 origins = [
     "http://20.174.9.177:5173",
-    "https://polite-moss-0fc7dd303.1.azurestaticapps.net",
+    "https://mango-field-0a3015403.3.azurestaticapps.net",
     "http://20.174.9.177:8080",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -41,7 +41,7 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_headers=["*"],
     allow_methods=["*"],
     # allow_methods=["GET", "POST", "PUT", "DELETE"],
