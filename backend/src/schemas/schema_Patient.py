@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class Patient(BaseModel):
-    patient_id: Optional[str] = Field(...)
+    patient_id: Optional[str] = None
     name: str = Field(...)
     gender: str = Field(...)
     DOB: datetime = Field(...)
