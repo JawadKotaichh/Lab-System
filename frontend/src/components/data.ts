@@ -104,7 +104,7 @@ const labTestEditPageURL="/edit-lab-test/";
 const labTestCreatePageURL="/create-lab-test";
 
 //Panels
-const labPanelApiURL = "/lab_panel";
+const labPanelApiURL = "/lab_panel/";
 const labPanelEditPageURL="/edit-lab-panel/";
 const labPanelCreatePageURL="/create-lab-panel";
 const labPanelMainPageURL = "/lab-panels";
