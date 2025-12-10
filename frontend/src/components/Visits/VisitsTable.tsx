@@ -34,6 +34,7 @@ const VisitsTable: React.FC = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const toggleFilter = (colId: string) =>
@@ -99,7 +100,14 @@ const VisitsTable: React.FC = () => {
     };
 
     loadPage();
-  }, [pagination.pageIndex, pagination.pageSize, columnFilters]);
+  }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleRefresh = () => setRefreshKey((prev) => prev + 1);
+    window.addEventListener("visit-deleted", handleRefresh);
+    return () => window.removeEventListener("visit-deleted", handleRefresh);
+  }, []);
 
   if (loading) return <div>Loading visits...</div>;
 
