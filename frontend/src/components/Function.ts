@@ -11,15 +11,26 @@ interface deleteElement {
     setError:Dispatch<SetStateAction<string>>;
     
 }
+
+const dispatchDeleteEvent = (eventName: string) => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(eventName));
+  }
+};
+
   const handleDeleteInsuranceCompany = async({elementID,setError}:deleteElement) => {
     if (
       !window.confirm("Are you sure you want to delete this insurance company?")
     )
       return;
-    await api
-      .delete(`${InsuranceApiURL}${elementID}`)
-      .then(() => window.location.reload())
-      .catch((err: Error) => setError(err.message));
+    try {
+      await api.delete(`${InsuranceApiURL}${elementID}`);
+      dispatchDeleteEvent("insurance-company-deleted");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
   };
 
   const handleDeletePatient = async({elementID,setError}:deleteElement) => {
@@ -27,10 +38,14 @@ interface deleteElement {
       !window.confirm("Are you sure you want to delete this patient?")
     )
       return;
-     await api
-      .delete(`${PatientsApiURL}${elementID}`)
-      .then(() => window.location.reload())
-      .catch((err: Error) => setError(err.message));
+    try {
+      await api.delete(`${PatientsApiURL}${elementID}`);
+      dispatchDeleteEvent("patient-deleted");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
   };
 
 const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
@@ -39,7 +54,7 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
     }
     try {
       await api.delete(`${labTestApiURL}${elementID}`);
-      window.location.reload();
+      dispatchDeleteEvent("lab-test-deleted");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -52,7 +67,7 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
     }
     try {
       await api.delete(`${visitsApiURL}${elementID}`);
-      window.location.reload();
+      dispatchDeleteEvent("visit-deleted");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -70,7 +85,7 @@ const handleDeleteLabTestCategory = async({elementID,setError}:deleteElement) =>
     }
     try {
       await api.delete(`${labTestCategoryApiURL}${elementID}`);
-      window.location.reload();
+      dispatchDeleteEvent("lab-test-category-deleted");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
