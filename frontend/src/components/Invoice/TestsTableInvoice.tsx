@@ -1,7 +1,7 @@
 import { Text, View } from "@react-pdf/renderer";
 import { styles } from "./InvoiceStyle";
 import amountToWords from "./amountToWords";
-import type { InvoiceWrapperProps } from "../types";
+import type { InvoiceWrapperProps, labPanel, labTest } from "../types";
 
 const TestsTableInvoice = ({
   list_of_tests,
@@ -11,16 +11,14 @@ const TestsTableInvoice = ({
   discount_percentage,
 }: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
-  const testData = list_of_tests.map((t) => [
-    t.nssf_id,
-    t.name,
-    `${(patient_insurance_company_rate * t.price).toFixed(2)} $`,
-  ]);
-  const panelData = list_of_lab_panels.map((p) => [
-    p.nssf_id,
-    p.panel_name,
-    `${(patient_insurance_company_rate * p.lab_panel_price!).toFixed(2)} $`,
-  ]);
+
+  const formatPrice = (value?: number) =>
+    `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} $`;
+
+  const getPrice = (test: labTest) => formatPrice(test.price);
+
+  const getPanelPrice = (panel: labPanel) => formatPrice(panel.lab_panel_price);
+
   return (
     <View>
       <View style={styles.tableWrapper}>
@@ -35,61 +33,73 @@ const TestsTableInvoice = ({
             </View>
           ))}
         </View>
-        {testData.map((testVals, rowIdx) => (
-          <View
-            style={[styles.tableRow, { borderBottom: 0.1 }]}
-            key={list_of_tests[rowIdx].lab_test_id}
-          >
-            {testVals.map((val, colIdx) => (
-              <View
-                key={colIdx}
-                style={[
-                  styles.tableCol,
-                  colIdx === testVals.length - 1 ? styles.tableColLast : {},
-                ]}
-              >
-                <Text
+        {list_of_tests.map((test, rowIdx) => {
+          const testValues = [test.nssf_id, test.name, getPrice(test)];
+          return (
+            <View
+              style={[styles.tableRow, { borderBottom: 0.1 }]}
+              key={test.lab_test_id ?? `${test.name}-${rowIdx}`}
+            >
+              {testValues.map((val, colIdx) => (
+                <View
+                  key={colIdx}
                   style={[
-                    styles.tableCellText,
-                    colIdx === testVals.length - 1
-                      ? { textAlign: "right" }
-                      : {},
+                    styles.tableCol,
+                    colIdx === testValues.length - 1 ? styles.tableColLast : {},
                   ]}
                 >
-                  {val}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ))}
+                  <Text
+                    style={[
+                      styles.tableCellText,
+                      colIdx === testValues.length - 1
+                        ? { textAlign: "right" }
+                        : {},
+                    ]}
+                  >
+                    {val}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          );
+        })}
 
-        {panelData.map((panelVals, rowIdx) => (
-          <View
-            style={[styles.tableRow, { borderBottom: 0.1 }]}
-            key={list_of_tests[rowIdx].lab_test_id}
-          >
-            {panelVals.map((val, colIdx) => (
-              <View
-                key={colIdx}
-                style={[
-                  styles.tableCol,
-                  colIdx === panelVals.length - 1 ? styles.tableColLast : {},
-                ]}
-              >
-                <Text
+        {list_of_lab_panels.map((panel, rowIdx) => {
+          const panelValues = [
+            panel.nssf_id,
+            panel.panel_name,
+            getPanelPrice(panel),
+          ];
+          return (
+            <View
+              style={[styles.tableRow, { borderBottom: 0.1 }]}
+              key={panel.id ?? `${panel.panel_name}-${rowIdx}`}
+            >
+              {panelValues.map((val, colIdx) => (
+                <View
+                  key={colIdx}
                   style={[
-                    styles.tableCellText,
-                    colIdx === panelVals.length - 1
-                      ? { textAlign: "right" }
+                    styles.tableCol,
+                    colIdx === panelValues.length - 1
+                      ? styles.tableColLast
                       : {},
                   ]}
                 >
-                  {val}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ))}
+                  <Text
+                    style={[
+                      styles.tableCellText,
+                      colIdx === panelValues.length - 1
+                        ? { textAlign: "right" }
+                        : {},
+                    ]}
+                  >
+                    {val}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          );
+        })}
 
         <View style={[styles.tableRow, styles.subTotal]}>
           <View style={styles.subTotalCol}>
