@@ -12,6 +12,10 @@ import type { labPanelsWithIdsList, labTest } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { getLabTestColumns } from "../tableData";
+import {
+  buildLabTestFilters,
+  useLabTestCategoryOptions,
+} from "../hooks/useLabTestCategoryOptions";
 import Pagination from "../Pagination";
 import {
   pageListTitle,
@@ -59,6 +63,8 @@ const AddTestToPanelTable: React.FC<TestsList> = ({
   const toggleFilter = (colId: string) =>
     setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
 
+  const labTestCategoryOptions = useLabTestCategoryOptions();
+
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
   };
@@ -72,11 +78,14 @@ const AddTestToPanelTable: React.FC<TestsList> = ({
     toggleFilter,
     setError,
     false,
-    showAddForLabPanels,
-    setShowAddForLabPanels,
-    data,
-    setData,
-    setAddError
+    {
+      showAddForLabPanels,
+      setShowAddForLabPanels,
+      data,
+      setData,
+      setAddError,
+      labTestCategoryOptions,
+    }
   );
 
   const labTestsTable = useReactTable({
@@ -100,13 +109,7 @@ const AddTestToPanelTable: React.FC<TestsList> = ({
       setLoading(true);
       setError("");
       try {
-        const filters = columnFilters.reduce<Record<string, string>>(
-          (acc, f) => {
-            acc[f.id] = String(f.value);
-            return acc;
-          },
-          {}
-        );
+        const filters = buildLabTestFilters(columnFilters);
         const res = await fetchLabTestTypePaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,

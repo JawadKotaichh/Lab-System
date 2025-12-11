@@ -9,10 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import type { labTest } from "../types";
-import {
-  fetchAllLabTestTypeCategories,
-  fetchLabTestTypePaginated,
-} from "../utils";
+import { fetchLabTestTypePaginated } from "../utils";
 import {
   pageListTitle,
   tableCreateButton,
@@ -21,7 +18,11 @@ import {
 } from "../../style";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../Pagination";
-import { getLabTestColumns, setLabTestCategorySelectOptions } from "../tableData";
+import { getLabTestColumns } from "../tableData";
+import {
+  buildLabTestFilters,
+  useLabTestCategoryOptions,
+} from "../hooks/useLabTestCategoryOptions";
 import GenericTable from "../react-table/GeneralTable";
 import { handleCreateLabTest } from "../Function";
 
@@ -54,15 +55,16 @@ const LabTestTable = () => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
 
+  const labTestCategoryOptions = useLabTestCategoryOptions();
+
   const labTestCols = getLabTestColumns(
     navigate,
     showFilters,
     toggleFilter,
     setError,
-    false
+    false,
+    { labTestCategoryOptions }
   );
-
-  const [, setCategoryVersion] = useState(0);
 
   const table = useReactTable({
     data,
@@ -85,13 +87,7 @@ const LabTestTable = () => {
       setLoading(true);
       setError("");
       try {
-        const filters = columnFilters.reduce<Record<string, string>>(
-          (acc, f) => {
-            acc[f.id] = String(f.value);
-            return acc;
-          },
-          {}
-        );
+        const filters = buildLabTestFilters(columnFilters);
         const res = await fetchLabTestTypePaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
@@ -109,29 +105,6 @@ const LabTestTable = () => {
 
     loadPage();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const loadCategories = async () => {
-      try {
-        const categories = await fetchAllLabTestTypeCategories();
-        const options = categories.map((category) => ({
-          value: category.lab_test_category_name,
-          label: category.lab_test_category_name,
-        }));
-        setLabTestCategorySelectOptions(options);
-        if (!cancelled) {
-          setCategoryVersion((prev) => prev + 1);
-        }
-      } catch (err) {
-        console.error("Failed to load lab test categories", err);
-      }
-    };
-    loadCategories();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

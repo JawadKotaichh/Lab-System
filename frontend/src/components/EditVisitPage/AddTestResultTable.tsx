@@ -12,6 +12,10 @@ import type { labTest, patientPanelResult, patientTestResult } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { getLabTestColumns } from "../tableData";
+import {
+  buildLabTestFilters,
+  useLabTestCategoryOptions,
+} from "../hooks/useLabTestCategoryOptions";
 import Pagination from "../Pagination";
 import {
   pageListTitle,
@@ -89,29 +93,30 @@ TestsList) => {
     }));
   };
 
+  const labTestCategoryOptions = useLabTestCategoryOptions();
+
   const labTestCols = getLabTestColumns(
     navigate,
     showFilters,
     toggleFilter,
     setError,
     showAdd,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    setAddError,
-    pagination,
-    setPagination,
-    visit_id,
-    panelResults,
-    setPanelResults,
-    standAloneTestResults,
-    setStandAloneTestResults,
-    refreshResults,
-    showTestsTable,
-    setShowTestsTable,
-    setTotalPages,
-    setTotalNumberOfPaginatedItems
+    {
+      pagination,
+      setPagination,
+      visit_id,
+      panelResults,
+      setPanelResults,
+      standAloneTestResults,
+      setStandAloneTestResults,
+      setAddError,
+      showTestsTable,
+      setShowTestsTable,
+      setTotalPages,
+      setTotalNumberOfTests: setTotalNumberOfPaginatedItems,
+      onAddedRefresh: refreshResults,
+      labTestCategoryOptions,
+    }
   );
   ///neeed adjusments
   //   const labPanelsCols = getLabTestColumns(
@@ -159,13 +164,7 @@ TestsList) => {
       setLoading(true);
       setError("");
       try {
-        const filters = columnFilters.reduce<Record<string, string>>(
-          (acc, f) => {
-            acc[f.id] = String(f.value);
-            return acc;
-          },
-          {}
-        );
+        const filters = buildLabTestFilters(columnFilters);
         const res = await fetchLabTestTypePaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
