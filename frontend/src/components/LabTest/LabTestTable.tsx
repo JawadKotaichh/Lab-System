@@ -9,7 +9,10 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import type { labTest } from "../types";
-import { fetchLabTestTypePaginated } from "../utils";
+import {
+  fetchAllLabTestTypeCategories,
+  fetchLabTestTypePaginated,
+} from "../utils";
 import {
   pageListTitle,
   tableCreateButton,
@@ -18,7 +21,7 @@ import {
 } from "../../style";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../Pagination";
-import { getLabTestColumns } from "../tableData";
+import { getLabTestColumns, setLabTestCategorySelectOptions } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
 import { handleCreateLabTest } from "../Function";
 
@@ -58,6 +61,8 @@ const LabTestTable = () => {
     setError,
     false
   );
+
+  const [, setCategoryVersion] = useState(0);
 
   const table = useReactTable({
     data,
@@ -104,6 +109,29 @@ const LabTestTable = () => {
 
     loadPage();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadCategories = async () => {
+      try {
+        const categories = await fetchAllLabTestTypeCategories();
+        const options = categories.map((category) => ({
+          value: category.lab_test_category_name,
+          label: category.lab_test_category_name,
+        }));
+        setLabTestCategorySelectOptions(options);
+        if (!cancelled) {
+          setCategoryVersion((prev) => prev + 1);
+        }
+      } catch (err) {
+        console.error("Failed to load lab test categories", err);
+      }
+    };
+    loadCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
