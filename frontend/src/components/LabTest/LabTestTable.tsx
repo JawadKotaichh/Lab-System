@@ -22,7 +22,7 @@ import { getLabTestColumns } from "../tableData";
 import {
   buildLabTestFilters,
   useLabTestCategoryOptions,
-} from "../hooks/useLabTestCategoryOptions";
+} from "../../hooks/useLabTestCategoryOptions";
 import GenericTable from "../react-table/GeneralTable";
 import { handleCreateLabTest } from "../Function";
 

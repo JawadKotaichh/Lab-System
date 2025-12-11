@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import type { labTestCategoryParams } from "../types";
-import { fetchAllLabTestTypeCategories } from "../utils";
+import type { labTestCategoryParams } from "../components/types";
+import { fetchAllLabTestTypeCategories } from "../components/utils";
 
 type Option = { value: string; label: string };
 
