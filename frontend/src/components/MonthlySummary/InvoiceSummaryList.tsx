@@ -1,4 +1,4 @@
-import { baseURLL } from "src/api";
+import { baseURLL } from "../../api";
 import {
   Document,
   Page,
