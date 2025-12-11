@@ -34,6 +34,14 @@ import {
   handleNewVisit,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
+
+let labTestCategorySelectOptions: { value: string; label: string }[] = [];
+
+export const setLabTestCategorySelectOptions = (
+  options: { value: string; label: string }[]
+) => {
+  labTestCategorySelectOptions = options;
+};
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
 import MeatballsMenu from "./react-table/MeatBallsMenu";
@@ -307,7 +315,7 @@ export function getLabTestColumns(
   showTestsTable?: boolean,
   setShowTestsTable?: React.Dispatch<React.SetStateAction<boolean>>,
   setTotalPages?: React.Dispatch<React.SetStateAction<number>>,
-  setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>
+  setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>,
 ): ColumnDef<labTest>[] {
   type BoundsNV =
     | upper_and_lower_bound_only
@@ -398,6 +406,7 @@ export function getLabTestColumns(
           label="Category"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
+          options={labTestCategorySelectOptions}
         />
       ),
       sortingFn: (rowA, rowB, columnId) => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
 import {
@@ -34,9 +34,11 @@ const EditVisitPage: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [showPanelsTable, setShowPanelsTable] = useState<boolean>(false);
   const [showTestsTable, setShowTestsTable] = useState<boolean>(false);
-  const [pendingResults, setPendingResults] = useState<Record<string, string>>(
-    {}
-  );
+  const [pendingResults, setPendingResults] = useState<Record<string, string>>({});
+  const pendingResultsRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    pendingResultsRef.current = pendingResults;
+  }, [pendingResults]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -53,7 +55,7 @@ const EditVisitPage: React.FC = () => {
 
   const applyPendingToTestResults = (results: patientTestResult[]) =>
     results.map((test) => {
-      const pending = pendingResults[test.lab_test_result_id];
+      const pending = pendingResultsRef.current[test.lab_test_result_id];
       return pending !== undefined ? { ...test, result: pending } : test;
     });
 
@@ -61,7 +63,7 @@ const EditVisitPage: React.FC = () => {
     panels.map((panel) => ({
       ...panel,
       list_of_test_results: panel.list_of_test_results.map((test) => {
-        const pending = pendingResults[test.lab_test_result_id];
+        const pending = pendingResultsRef.current[test.lab_test_result_id];
         return pending !== undefined ? { ...test, result: pending } : test;
       }),
     }));
@@ -86,9 +88,7 @@ const EditVisitPage: React.FC = () => {
       setStandAloneTestResults(
         applyPendingToTestResults(res.list_of_standalone_test_results)
       );
-      setPanelResults(
-        applyPendingToPanelResults(res.list_of_panel_results)
-      );
+      setPanelResults(applyPendingToPanelResults(res.list_of_panel_results));
       setTotalPages(res.total_pages);
       setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
 
@@ -104,7 +104,6 @@ const EditVisitPage: React.FC = () => {
     visit_id,
     pagination.pageIndex,
     pagination.pageSize,
-    pendingResults,
   ]);
 
   useEffect(() => {
