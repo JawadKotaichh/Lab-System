@@ -28,6 +28,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   setError,
   visit_id,
   refreshResults,
+  setPendingResults,
 }: ShowResultsListParams) => {
   const handleChange = async (
     lab_test_result_id: string,
@@ -50,7 +51,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
         ),
       }))
     );
-    setPendingResults((prev) => ({
+    setPendingResults((prev: Record<string, string>) => ({
       ...prev,
       [lab_test_result_id]: newResult,
     }));
