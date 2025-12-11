@@ -10,9 +10,9 @@ from .api.lab_test_category import router as lab_test_category_router
 from .api.insurance_company import router as insurance_comapny_router
 from .api.lab_panel import router as lab_panel_router
 from .api.Invoice import router as invoice_router
+from .api.branding_router import router as branding_router
 from fastapi_pagination import add_pagination
 from fastapi.middleware.cors import CORSMiddleware
-
 
 app = FastAPI(title="Lab System API")
 add_pagination(app)
@@ -25,6 +25,7 @@ app.include_router(insurance_comapny_router)
 app.include_router(lab_test_category_router)
 app.include_router(lab_panel_router)
 app.include_router(invoice_router)
+app.include_router(branding_router)
 origins = [
     "http://20.174.9.177:5173",
     "https://mango-field-0a3015403.3.azurestaticapps.net",
