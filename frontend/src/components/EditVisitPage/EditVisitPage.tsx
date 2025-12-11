@@ -39,6 +39,12 @@ const EditVisitPage: React.FC = () => {
   useEffect(() => {
     pendingResultsRef.current = pendingResults;
   }, [pendingResults]);
+  const [existingLabTestTypeIds, setExistingLabTestTypeIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [shouldRefreshFullList, setShouldRefreshFullList] =
+    useState<boolean>(true);
+  const existingLabTestIdsFetchId = useRef(0);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -68,6 +74,47 @@ const EditVisitPage: React.FC = () => {
       }),
     }));
 
+  const loadAllExistingLabTestTypeIds = useCallback(
+    async (visitId: string, totalResults: number) => {
+      const requestId = ++existingLabTestIdsFetchId.current;
+      if (!visitId) {
+        setExistingLabTestTypeIds(new Set());
+        return;
+      }
+      if (totalResults <= 0) {
+        setExistingLabTestTypeIds(new Set());
+        return;
+      }
+      try {
+        const res = await fetchLabTestResultsAndPanelsPaginated(
+          visitId,
+          1,
+          totalResults
+        );
+        if (existingLabTestIdsFetchId.current !== requestId) {
+          return;
+        }
+        const ids = new Set<string>();
+        res.list_of_standalone_test_results.forEach((test) =>
+          ids.add(test.lab_test_type_id)
+        );
+        res.list_of_panel_results.forEach((panel) =>
+          panel.list_of_test_results.forEach((test) =>
+            ids.add(test.lab_test_type_id)
+          )
+        );
+        setExistingLabTestTypeIds(ids);
+      } catch (err) {
+        console.error("Failed to refresh existing lab test ids:", err);
+      }
+    },
+    []
+  );
+
+  const markExistingLabTestIdsDirty = useCallback(() => {
+    setShouldRefreshFullList(true);
+  }, []);
+
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
   };
@@ -91,6 +138,16 @@ const EditVisitPage: React.FC = () => {
       setPanelResults(applyPendingToPanelResults(res.list_of_panel_results));
       setTotalPages(res.total_pages);
       setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+      if (shouldRefreshFullList) {
+        try {
+          await loadAllExistingLabTestTypeIds(
+            visit_id,
+            res.TotalNumberOfLabTestResults
+          );
+        } finally {
+          setShouldRefreshFullList(false);
+        }
+      }
 
       const res1 = await fetchVisit(visit_id);
       setVisitDate(res1.visit_date);
@@ -104,6 +161,8 @@ const EditVisitPage: React.FC = () => {
     visit_id,
     pagination.pageIndex,
     pagination.pageSize,
+    shouldRefreshFullList,
+    loadAllExistingLabTestTypeIds,
   ]);
 
   useEffect(() => {
@@ -200,6 +259,7 @@ const EditVisitPage: React.FC = () => {
           setStandAloneTestResults={setStandAloneTestResults}
           standAloneTestResults={standAloneTestResults}
           setPendingResults={setPendingResults}
+          markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
         />
       )}
       <AddTestResultTable
@@ -214,10 +274,12 @@ const EditVisitPage: React.FC = () => {
         setPanelResults={setPanelResults}
         setStandAloneTestResults={setStandAloneTestResults}
         standAloneTestResults={standAloneTestResults}
+        existingLabTestTypeIds={existingLabTestTypeIds}
         setAddError={setAddError}
         setShowTestsTable={setShowTestsTable}
         error={error}
         setError={setError}
+        markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
 
         //showTestsTable={showTestsTable}
         // setShowPanelsTable={setShowPanelsTable}
@@ -234,6 +296,7 @@ const EditVisitPage: React.FC = () => {
         showPanelsTable={showPanelsTable}
         setShowPanelsTable={setShowPanelsTable}
         visit_id={visit_id}
+        markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
       />
 
       <Pagination

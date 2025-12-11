@@ -54,6 +54,8 @@ export interface LabTestColumnOptions {
   setTotalPages?: React.Dispatch<React.SetStateAction<number>>;
   setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>;
   labTestCategoryOptions?: { value: string; label: string }[];
+  existingLabTestTypeIds?: Set<string>;
+  markExistingLabTestIdsDirty?: () => void;
 }
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
@@ -331,6 +333,8 @@ export function getLabTestColumns(
     setTotalPages,
     setTotalNumberOfTests,
     labTestCategoryOptions,
+    existingLabTestTypeIds,
+    markExistingLabTestIdsDirty,
   } = options ?? {};
   type BoundsNV =
     | upper_and_lower_bound_only
@@ -546,6 +550,8 @@ export function getLabTestColumns(
                 // setTotalNumberOfTests,
                 setError,
                 showTestsTable,
+                existingLabTestTypeIds,
+                markExistingLabTestIdsDirty,
                 // setTotalPages,
                 lab_test_id,
                 refreshResults: onAddedRefresh,
