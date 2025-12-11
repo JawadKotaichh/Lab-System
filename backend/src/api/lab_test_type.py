@@ -57,9 +57,12 @@ async def get_Lab_test_type_with_page_size(
     if lab_test_category_id:
         if not PydanticObjectId.is_valid(lab_test_category_id):
             raise HTTPException(400, "Invalid lab_test_category_id")
-        mongo_filter["lab_test_category_id"] = PydanticObjectId(
-            lab_test_category_id
-        )
+        mongo_filter["lab_test_category_id"] = {
+            "$in": [
+                PydanticObjectId(lab_test_category_id),
+                lab_test_category_id,
+            ]
+        }
     elif lab_test_category_name:
         category_filter = {
             "lab_test_category_name": {
@@ -70,7 +73,10 @@ async def get_Lab_test_type_with_page_size(
         category_ids: list[PydanticObjectId] = []
         async for category in DBlab_test_category.find(category_filter):
             category_ids.append(category.id)
-        mongo_filter["lab_test_category_id"] = {"$in": category_ids}
+        id_candidates: list[Any] = []
+        for category_id in category_ids:
+            id_candidates.extend([category_id, str(category_id)])
+        mongo_filter["lab_test_category_id"] = {"$in": id_candidates}
 
     total_number_of_lab_test_type = await DBLab_test_type.find(mongo_filter).count()
     cursor = DBLab_test_type.find(mongo_filter).skip(offset).limit(page_size)
