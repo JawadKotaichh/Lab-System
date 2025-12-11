@@ -15,6 +15,9 @@ interface ShowResultsListParams {
   visit_id: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
   refreshResults: () => Promise<void>;
+  setPendingResults: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
 }
 
 const TestResultsList: React.FC<ShowResultsListParams> = ({
@@ -47,6 +50,10 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
         ),
       }))
     );
+    setPendingResults((prev) => ({
+      ...prev,
+      [lab_test_result_id]: newResult,
+    }));
   };
 
   const handleDeleteLabResult = async (lab_test_result_id: string) => {
