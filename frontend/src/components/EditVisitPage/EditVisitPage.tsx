@@ -34,6 +34,9 @@ const EditVisitPage: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [showPanelsTable, setShowPanelsTable] = useState<boolean>(false);
   const [showTestsTable, setShowTestsTable] = useState<boolean>(false);
+  const [pendingResults, setPendingResults] = useState<Record<string, string>>(
+    {}
+  );
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -47,6 +50,21 @@ const EditVisitPage: React.FC = () => {
   const [totalNumberOfTests, setTotalNumberOfTests] = useState<number>(0);
   const showAdd = true;
   useState<number>(0);
+
+  const applyPendingToTestResults = (results: patientTestResult[]) =>
+    results.map((test) => {
+      const pending = pendingResults[test.lab_test_result_id];
+      return pending !== undefined ? { ...test, result: pending } : test;
+    });
+
+  const applyPendingToPanelResults = (panels: patientPanelResult[]) =>
+    panels.map((panel) => ({
+      ...panel,
+      list_of_test_results: panel.list_of_test_results.map((test) => {
+        const pending = pendingResults[test.lab_test_result_id];
+        return pending !== undefined ? { ...test, result: pending } : test;
+      }),
+    }));
 
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
@@ -65,8 +83,12 @@ const EditVisitPage: React.FC = () => {
         pagination.pageIndex + 1,
         pagination.pageSize
       );
-      setStandAloneTestResults(res.list_of_standalone_test_results);
-      setPanelResults(res.list_of_panel_results);
+      setStandAloneTestResults(
+        applyPendingToTestResults(res.list_of_standalone_test_results)
+      );
+      setPanelResults(
+        applyPendingToPanelResults(res.list_of_panel_results)
+      );
       setTotalPages(res.total_pages);
       setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
 
@@ -78,7 +100,12 @@ const EditVisitPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [visit_id, pagination.pageIndex, pagination.pageSize]);
+  }, [
+    visit_id,
+    pagination.pageIndex,
+    pagination.pageSize,
+    pendingResults,
+  ]);
 
   useEffect(() => {
     const loadPage = async () => {
@@ -86,18 +113,7 @@ const EditVisitPage: React.FC = () => {
       setError("");
       try {
         if (!visit_id) return;
-        const res = await fetchLabTestResultsAndPanelsPaginated(
-          visit_id,
-          pagination.pageIndex + 1,
-          pagination.pageSize
-        );
-        setStandAloneTestResults(res.list_of_standalone_test_results);
-        setPanelResults(res.list_of_panel_results);
-        setTotalPages(res.total_pages);
-        setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
-        const res1 = await fetchVisit(visit_id);
-        setVisitDate(res1.visit_date);
-        setReportDate(res1.report_date);
+        await refreshResults();
         const fetched_invoice = await fetchInvoice(visit_id);
         setUpdatedInvoiceData(fetched_invoice.invoice_data);
       } catch (err) {
@@ -108,25 +124,21 @@ const EditVisitPage: React.FC = () => {
     };
 
     loadPage();
-    void refreshResults();
-  }, [pagination.pageIndex, pagination.pageSize, refreshResults, visit_id]);
+  }, [refreshResults, visit_id]);
 
   const handleSaveAll = async () => {
+    if (!Object.keys(pendingResults).length) {
+      return;
+    }
     try {
       await Promise.all(
-        standAloneTestResults.map((item) => {
-          const url = `${labTestResultApiURL}/${item.lab_test_result_id}`;
-          api.put(url, null, { params: { result: item.result } });
+        Object.entries(pendingResults).map(([lab_test_result_id, result]) => {
+          const url = `${labTestResultApiURL}/${lab_test_result_id}`;
+          return api.put(url, null, { params: { result } });
         })
       );
-      await Promise.all(
-        panelResults.map((panelResult) => {
-          panelResult.list_of_test_results.map((item) => {
-            const url = `${labTestResultApiURL}/${item.lab_test_result_id}`;
-            api.put(url, null, { params: { result: item.result } });
-          });
-        })
-      );
+      setPendingResults({});
+      await refreshResults();
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
@@ -188,6 +200,7 @@ const EditVisitPage: React.FC = () => {
           setPanelResults={setPanelResults}
           setStandAloneTestResults={setStandAloneTestResults}
           standAloneTestResults={standAloneTestResults}
+          setPendingResults={setPendingResults}
         />
       )}
       <AddTestResultTable
@@ -216,6 +229,7 @@ const EditVisitPage: React.FC = () => {
         pagination={pagination}
         setStandAloneTestResults={setStandAloneTestResults}
         setTotalNumberOfTests={setTotalNumberOfTests}
+        panelResults={panelResults}
         // setUpdatedInvoiceData={setUpdatedInvoiceData}
         // updatedInvoiceData={updatedInvoiceData}
         showPanelsTable={showPanelsTable}

@@ -24,6 +24,7 @@ async def get_Lab_test_type_with_page_size(
     price: int | None = Query(None),
     unit: str | None = Query(None),
     nssf_id: int | None = Query(None),
+    lab_test_category_name: str | None = Query(None),
 ):
     offset = (page_number - 1) * page_size
     mongo_filter: dict[str, Any] = {}
@@ -51,6 +52,18 @@ async def get_Lab_test_type_with_page_size(
             }
         }
         mongo_filter = {"$and": [mongo_filter, expr]}
+
+    if lab_test_category_name:
+        category_filter = {
+            "lab_test_category_name": {
+                "$regex": lab_test_category_name,
+                "$options": "i",
+            }
+        }
+        category_ids: list[PydanticObjectId] = []
+        async for category in DBlab_test_category.find(category_filter):
+            category_ids.append(category.id)
+        mongo_filter["lab_test_category_id"] = {"$in": category_ids}
 
     total_number_of_lab_test_type = await DBLab_test_type.find(mongo_filter).count()
     cursor = DBLab_test_type.find(mongo_filter).skip(offset).limit(page_size)
