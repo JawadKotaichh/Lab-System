@@ -38,6 +38,7 @@ interface labPanelTableParams {
   setShowPanelsTable: React.Dispatch<React.SetStateAction<boolean>>;
   setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
   refreshResults: () => Promise<void>;
+  panelResults: patientPanelResult[];
 }
 
 const LabPanelsTable: React.FC<labPanelTableParams> = ({
@@ -51,6 +52,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   setStandAloneTestResults,
   setTotalNumberOfTests,
   refreshResults,
+  panelResults,
 }: labPanelTableParams) => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
   const [error, setError] = useState<string>("");
@@ -65,6 +67,11 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   const handleAddLabPanel = async (visit_id: string, lab_panel_id: string) => {
     setLoading(true);
     setError("");
+    if (panelResults.some((panel) => panel.lab_panel_id === lab_panel_id)) {
+      alert("This lab panel already exists.");
+      setLoading(false);
+      return;
+    }
     try {
       await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
       const res = await fetchLabTestResultsAndPanelsPaginated(
