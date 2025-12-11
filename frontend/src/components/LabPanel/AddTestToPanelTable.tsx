@@ -15,7 +15,7 @@ import { getLabTestColumns } from "../tableData";
 import {
   buildLabTestFilters,
   useLabTestCategoryOptions,
-} from "../hooks/useLabTestCategoryOptions";
+} from "../../hooks/useLabTestCategoryOptions";
 import Pagination from "../Pagination";
 import {
   pageListTitle,
