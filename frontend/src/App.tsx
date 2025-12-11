@@ -1,6 +1,12 @@
 import React, { useState } from "react";
-import { Routes, Route, Link, NavLink, useMatch } from "react-router-dom";
-import logo from "./assets/logo.png";
+import {
+  Routes,
+  Route,
+  Link,
+  NavLink,
+  useMatch,
+  Navigate,
+} from "react-router-dom";
 import "./App.css";
 import MaintenanceMenu from "./components/MaintenanceMenu";
 import EditPatientPage from "./components/Patients/EditPatient";
@@ -19,7 +25,7 @@ import InvoiceContainer from "./components/Invoice/InvoiceContainer";
 import ResultContainer from "./components/ResultPDF/ResultContainer";
 import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryContainer";
 import MonthSummary from "./components/MonthlySummary/MonthSummary";
-
+import baseURLL from "./api";
 type NavItem = {
   to: string;
   label: string;
@@ -46,7 +52,11 @@ const App: React.FC = () => {
         <div className="flex items-center h-20">
           <div className="pl-4">
             <Link to="/">
-              <img src={logo} alt="logo" className="h-12 w-auto" />
+              <img
+                src={`${baseURLL}/branding/logo`}
+                alt="logo"
+                className="h-12 w-auto"
+              />
             </Link>
           </div>
 
@@ -75,6 +85,7 @@ const App: React.FC = () => {
       </nav>
       <main>
         <Routes>
+          <Route path="/" element={<Navigate to="/visits" replace />} />
           <Route path="/visits" element={<VisitsTable />} />
           <Route path="/visits/:visit_id" element={<EditVisitPage />} />
           <Route path="/patients" element={<PatientTable />} />

@@ -48,3 +48,4 @@ migrations/
 # TypeScript build artifacts
 *.js
 *.d.ts
+backend/src/assets/branding/
