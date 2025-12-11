@@ -25,6 +25,7 @@ async def get_Lab_test_type_with_page_size(
     unit: str | None = Query(None),
     nssf_id: int | None = Query(None),
     lab_test_category_name: str | None = Query(None),
+    lab_test_category_id: str | None = Query(None),
 ):
     offset = (page_number - 1) * page_size
     mongo_filter: dict[str, Any] = {}
@@ -53,7 +54,13 @@ async def get_Lab_test_type_with_page_size(
         }
         mongo_filter = {"$and": [mongo_filter, expr]}
 
-    if lab_test_category_name:
+    if lab_test_category_id:
+        if not PydanticObjectId.is_valid(lab_test_category_id):
+            raise HTTPException(400, "Invalid lab_test_category_id")
+        mongo_filter["lab_test_category_id"] = PydanticObjectId(
+            lab_test_category_id
+        )
+    elif lab_test_category_name:
         category_filter = {
             "lab_test_category_name": {
                 "$regex": lab_test_category_name,
