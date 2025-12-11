@@ -133,53 +133,65 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
     setError: React.Dispatch<React.SetStateAction<string>>;
     refreshResults?: () => Promise<void>;
+    existingLabTestTypeIds?: Set<string>;
+    markExistingLabTestIdsDirty?: () => void;
    
   }
-  export const handleAddLabTest = async ({pagination,setError,refreshResults,lab_test_id,panelResults,setPanelResults,setStandAloneTestResults,standAloneTestResults,setAddError,setShowTestsTable,visit_id,
-  }:addLabTestParams) => {
-    if (standAloneTestResults.some((r) => r.lab_test_type_id === lab_test_id)) {
-      setAddError("This test already exists.");
-      alert("This test already exists.");
-      setShowTestsTable(false);
-      setAddError("");
-      return;
-    }
-    const alreadyExists = panelResults.some(panel =>
-    panel.list_of_test_results.some(r =>
-      r.lab_test_type_id === lab_test_id
-    )
+export const handleAddLabTest = async ({
+  pagination,
+  setError,
+  refreshResults,
+  lab_test_id,
+  panelResults,
+  setPanelResults,
+  standAloneTestResults,
+  setStandAloneTestResults,
+  setAddError,
+  setShowTestsTable,
+  visit_id,
+  existingLabTestTypeIds,
+  markExistingLabTestIdsDirty,
+}: addLabTestParams) => {
+  const duplicateMessage = "This test already exists for this visit.";
+  const alreadyExistsStandalone = standAloneTestResults.some(
+    (r) => r.lab_test_type_id === lab_test_id
   );
+  const alreadyExistsPanel = panelResults.some((panel) =>
+    panel.list_of_test_results.some((r) => r.lab_test_type_id === lab_test_id)
+  );
+  const alreadyExistsAnywhere =
+    existingLabTestTypeIds?.has(lab_test_id) ||
+    alreadyExistsStandalone ||
+    alreadyExistsPanel;
 
-    if (alreadyExists) {
-      setAddError("This test already exists.");
-      alert("This test already exists.");
-      setShowTestsTable(false);
-      setAddError("");
-      return;
-}
-    
-    setAddError("");
-    const url = `/lab_tests_results/${visit_id}`;
-    try {
-      await api.post(url, {
-        lab_test_type_id: lab_test_id,
-        visit_id,
-        result: "",
-      });
-      const updated = await fetchLabTestResultsAndPanelsPaginated(
-        visit_id,
-        pagination.pageIndex + 1,        
-        pagination.pageSize
-      );
-      setStandAloneTestResults(updated.list_of_standalone_test_results);
-      setPanelResults(updated.list_of_panel_results);
-      if (refreshResults) await refreshResults(); 
-      rebuildInvoice(visit_id);
-      setShowTestsTable(false);
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
+  if (alreadyExistsAnywhere) {
+    setAddError(duplicateMessage);
+    return;
+  }
+
+  setAddError("");
+  const url = `/lab_tests_results/${visit_id}`;
+  try {
+    await api.post(url, {
+      lab_test_type_id: lab_test_id,
+      visit_id,
+      result: "",
+    });
+    const updated = await fetchLabTestResultsAndPanelsPaginated(
+      visit_id,
+      pagination.pageIndex + 1,
+      pagination.pageSize
+    );
+    setStandAloneTestResults(updated.list_of_standalone_test_results);
+    setPanelResults(updated.list_of_panel_results);
+    markExistingLabTestIdsDirty?.();
+    if (refreshResults) await refreshResults();
+    rebuildInvoice(visit_id);
+    setShowTestsTable(false);
+  } catch (err: unknown) {
+    console.error(err);
+    if (err instanceof Error) {
+      setError(err.message);
       }
     }
   };

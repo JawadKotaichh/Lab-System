@@ -39,6 +39,7 @@ interface labPanelTableParams {
   setTotalNumberOfTests: React.Dispatch<React.SetStateAction<number>>;
   refreshResults: () => Promise<void>;
   panelResults: patientPanelResult[];
+  markExistingLabTestIdsDirty: () => void;
 }
 
 const LabPanelsTable: React.FC<labPanelTableParams> = ({
@@ -53,6 +54,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   setTotalNumberOfTests,
   refreshResults,
   panelResults,
+  markExistingLabTestIdsDirty,
 }: labPanelTableParams) => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
   const [error, setError] = useState<string>("");
@@ -72,8 +74,8 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       setLoading(false);
       return;
     }
-    try {
-      await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
+      try {
+        await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
       const res = await fetchLabTestResultsAndPanelsPaginated(
         visit_id,
         pagination.pageIndex + 1,
@@ -85,6 +87,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
       rebuildInvoice(visit_id);
       setShowPanelsTable(false);
+      markExistingLabTestIdsDirty();
       void refreshResults();
       // window.location.reload();
     } catch (err: unknown) {

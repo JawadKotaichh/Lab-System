@@ -46,6 +46,8 @@ interface TestsList {
   setShowTestsTable: React.Dispatch<React.SetStateAction<boolean>>;
   setTotalNumberOfTests?: React.Dispatch<React.SetStateAction<number>>;
   refreshResults: () => Promise<void>;
+  existingLabTestTypeIds: Set<string>;
+  markExistingLabTestIdsDirty: () => void;
 }
 
 const AddTestResultTable: React.FC<TestsList> = ({
@@ -56,6 +58,8 @@ const AddTestResultTable: React.FC<TestsList> = ({
   setPanelResults,
   setStandAloneTestResults,
   panelResults,
+  existingLabTestTypeIds,
+  markExistingLabTestIdsDirty,
   setAddError,
   setShowTestsTable,
   showAdd,
@@ -101,22 +105,24 @@ TestsList) => {
     toggleFilter,
     setError,
     showAdd,
-    {
-      pagination,
-      setPagination,
-      visit_id,
-      panelResults,
-      setPanelResults,
-      standAloneTestResults,
-      setStandAloneTestResults,
-      setAddError,
-      showTestsTable,
-      setShowTestsTable,
-      setTotalPages,
-      setTotalNumberOfTests: setTotalNumberOfPaginatedItems,
-      onAddedRefresh: refreshResults,
-      labTestCategoryOptions,
-    }
+      {
+        pagination,
+        setPagination,
+        visit_id,
+        panelResults,
+        setPanelResults,
+        standAloneTestResults,
+        setStandAloneTestResults,
+        existingLabTestTypeIds,
+        setAddError,
+        showTestsTable,
+        setShowTestsTable,
+        setTotalPages,
+        setTotalNumberOfTests: setTotalNumberOfPaginatedItems,
+        onAddedRefresh: refreshResults,
+        labTestCategoryOptions,
+        markExistingLabTestIdsDirty,
+      }
   );
   ///neeed adjusments
   //   const labPanelsCols = getLabTestColumns(

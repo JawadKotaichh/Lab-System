@@ -18,6 +18,7 @@ interface ShowResultsListParams {
   setPendingResults: React.Dispatch<
     React.SetStateAction<Record<string, string>>
   >;
+  markExistingLabTestIdsDirty: () => void;
 }
 
 const TestResultsList: React.FC<ShowResultsListParams> = ({
@@ -29,6 +30,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   visit_id,
   refreshResults,
   setPendingResults,
+  markExistingLabTestIdsDirty,
 }: ShowResultsListParams) => {
   const handleChange = async (
     lab_test_result_id: string,
@@ -61,6 +63,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     const url = `${labTestResultApiURL}/${lab_test_result_id}`;
     try {
       await api.delete(url);
+      markExistingLabTestIdsDirty();
       void refreshResults();
       rebuildInvoice(visit_id);
     } catch (err: unknown) {
@@ -74,6 +77,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     const url = `${labTestResultApiURL}/delete_panels/${visit_id}/${lab_panel_id}`;
     try {
       await api.delete(url);
+      markExistingLabTestIdsDirty();
       rebuildInvoice(visit_id);
       void refreshResults();
     } catch (err: unknown) {
