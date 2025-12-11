@@ -1,7 +1,4 @@
-// import logo from "../../assets/logo.png";
-import lab_header from "../../assets/lab_header.png";
-import lab_signature from "../../assets/Lab Signature.png";
-import lab_address from "../../assets/lab_address.png";
+import { baseURLL } from "src/api";
 import {
   Document,
   Page,
@@ -26,7 +23,10 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      <Image src={lab_header} style={styles.lab_header} />
+      <Image
+        src={`${baseURLL}/branding/lab_header`}
+        style={styles.lab_header}
+      />
       <View style={styles.invoiceNumber}>
         <Text>Invoice Number:</Text>
       </View>
@@ -78,13 +78,19 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
       />
       <View style={[{ textAlign: "right" }]}>
         {showSignature && (
-          <Image src={lab_signature} style={styles.lab_signature} />
+          <Image
+            src={`${baseURLL}/branding/lab_signature`}
+            style={styles.lab_signature}
+          />
         )}
         <Text>Signature</Text>
         <Text style={[{ top: 20 }]}>2009/37</Text>
       </View>
       <View style={styles.footer} fixed>
-        <Image src={lab_address} style={styles.footerImage} />
+        <Image
+          src={`${baseURLL}/branding/lab_address`}
+          style={styles.footerImage}
+        />
       </View>
     </Page>
   </Document>
