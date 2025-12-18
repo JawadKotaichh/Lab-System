@@ -25,7 +25,7 @@ import InvoiceContainer from "./components/Invoice/InvoiceContainer";
 import ResultContainer from "./components/ResultPDF/ResultContainer";
 import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryContainer";
 import MonthSummary from "./components/MonthlySummary/MonthSummary";
-import baseURLL from "./api";
+import { baseURLL } from "./api";
 type NavItem = {
   to: string;
   label: string;
