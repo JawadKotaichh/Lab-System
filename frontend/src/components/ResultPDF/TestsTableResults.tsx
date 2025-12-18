@@ -14,13 +14,6 @@ const TestsTableResults = ({
   list_of_panel_results,
   patientGender,
 }: TestsTableResultsProps) => {
-  const headers = [
-    "Test Name",
-    "Result",
-    "Unit",
-    "Normal Value",
-    "Previous Result",
-  ];
   const isNormalForGender = (
     nv: unknown,
     result: string | number,
@@ -58,17 +51,6 @@ const TestsTableResults = ({
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View style={styles.tableRowWithoutBorder}>
-          {headers.map((h) => (
-            <View style={styles.tableColHeader} key={h}>
-              <Text
-                style={[styles.tableCellTextHeader, { fontWeight: "4000" }]}
-              >
-                {h}
-              </Text>
-            </View>
-          ))}
-        </View>
         {groupedData.map((currentCategory, rowIdx) => (
           <View key={rowIdx}>
             <Text
@@ -95,7 +77,7 @@ const TestsTableResults = ({
                     ]}
                     key={`${rowIdx}-s-${idx}`}
                   >
-                    <View style={styles.tableCol}>
+                    <View style={styles.tableColleft}>
                       <Text style={styles.tableCellText}>
                         {t.lab_test_type.name}
                       </Text>

@@ -11,6 +11,14 @@ import type { visitResultData } from "../types";
 import { styles } from "./ResultStyle";
 import TestsTableResults from "./TestsTableResults";
 
+const tableHeaders = [
+  "Test Name",
+  "Result",
+  "Unit",
+  "Normal Value",
+  "Previous Result",
+];
+
 const ResultPdf: React.FC<visitResultData> = ({
   patient,
   list_of_panel_results,
@@ -65,6 +73,19 @@ const ResultPdf: React.FC<visitResultData> = ({
           </View>
         </View>
         <Text style={styles.labTitle}>Lab Results</Text>
+        <View style={styles.tableHeaderWrapper}>
+          <View style={styles.tableRowWithoutBorder}>
+            {tableHeaders.map((h) => (
+              <View style={styles.tableColHeader} key={h}>
+                <Text
+                  style={[styles.tableCellTextHeader, { fontWeight: "4000" }]}
+                >
+                  {h}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
       <TestsTableResults
         patientGender={patient.gender}
