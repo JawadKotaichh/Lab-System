@@ -195,6 +195,12 @@ TestsList) => {
     setTotalPages,
   ]);
 
+  useEffect(() => {
+    setPagination((old) =>
+      old.pageIndex === 1 ? old : { ...old, pageIndex: 1 }
+    );
+  }, [columnFilters]);
+
   if (loading) return <div>Loading Lab Tests...</div>;
 
   return (
