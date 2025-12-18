@@ -57,8 +57,9 @@ const TestsTableResults = ({
               style={{
                 fontSize: 13,
                 fontWeight: "600",
-                borderBottom: 1,
-                borderTop: 1,
+                borderBottomWidth: 1,
+                borderTopWidth: 1,
+                borderColor: "#262626",
                 paddingBottom: 5,
                 paddingTop: 2,
                 padding: 4,
@@ -73,11 +74,15 @@ const TestsTableResults = ({
                   <View
                     style={[
                       styles.tableRow,
-                      { borderBottom: 0.3, borderStyle: "dotted" },
+                      {
+                        borderBottomWidth: 0.3,
+                        borderStyle: "dotted",
+                        borderColor: "#262626",
+                      },
                     ]}
                     key={`${rowIdx}-s-${idx}`}
                   >
-                    <View style={styles.tableColleft}>
+                    <View style={styles.tableCol}>
                       <Text style={styles.tableCellText}>
                         {t.lab_test_type.name}
                       </Text>
@@ -158,11 +163,15 @@ const TestsTableResults = ({
                       <View
                         style={[
                           styles.tableRow,
-                          { borderBottom: 0.3, borderStyle: "dotted" },
+                          {
+                            borderBottomWidth: 0.3,
+                            borderStyle: "dotted",
+                            borderColor: "#262626",
+                          },
                         ]}
                         key={`${rowIdx}-p-${idx}-r-${i}`}
                       >
-                        <View style={styles.tableColleft}>
+                        <View style={styles.tableCol}>
                           <Text style={styles.tableCellText}>
                             {t.lab_test_type.name}
                           </Text>
