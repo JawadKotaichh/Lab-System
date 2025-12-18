@@ -29,8 +29,9 @@ from ..models import lab_test_category as DBLab_test_category
 from ..models import lab_test_type as DBLab_test_type
 
 
-def get_next_sequence(db, name: str) -> int:
-    counter = db.counters.find_one_and_update(
+async def get_next_sequence(name: str) -> int:
+    db = DBInvoice.get_motor_collection().database
+    counter = await db["counters"].find_one_and_update(
         {"_id": name},
         {"$inc": {"seq": 1}},
         return_document=ReturnDocument.AFTER,
@@ -362,7 +363,7 @@ async def create_invoice(visit_id: str, patient: Patient):
         visit_date=db_visit.visit_date,
         discount_percentage=0.0,
         insurance_company_id=patient.insurance_company_id,
-        invoice_number=get_next_sequence(DBInvoice, "invoice_number"),
+        invoice_number=await get_next_sequence("invoice_number"),
     )
     new_invoice = await db_invoice.insert()
     if not new_invoice:
