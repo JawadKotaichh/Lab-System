@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { type patientInfo, type updateInvoiceData } from "../types.js";
+import { useDebounce } from "../react-table/Debounce";
 import {
   fetchInvoice,
   getInsuranceCompanyRate,
@@ -25,6 +26,15 @@ const Prices: React.FC<PricesParams> = ({
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
     useState<number>(0);
+  const [draftDiscount, setDraftDiscount] = useState<number>(
+    updatedInvoiceData.discount_percentage ?? 0
+  );
+  const prevSyncedDiscount = useRef<number>(
+    updatedInvoiceData.discount_percentage ?? 0
+  );
+  const debouncedDiscount = useDebounce(draftDiscount, 1500);
+  const roundTo = (value: number, decimals: number) =>
+    Number(value.toFixed(decimals));
   useEffect(() => {
     const load = async () => {
       setError("");
@@ -51,19 +61,33 @@ const Prices: React.FC<PricesParams> = ({
     load();
   }, [updatedInvoiceData, patientData.patient_id, setError]);
 
-  const handleDiscountPercentageChange = async (
-    newDiscountPercentageStr: string,
-    visit_id: string
-  ) => {
-    try {
-      const discount = Number(newDiscountPercentageStr || 0);
-      await updateInvoice(visit_id, { discount_percentage: discount });
-      const fetched_invoice = await fetchInvoice(visit_id);
-      setUpdatedInvoiceData(fetched_invoice.invoice_data);
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error) setError(err.message);
-    }
+  useEffect(() => {
+    const synced = updatedInvoiceData.discount_percentage ?? 0;
+    prevSyncedDiscount.current = synced;
+    setDraftDiscount(synced);
+  }, [updatedInvoiceData.discount_percentage]);
+
+  useEffect(() => {
+    const applyDiscountUpdate = async () => {
+      if (debouncedDiscount === prevSyncedDiscount.current) return;
+      try {
+        const discount = debouncedDiscount;
+        await updateInvoice(visit_id, { discount_percentage: discount });
+        const fetched_invoice = await fetchInvoice(visit_id);
+        setUpdatedInvoiceData(fetched_invoice.invoice_data);
+        prevSyncedDiscount.current =
+          fetched_invoice.invoice_data.discount_percentage ?? 0;
+      } catch (err: unknown) {
+        console.error(err);
+        if (err instanceof Error) setError(err.message);
+      }
+    };
+    applyDiscountUpdate();
+  }, [debouncedDiscount, visit_id, setError, setUpdatedInvoiceData]);
+
+  const handleDiscountInputChange = (value: string) => {
+    const parsed = Number(value);
+    setDraftDiscount(Number.isNaN(parsed) ? 0 : parsed);
   };
 
   return (
@@ -84,11 +108,9 @@ const Prices: React.FC<PricesParams> = ({
             <label>
               <span>
                 <input
-                  value={updatedInvoiceData.discount_percentage}
+                  value={draftDiscount}
                   type="number"
-                  onChange={(e) =>
-                    handleDiscountPercentageChange(e.target.value, visit_id)
-                  }
+                  onChange={(e) => handleDiscountInputChange(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.currentTarget.blur();
@@ -101,10 +123,13 @@ const Prices: React.FC<PricesParams> = ({
             </label>
           </td>
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
-            {totalPrice * patientInsuranceCompanyRate -
-              totalPrice *
-                patientInsuranceCompanyRate *
-                (updatedInvoiceData.discount_percentage! / 100)}{" "}
+            {roundTo(
+              totalPrice * patientInsuranceCompanyRate -
+                totalPrice *
+                  patientInsuranceCompanyRate *
+                  (updatedInvoiceData.discount_percentage! / 100),
+              2
+            )}{" "}
             $
           </td>
         </tr>
