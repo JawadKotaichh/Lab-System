@@ -98,6 +98,7 @@ class lab_panel(Document):
 
 
 class Invoice(Document):
+    invoice_number: int = Field(...)
     list_of_tests: List[lab_test_type] = Field(...)
     list_of_lab_panels: List[LabPanelResponse] = Field(...)
     visit_id: PydanticObjectId = Field(...)

@@ -8,6 +8,7 @@ from ..schemas.schema_Invoice import (
     invoiceData,
     update_invoice,
 )
+from pymongo import ReturnDocument
 from ..schemas.schema_Patient import Patient
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -27,18 +28,18 @@ from ..schemas.schema_Lab_Test_Result import Lab_test_result
 from ..models import lab_test_category as DBLab_test_category
 from ..models import lab_test_type as DBLab_test_type
 
+
+def get_next_sequence(db, name: str) -> int:
+    counter = db.counters.find_one_and_update(
+        {"_id": name},
+        {"$inc": {"seq": 1}},
+        return_document=ReturnDocument.AFTER,
+        upsert=True,
+    )
+    return counter["seq"]
+
+
 router = APIRouter(prefix="/invoices", tags=["invoices"])
-
-
-# def get_total_price(
-#     listOfLabTests: List[Lab_test_type], listOfLabPanels: List[LabPanelResponse]
-# ):
-#     total_price = 0.0
-#     for test in listOfLabTests:
-#         total_price += test.price
-#     for panel in listOfLabPanels:
-#         total_price += panel.lab_panel_price
-#     return total_price
 
 
 @router.get(
@@ -123,6 +124,7 @@ async def get_monthly_summary_invoice(
             visit_date=invoice.visit_date,
             patient_insurance_company_rate=patient_insurance_company_rate,
             visit_id=str(db_visit.id),
+            invoice_number=invoice.invoice_number,
         )
         current_invoice_data = invoiceData(
             patient=currentPatient, invoice_data=current_invoice
@@ -264,14 +266,6 @@ async def rebuild_invoice(visit_id: str):
             )
             listOfTests.append(currentLabTest)
 
-    # totalPrice = 0.0
-
-    # for individual_test in list_of_individual_test_results:
-    # lab_test = await DBLab_test_type.get(
-    #     PydanticObjectId(individual_test.lab_test_type_id)
-    # )
-    # if lab_test:
-    #     totalPrice += lab_test.price
     lab_tests: List[Lab_test_type] = []
     for panel_id in panel_to_list_of_tests:
         current_list_of_lab_results: List[Lab_test_result] = panel_to_list_of_tests[
@@ -338,6 +332,7 @@ async def rebuild_invoice(visit_id: str):
         visit_date=visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
         discount_percentage=db_invoice.discount_percentage,
+        invoice_number=db_invoice.invoice_number,
     )
     db_invoice.list_of_lab_panels = listOfPanels
     db_invoice.list_of_tests = listOfTests
@@ -367,8 +362,7 @@ async def create_invoice(visit_id: str, patient: Patient):
         visit_date=db_visit.visit_date,
         discount_percentage=0.0,
         insurance_company_id=patient.insurance_company_id,
-        # total_price_with_insurance=0.0,
-        # total_without_insurance=0.0,
+        invoice_number=get_next_sequence(DBInvoice, "invoice_number"),
     )
     new_invoice = await db_invoice.insert()
     if not new_invoice:
@@ -444,8 +438,7 @@ async def get_invoice(visit_id: str):
         visit_date=db_invoice.visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
         insurance_company_id=str(db_patient.insurance_company_id),
-        # total_price_with_insurance=db_invoice.total_price_with_insurance,
-        # total_without_insurance=db_invoice.total_without_insurance,
+        invoice_number=db_invoice.invoice_number,
     )
     output_invoice_data = invoiceData(
         patient=currentPatient,
@@ -515,8 +508,7 @@ async def get_invoices_with_page_size(
             visit_date=invoice.visit_date,
             insurance_company_id=str(db_patient.insurance_company_id),
             patient_insurance_company_rate=patient_insurance_company_rate,
-            # total_price_with_insurance=invoice.total_price_with_insurance,
-            # total_without_insurance=invoice.total_without_insurance,
+            invoice_number=invoice.invoice_number,
         )
         allInvoices.append(currentInvoice)
 

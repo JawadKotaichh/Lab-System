@@ -43,6 +43,7 @@ class VisitData(BaseModel):
 
 
 class visitInvoice(BaseModel):
+    invoice_number: int
     listOfTests: List[Lab_test_type]
     listOfPanels: List[Lab_Panel]
     totalPrice: float
