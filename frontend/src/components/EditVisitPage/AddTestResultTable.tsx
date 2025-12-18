@@ -197,7 +197,7 @@ TestsList) => {
 
   useEffect(() => {
     setPagination((old) =>
-      old.pageIndex === 1 ? old : { ...old, pageIndex: 1 }
+      old.pageIndex === 0 ? old : { ...old, pageIndex: 0 }
     );
   }, [columnFilters]);
 
