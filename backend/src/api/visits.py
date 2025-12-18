@@ -39,6 +39,11 @@ async def get_invoice(visit_id: str):
     db_visit = await DBVisit.get(PydanticObjectId(visit_id))
     if not db_visit:
         raise HTTPException(status_code=400, detail=f"Visit Id:{visit_id} not found!")
+    db_invoice = await DBInvoice.get(DBInvoice.visit_id == PydanticObjectId(visit_id))
+    if not db_invoice:
+        raise HTTPException(
+            status_code=400, detail=f"Invoice with visit id:{visit_id} not found!"
+        )
 
     db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
     if not db_patient:
@@ -150,6 +155,7 @@ async def get_invoice(visit_id: str):
         totalPrice=totalPrice,
         visit_date=visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
+        invoice_number=db_invoice.invoice_number,
     )
     return output
 

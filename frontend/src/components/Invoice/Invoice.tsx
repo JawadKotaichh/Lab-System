@@ -13,6 +13,7 @@ import TestsTableInvoice from "./TestsTableInvoice";
 import type { InvoiceWrapperProps } from "../types";
 
 const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
+  invoice_number,
   list_of_lab_panels,
   list_of_tests,
   patient,
@@ -29,7 +30,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         style={styles.lab_header}
       />
       <View style={styles.invoiceNumber}>
-        <Text>Invoice Number:</Text>
+        <Text>Invoice Number: {invoice_number}</Text>
       </View>
       <View style={styles.patientCard}>
         <View style={styles.patientInfoRow}>
@@ -68,6 +69,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         </View>
       </View>
       <TestsTableInvoice
+        invoice_number={invoice_number}
         discount_percentage={discount_percentage}
         showSignature={showSignature}
         list_of_lab_panels={list_of_lab_panels}
