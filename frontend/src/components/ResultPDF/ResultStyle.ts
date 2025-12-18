@@ -18,7 +18,8 @@ export const styles = StyleSheet.create({
     fontFamily:'Helvetica',
     fontSize:12,
     padding:"30px 50px",
-    paddingTop: 220,
+    paddingTop: 250,
+    paddingBottom: 80, 
   },
   section: {
     margin: 10,
@@ -98,8 +99,15 @@ export const styles = StyleSheet.create({
   },
   tableWrapper: {
     width: '100%', 
-    borderWidth:1,        
+    borderWidth:1,
+    borderTopWidth: 0,
     borderColor: '#262626',
+  },
+  tableHeaderWrapper: {
+    width: "100%",
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: "#262626",
   },
   tableColHeader: {
   flex: 1,
@@ -111,6 +119,12 @@ export const styles = StyleSheet.create({
   textAlign: 'center',
 },
 tableCol: {
+  flex: 1,
+  borderColor: '#262626',
+  padding: 4,
+  textAlign: 'center', 
+},
+tableColleft: {
   flex: 1,
   borderColor: '#262626',
   padding: 4,
