@@ -87,6 +87,7 @@ const ResultPdf: React.FC<visitResultData> = ({
           </View>
         </View>
       </View>
+      <View style={styles.tableFrame} fixed />
       <TestsTableResults
         patientGender={patient.gender}
         visit_date={visit_date}

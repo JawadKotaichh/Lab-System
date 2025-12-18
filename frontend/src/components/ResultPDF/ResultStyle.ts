@@ -98,15 +98,24 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   tableWrapper: {
-    width: '100%', 
-    borderWidth:1,
-    borderTopWidth: 0,
-    borderColor: '#262626',
+    width: "100%",
+    borderWidth: 0,
   },
   tableHeaderWrapper: {
     width: "100%",
     borderWidth: 1,
     borderBottomWidth: 0,
+    borderColor: "#262626",
+  },
+  tableFrame: {
+    position: "absolute",
+    top: 250,
+    left: 50,
+    right: 50,
+    bottom: 60,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
     borderColor: "#262626",
   },
   tableColHeader: {
