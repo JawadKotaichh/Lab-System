@@ -162,7 +162,7 @@ const TestsTableResults = ({
                         ]}
                         key={`${rowIdx}-p-${idx}-r-${i}`}
                       >
-                        <View style={styles.tableCol}>
+                        <View style={styles.tableColleft}>
                           <Text style={styles.tableCellText}>
                             {t.lab_test_type.name}
                           </Text>
