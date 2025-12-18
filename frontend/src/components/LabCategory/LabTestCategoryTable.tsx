@@ -105,6 +105,12 @@ const LabTestCategoryTable = () => {
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
 
   useEffect(() => {
+    setPagination((old) =>
+      old.pageIndex === 1 ? old : { ...old, pageIndex: 1 }
+    );
+  }, [columnFilters]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const handleRefresh = () => setRefreshKey((prev) => prev + 1);
     window.addEventListener("lab-test-category-deleted", handleRefresh);
