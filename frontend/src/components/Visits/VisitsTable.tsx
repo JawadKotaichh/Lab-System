@@ -109,6 +109,12 @@ const VisitsTable: React.FC = () => {
     return () => window.removeEventListener("visit-deleted", handleRefresh);
   }, []);
 
+  useEffect(() => {
+    setPagination((old) =>
+      old.pageIndex === 1 ? old : { ...old, pageIndex: 1 }
+    );
+  }, [columnFilters]);
+
   if (loading) return <div>Loading visits...</div>;
 
   return (
