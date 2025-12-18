@@ -78,6 +78,9 @@ const TestsTableResults = ({
                         borderBottomWidth: 0.3,
                         borderStyle: "dotted",
                         borderColor: "#262626",
+                        borderTopWidth: 0,
+                        borderLeftWidth: 0,
+                        borderRightWidth: 0,
                       },
                     ]}
                     key={`${rowIdx}-s-${idx}`}
@@ -153,6 +156,10 @@ const TestsTableResults = ({
                             fontWeight: "bold",
                             borderStyle: "dotted",
                             borderBottomWidth: 0.3,
+                            borderColor: "#262626",
+                            borderTopWidth: 0,
+                            borderLeftWidth: 0,
+                            borderRightWidth: 0,
                           },
                         ]}
                       >
@@ -167,6 +174,9 @@ const TestsTableResults = ({
                             borderBottomWidth: 0.3,
                             borderStyle: "dotted",
                             borderColor: "#262626",
+                            borderTopWidth: 0,
+                            borderLeftWidth: 0,
+                            borderRightWidth: 0,
                           },
                         ]}
                         key={`${rowIdx}-p-${idx}-r-${i}`}
