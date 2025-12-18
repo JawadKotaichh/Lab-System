@@ -102,7 +102,7 @@ const Prices: React.FC<PricesParams> = ({
       <tbody>
         <tr>
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
-            {totalPrice * patientInsuranceCompanyRate} $
+            {roundTo(totalPrice * patientInsuranceCompanyRate, 2)} $
           </td>
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
             <label>
