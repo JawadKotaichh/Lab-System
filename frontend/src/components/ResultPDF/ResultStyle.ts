@@ -17,7 +17,8 @@ export const styles = StyleSheet.create({
     color:'#262626',
     fontFamily:'Helvetica',
     fontSize:12,
-    padding:"30px 50px"
+    padding:"30px 50px",
+    paddingTop: 220,
   },
   section: {
     margin: 10,
@@ -113,13 +114,14 @@ tableCol: {
   flex: 1,
   borderColor: '#262626',
   padding: 4,
-  textAlign: 'center', 
+  textAlign: 'left', 
 },
   tableCellText: {
     fontSize: 10,
-  }, footer: {
+  },
+  footer: {
     position: "absolute",
-    bottom: 20,         
+    bottom: 20,
     left: 40,
     right: 40,
     textAlign: "center",
@@ -135,8 +137,15 @@ tableCol: {
     textAlign: 'center',
   },
   tableColLast: {
-  flex: 1,
-  borderRightWidth: 0,
-  padding: 4,
-}
+    flex: 1,
+    borderRightWidth: 0,
+    padding: 4,
+  },
+  fixedHeader: {
+    position: "absolute",
+    top: 30,
+    left: 50,
+    right: 50,
+  },
 });
+  
