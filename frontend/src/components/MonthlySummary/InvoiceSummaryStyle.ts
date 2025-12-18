@@ -58,7 +58,7 @@ export const styles = StyleSheet.create({
   },
    patientCard: {  
     borderWidth: 1,
-    bordercolor:'#262626',
+    borderColor:'#262626',
     borderRadius: 5,
     padding: 10,
     marginBottom: 20,
@@ -100,13 +100,19 @@ export const styles = StyleSheet.create({
     borderColor: '#262626',
     backgroundColor: '#f0f0f0',
     padding: 4,
-    borderBottom:1,
+    borderBottomWidth: 1,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
   },
   tableCol: {
     flex: 1,
     borderColor: '#262626',
     padding: 4,
-    borderRight:1,
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 1,
   },
   tableCellText: {
     fontSize: 10,
@@ -127,7 +133,8 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subTotal:{
-    borderTop:1,
+    borderTopWidth: 1,
+    borderTopColor: "#262626",
     textAlign: 'right',
   },
   subTotalCol: {

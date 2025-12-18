@@ -59,6 +59,8 @@ const TestsTableResults = ({
                 fontWeight: "600",
                 borderBottomWidth: 1,
                 borderTopWidth: 1,
+                borderLeftWidth: 0,
+                borderRightWidth: 0,
                 borderColor: "#262626",
                 paddingBottom: 5,
                 paddingTop: 2,
