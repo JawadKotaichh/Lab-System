@@ -10,6 +10,7 @@ export default function InvoiceContainer() {
   const { visit_id } = useParams<{ visit_id: string }>();
   const [listOfTests, setListOfTests] = useState<labTest[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [invoiceNumber, setInvoiceNumber] = useState<number>(0);
   const [patient, setPatient] = useState<patientInfo>();
   const [visitDate, setVisitDate] = useState<Date>(new Date());
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
@@ -41,6 +42,7 @@ export default function InvoiceContainer() {
         setPatientInsuranceCompanyRate(
           data.invoice_data.patient_insurance_company_rate
         );
+        setInvoiceNumber(data.invoice_data.invoice_number);
         setLoading(false);
       })
       .catch((err) => setError(err.message || "Failed to load"));
@@ -65,6 +67,7 @@ export default function InvoiceContainer() {
       )}
       {!showSignatureOption && (
         <Invoice
+          invoice_number={invoiceNumber}
           discount_percentage={discountPercentage}
           showSignature={showSignature}
           list_of_lab_panels={listOfPanels}

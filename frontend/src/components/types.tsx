@@ -109,6 +109,7 @@ export type resultListData = {
 };
 
 export type InvoiceWrapperProps = {
+  invoice_number: number;
   list_of_lab_panels: labPanel[];
   list_of_tests: labTest[];
   patient: patientInfo;
@@ -119,6 +120,7 @@ export type InvoiceWrapperProps = {
   showSignature: boolean;
 };
 export type InvoiceData = {
+  invoice_number: number;
   visit_id: string;
   discount_percentage: number;
   list_of_lab_panels: labPanel[];
