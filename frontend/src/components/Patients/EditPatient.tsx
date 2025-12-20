@@ -96,6 +96,8 @@ const EditPatientPage = ({ title }: PageTitle) => {
       } else {
         api.post(PatientsApiURL, data);
       }
+      window.dispatchEvent(new Event("patients:changed"));
+
       navigate(PatientsMainPageURL);
     } catch (err) {
       if (err instanceof Error) {

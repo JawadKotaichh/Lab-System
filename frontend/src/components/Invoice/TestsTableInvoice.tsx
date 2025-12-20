@@ -22,18 +22,7 @@ const TestsTableInvoice = ({
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View
-          style={[
-            styles.tableRow,
-            {
-              borderBottomWidth: 0.1,
-              borderTopWidth: 0,
-              borderLeftWidth: 0,
-              borderRightWidth: 0,
-              borderColor: "#262626",
-            },
-          ]}
-        >
+        <View style={[styles.tableRow, { borderBottom: 0.1 }]}>
           {headers.map((h) => (
             <View style={styles.tableColHeader} key={h}>
               <Text
@@ -48,16 +37,7 @@ const TestsTableInvoice = ({
           const testValues = [test.nssf_id, test.name, getPrice(test)];
           return (
             <View
-              style={[
-                styles.tableRow,
-                {
-                  borderBottomWidth: 0.1,
-                  borderTopWidth: 0,
-                  borderLeftWidth: 0,
-                  borderRightWidth: 0,
-                  borderColor: "#262626",
-                },
-              ]}
+              style={[styles.tableRow, { borderBottom: 0.1 }]}
               key={test.lab_test_id ?? `${test.name}-${rowIdx}`}
             >
               {testValues.map((val, colIdx) => (
@@ -92,16 +72,7 @@ const TestsTableInvoice = ({
           ];
           return (
             <View
-              style={[
-                styles.tableRow,
-                {
-                  borderBottomWidth: 0.1,
-                  borderTopWidth: 0,
-                  borderLeftWidth: 0,
-                  borderRightWidth: 0,
-                  borderColor: "#262626",
-                },
-              ]}
+              style={[styles.tableRow, { borderBottom: 0.1 }]}
               key={panel.id ?? `${panel.panel_name}-${rowIdx}`}
             >
               {panelValues.map((val, colIdx) => (
