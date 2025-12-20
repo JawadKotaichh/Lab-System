@@ -57,18 +57,59 @@ export const styles = StyleSheet.create({
   width: "33.33%",
   paddingRight: 14,
 },
+
+patientInfoRow: {
+  flexDirection: "row",
+  marginBottom: 6,
+},
+
+// patientCol: {
+//   flexGrow: 1,
+//   flexBasis: 0,      
+//   minWidth: 0,       
+//   paddingRight: 18,  
+// },
+
 patientColLast: {
-  width: "33.33%",
+  flexGrow: 1,
+  flexBasis: 0,
+  minWidth: 0,
   paddingRight: 0,
 },
+
 patientField: {
   flexDirection: "row",
   alignItems: "center",
+  minWidth: 0,
 },
+
+labelCol1: { width: 135 },
+labelCol2: { width: 110 },
+labelCol3: { width: 75 },
+
 patientLabel: {
   fontSize: 10,
   fontWeight: "bold",
-},  
+},
+
+patientValue: {
+  fontSize: 10,
+  flexGrow: 1,
+  flexShrink: 1,
+  minWidth: 0,       
+},
+// patientColLast: {
+//   width: "33.33%",
+//   paddingRight: 0,
+// },
+// patientField: {
+//   flexDirection: "row",
+//   alignItems: "center",
+// },
+// patientLabel: {
+//   fontSize: 10,
+//   fontWeight: "bold",
+// },  
    patientCard: {  
     borderWidth: 1,
     borderColor:'#262626',
@@ -78,22 +119,22 @@ patientLabel: {
     marginTop:20,
     backgroundColor: '#f9f9f9',
   },
-  labelCol1: { width: 115 },
-  labelCol2: { width: 95 }, 
-  labelCol3: { width: 70 },
-  patientValue: {
-    fontSize: 10,
-    flexShrink: 1,
-  },
-  // patientInfoRow: {
-  //   flexDirection: 'row',
-  //   // justifyContent: 'space-between',
-  //   marginBottom: 4,
-  // },
-  patientInfoRow: {
-  flexDirection: "row",
-  marginBottom: 6,
-},
+//   labelCol1: { width: 115 },
+//   labelCol2: { width: 95 }, 
+//   labelCol3: { width: 70 },
+//   patientValue: {
+//     fontSize: 10,
+//     flexShrink: 1,
+//   },
+//   // patientInfoRow: {
+//   //   flexDirection: 'row',
+//   //   // justifyContent: 'space-between',
+//   //   marginBottom: 4,
+//   // },
+// //   patientInfoRow: {
+// //   flexDirection: "row",
+// //   marginBottom: 6,
+// // },
   patientInfoPair: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -124,6 +165,7 @@ patientLabel: {
   //   fontSize: 10,
   //   flexShrink: 1,
   // },
+  
   tableRow:{
     flexDirection: 'row',
   },
