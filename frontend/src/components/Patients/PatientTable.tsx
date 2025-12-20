@@ -115,6 +115,12 @@ const PatientTable = () => {
     window.addEventListener("patient-deleted", handleRefresh);
     return () => window.removeEventListener("patient-deleted", handleRefresh);
   }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleRefresh = () => setRefreshKey((prev) => prev + 1);
+    window.addEventListener("patients:changed", handleRefresh);
+    return () => window.removeEventListener("patients:changed", handleRefresh);
+  }, []);
 
   if (loading) return <div>Loading Patients...</div>;
 
