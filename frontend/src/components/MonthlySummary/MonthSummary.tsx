@@ -84,7 +84,20 @@ const MonthSummary = () => {
         end_date: data.end_date,
       });
 
-      navigate(`/summary-invoice/${data.insurance_company_id}`, {
+      const startParam =
+        data.start_date instanceof Date
+          ? data.start_date.toISOString()
+          : String(data.start_date);
+      const endParam =
+        data.end_date instanceof Date
+          ? data.end_date.toISOString()
+          : String(data.end_date);
+      const query = new URLSearchParams({
+        start_date: startParam,
+        end_date: endParam,
+      }).toString();
+
+      navigate(`/summary-invoice/${data.insurance_company_id}?${query}`, {
         state: {
           summaryData: response,
           start_date: data.start_date,
