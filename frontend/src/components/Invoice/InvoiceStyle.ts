@@ -53,6 +53,22 @@ export const styles = StyleSheet.create({
     flexDirection:"column",
     gap:"2px",
   },
+  patientCol: {
+  width: "33.33%",
+  paddingRight: 14,
+},
+patientColLast: {
+  width: "33.33%",
+  paddingRight: 0,
+},
+patientField: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+patientLabel: {
+  fontSize: 10,
+  fontWeight: "bold",
+},  
    patientCard: {  
     borderWidth: 1,
     borderColor:'#262626',
@@ -62,11 +78,22 @@ export const styles = StyleSheet.create({
     marginTop:20,
     backgroundColor: '#f9f9f9',
   },
-  patientInfoRow: {
-    flexDirection: 'row',
-    // justifyContent: 'space-between',
-    marginBottom: 4,
+  labelCol1: { width: 115 },
+  labelCol2: { width: 95 }, 
+  labelCol3: { width: 70 },
+  patientValue: {
+    fontSize: 10,
+    flexShrink: 1,
   },
+  // patientInfoRow: {
+  //   flexDirection: 'row',
+  //   // justifyContent: 'space-between',
+  //   marginBottom: 4,
+  // },
+  patientInfoRow: {
+  flexDirection: "row",
+  marginBottom: 6,
+},
   patientInfoPair: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -88,15 +115,15 @@ export const styles = StyleSheet.create({
   patientInfoPairNarrow: {
     flexGrow: 1,
   },
-  patientLabel: {
-    fontSize: 10,
-    fontWeight: "bold",
-    marginRight: 6,
-  },
-  patientValue: {
-    fontSize: 10,
-    flexShrink: 1,
-  },
+  // patientLabel: {
+  //   fontSize: 10,
+  //   fontWeight: "bold",
+  //   marginRight: 6,
+  // },
+  // patientValue: {
+  //   fontSize: 10,
+  //   flexShrink: 1,
+  // },
   tableRow:{
     flexDirection: 'row',
   },
