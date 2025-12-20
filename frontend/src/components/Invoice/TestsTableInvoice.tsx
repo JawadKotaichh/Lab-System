@@ -14,8 +14,10 @@ const TestsTableInvoice = ({
   const headers = ["Nssf ID", "Test Name", "Price"];
 
   const formatPrice = (currency: string, value?: number) =>
-    `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} ${
-      currency === "USD" ? "$" : "LBP"
+    ` ${
+      currency === "USD"
+        ? `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} $`
+        : `${patient_insurance_company_rate * (value ?? 0)} LBP`
     }`;
 
   const getPrice = (test: labTest) => formatPrice(currency, test.price);
