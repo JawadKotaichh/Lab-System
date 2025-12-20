@@ -135,7 +135,6 @@ const TestsTableInvoice = ({
                       discount_percentage) /
                       100
                   } LBP`}
-              `
             </Text>
           </View>
         </View>
