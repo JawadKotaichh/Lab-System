@@ -4,7 +4,7 @@ import getTotalPrice from "./getTotalPrice";
 import { styles } from "./InvoiceSummaryStyle";
 import amountToWords from "../Invoice/amountToWords";
 
-const InvoiceSummaryTable = ({ summaryData }: SummaryInvoice) => {
+const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
   const headers = ["Date", "Patient Name", "Insurance Company", "Total Price"];
   const totalPrice = summaryData.reduce((sum, currentInvoice) => {
     const d = currentInvoice.invoice_data;
@@ -21,7 +21,7 @@ const InvoiceSummaryTable = ({ summaryData }: SummaryInvoice) => {
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View style={[styles.tableRow, { borderBottom: 0.1 }]}>
+        <View style={[styles.tableRow, { borderBottomWidth: 0.1 }]}>
           {headers.map((h) => (
             <View style={styles.tableColHeader} key={h}>
               <Text
@@ -37,7 +37,10 @@ const InvoiceSummaryTable = ({ summaryData }: SummaryInvoice) => {
           const cuurent_patient = currentInvoice.patient;
 
           return (
-            <View style={[styles.tableRow, { borderBottom: 0.1 }]} key={rowIdx}>
+            <View
+              style={[styles.tableRow, { borderBottomWidth: 0.1 }]}
+              key={rowIdx}
+            >
               <View style={styles.tableCol}>
                 <Text style={styles.tableCellText}>
                   {current_invoice_data.visit_date
@@ -63,7 +66,7 @@ const InvoiceSummaryTable = ({ summaryData }: SummaryInvoice) => {
                     current_invoice_data.list_of_tests,
                     current_invoice_data.list_of_lab_panels
                   )}{" "}
-                  $
+                  {currency === "USD" ? "$" : "LBP"}
                 </Text>
               </View>
             </View>
@@ -82,14 +85,14 @@ const InvoiceSummaryTable = ({ summaryData }: SummaryInvoice) => {
                 { textAlign: "right", fontWeight: "9000" },
               ]}
             >
-              {totalPrice.toFixed(2)} $
+              {totalPrice.toFixed(2)} {currency === "USD" ? "$" : "LBP"}
             </Text>
           </View>
         </View>
       </View>
 
       <View style={[{ textAlign: "center" }, styles.AmountBox]}>
-        <Text>{amountToWords(totalPrice)}</Text>
+        <Text>{amountToWords(totalPrice, currency)}</Text>
       </View>
     </View>
   );

@@ -72,6 +72,7 @@ export type monthlySummaryInvoicesParams = {
   insurance_company_id: string;
   start_date: Date;
   end_date: Date;
+  currency?: string;
 };
 
 export type patientTestResult = {
@@ -110,6 +111,7 @@ export type resultListData = {
 
 export type InvoiceWrapperProps = {
   invoice_number: number;
+  currency: string;
   list_of_lab_panels: labPanel[];
   list_of_tests: labTest[];
   patient: patientInfo;
@@ -121,6 +123,7 @@ export type InvoiceWrapperProps = {
 };
 export type InvoiceData = {
   invoice_number: number;
+  currency: string;
   visit_id: string;
   discount_percentage: number;
   list_of_lab_panels: labPanel[];
@@ -131,12 +134,14 @@ export type InvoiceData = {
 export type fetchedInvoiceData = {
   patient: patientInfo;
   invoice_data: InvoiceData;
+  currency: string;
 };
 export type updateInvoiceData = {
   list_of_tests?: labTest[];
   list_of_lab_panels?: labPanel[];
   visit_id?: string;
   visit_date?: Date;
+  currency?: string;
   discount_percentage?: number;
   patient_insurance_company_rate?: number;
 };
@@ -307,10 +312,12 @@ export interface insuranceCompanyParams {
   insurance_company_id: string;
   insurance_company_name: string;
   rate: number;
+  currency: string;
 }
 export interface CreateInsuranceCompanyParams {
   insurance_company_name: string;
   rate: number;
+  currency: string;
 }
 export interface CreateLabTestCategoryParams {
   lab_test_category_id: string;

@@ -58,7 +58,7 @@ const EditLabTestCategory = ({ title }: PageTitle) => {
   };
   const handleSave = async () => {
     if (data.lab_test_category_name == "") {
-      setState("Please insert all the reuqired fields!");
+      setState("Please insert all the required fields!");
       return;
     }
     try {

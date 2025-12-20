@@ -14,7 +14,7 @@ import {
 } from "../../style";
 import type { CreateInsuranceCompanyParams, PageTitle } from "../types";
 import { DollarSign, User } from "lucide-react";
-import { fetchInsuranceCompany } from "../utils";
+import { fetchCurrencies, fetchInsuranceCompany } from "../utils";
 import {
   InsuranceApiURL,
   InsuranceMainPageURL,
@@ -25,10 +25,27 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
   const [state, setState] = useState<string>("");
   const navigate = useNavigate();
   const { insurance_company_id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+
   const [data, setData] = useState<CreateInsuranceCompanyParams>({
     insurance_company_name: "",
     rate: 0,
+    currency: "USD",
   });
+  const [allCurrencies, setAllCurrencies] = useState<string[]>([]);
+  useEffect(() => {
+    setLoading(true);
+    fetchCurrencies()
+      .then((data) => {
+        setAllCurrencies(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load");
+        setLoading(false);
+      });
+  }, []);
   useEffect(() => {
     if (insurance_company_id) {
       fetchInsuranceCompany(insurance_company_id)
@@ -54,7 +71,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
   };
   const handleSave = async () => {
     if (data.insurance_company_name == "" || data.rate == 0) {
-      setState("Please insert all the reuqired fields!");
+      setState("Please insert all the required fields!");
       return;
     }
     try {
@@ -80,6 +97,10 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
         return null;
     }
   };
+  if (loading)
+    return <div className="p-4">Loading insurance companies currencies…</div>;
+  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
@@ -90,26 +111,52 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
-            <input
-              className={inputFormAttributeListItemInput}
-              type={i.typeOfInput}
-              value={
-                data[i.attributeName as keyof CreateInsuranceCompanyParams] ||
-                ""
-              }
-              placeholder={i.placeHolder}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.currentTarget.blur();
+            {i.typeOfInput === "Selection" ? (
+              <select
+                className={inputFormAttributeListItemInput}
+                value={
+                  data[i.attributeName as keyof CreateInsuranceCompanyParams]
                 }
-              }}
-              onChange={(e) =>
-                handleInputChange({
-                  attributeName: i.attributeName,
-                  value: e.target.value,
-                })
-              }
-            ></input>
+                onChange={(e) =>
+                  handleInputChange({
+                    attributeName: i.attributeName,
+                    value: e.target.value,
+                  })
+                }
+              >
+                <>
+                  <option value="" disabled>
+                    — Select currency —
+                  </option>
+                  {allCurrencies.map((currency) => (
+                    <option key={currency} value={currency}>
+                      {currency}
+                    </option>
+                  ))}
+                </>
+              </select>
+            ) : (
+              <input
+                className={inputFormAttributeListItemInput}
+                type={i.typeOfInput}
+                value={
+                  data[i.attributeName as keyof CreateInsuranceCompanyParams] ||
+                  ""
+                }
+                placeholder={i.placeHolder}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
+                onChange={(e) =>
+                  handleInputChange({
+                    attributeName: i.attributeName,
+                    value: e.target.value,
+                  })
+                }
+              ></input>
+            )}
           </div>
         ))}
       </div>

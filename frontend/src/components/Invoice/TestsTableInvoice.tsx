@@ -9,20 +9,24 @@ const TestsTableInvoice = ({
   patient_insurance_company_rate,
   list_of_lab_panels,
   discount_percentage,
+  currency,
 }: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
 
-  const formatPrice = (value?: number) =>
-    `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} $`;
+  const formatPrice = (currency: string, value?: number) =>
+    `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} ${
+      currency === "USD" ? "$" : "LBP"
+    }`;
 
-  const getPrice = (test: labTest) => formatPrice(test.price);
+  const getPrice = (test: labTest) => formatPrice(currency, test.price);
 
-  const getPanelPrice = (panel: labPanel) => formatPrice(panel.lab_panel_price);
+  const getPanelPrice = (panel: labPanel) =>
+    formatPrice(currency, panel.lab_panel_price);
 
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View style={[styles.tableRow, { borderBottom: 0.1 }]}>
+        <View style={[styles.tableRow, { borderBottomWidth: 0.1 }]}>
           {headers.map((h) => (
             <View style={styles.tableColHeader} key={h}>
               <Text
@@ -37,7 +41,7 @@ const TestsTableInvoice = ({
           const testValues = [test.nssf_id, test.name, getPrice(test)];
           return (
             <View
-              style={[styles.tableRow, { borderBottom: 0.1 }]}
+              style={[styles.tableRow, { borderBottomWidth: 0.1 }]}
               key={test.lab_test_id ?? `${test.name}-${rowIdx}`}
             >
               {testValues.map((val, colIdx) => (
@@ -72,7 +76,7 @@ const TestsTableInvoice = ({
           ];
           return (
             <View
-              style={[styles.tableRow, { borderBottom: 0.1 }]}
+              style={[styles.tableRow, { borderBottomWidth: 0.1 }]}
               key={panel.id ?? `${panel.panel_name}-${rowIdx}`}
             >
               {panelValues.map((val, colIdx) => (
@@ -121,7 +125,7 @@ const TestsTableInvoice = ({
                   discount_percentage) /
                   100
               ).toFixed(2)}{" "}
-              $
+              {currency === "USD" ? "$" : "LBP"}
             </Text>
           </View>
         </View>
@@ -133,7 +137,8 @@ const TestsTableInvoice = ({
               (total_price *
                 patient_insurance_company_rate *
                 discount_percentage) /
-                100
+                100,
+            currency
           )}
         </Text>
       </View>

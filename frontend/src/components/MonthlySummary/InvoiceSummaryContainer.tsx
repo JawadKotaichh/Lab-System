@@ -6,7 +6,7 @@ import InvoiceSummaryList from "./InvoiceSummaryList";
 export default function InvoiceSummaryContainer() {
   const location = useLocation();
 
-  const { summaryData, start_date, end_date } = location.state || {};
+  const { summaryData, currency, start_date, end_date } = location.state || {};
 
   // const [loading, setLoading] = useState(true);
 
@@ -27,6 +27,7 @@ export default function InvoiceSummaryContainer() {
       )}
       {!showSignatureOption && (
         <InvoiceSummaryList
+          currency={currency}
           end_date={end_date}
           start_date={start_date}
           summaryData={summaryData}
