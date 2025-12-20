@@ -810,9 +810,9 @@ export function getVisitsColumns(
       accessorKey: "total_price_with_insurance",
       cell: ({ row }) => {
         const currency = row.original.currency ?? "$";
-        return `${row.original.total_price_with_insurance.toFixed(2)} ${
-          currency === "USD" ? "$" : "LBP"
-        } `;
+        if (currency === "USD")
+          return `${row.original.total_price_with_insurance.toFixed(2)} $`;
+        else return `${row.original.total_price_with_insurance} LBP`;
       },
       header: ({ column }) => (
         <ColumnFilter
