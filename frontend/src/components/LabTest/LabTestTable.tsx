@@ -35,7 +35,7 @@ const LabTestTable = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 50,
   });
   const currentPage = pagination.pageIndex + 1;
 
