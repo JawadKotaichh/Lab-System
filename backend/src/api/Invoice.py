@@ -128,7 +128,9 @@ async def get_monthly_summary_invoice(
             invoice_number=invoice.invoice_number,
         )
         current_invoice_data = invoiceData(
-            patient=currentPatient, invoice_data=current_invoice
+            patient=currentPatient,
+            invoice_data=current_invoice,
+            currency=db_insurance_company.currency,
         )
         listOfInvoices.append(current_invoice_data)
     return listOfInvoices
@@ -338,7 +340,11 @@ async def rebuild_invoice(visit_id: str):
     db_invoice.list_of_lab_panels = listOfPanels
     db_invoice.list_of_tests = listOfTests
     await db_invoice.replace()
-    output = invoiceData(patient=currentPatient, invoice_data=current_invoice_data)
+    output = invoiceData(
+        patient=currentPatient,
+        invoice_data=current_invoice_data,
+        currency=db_insurance_company.currency,
+    )
     return output
 
 
@@ -444,6 +450,7 @@ async def get_invoice(visit_id: str):
     output_invoice_data = invoiceData(
         patient=currentPatient,
         invoice_data=currentInvoice,
+        currency=db_insurance_company.currency,
     )
     return output_invoice_data
 

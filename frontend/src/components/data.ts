@@ -7,6 +7,13 @@ const listOfAttributesInsuranceCompany = [
     placeHolder: "Enter insurance company name",
   },
   {
+    subItem: "Currency",
+    attributeName: "currency",
+    typeOfInput: "Selection",
+    icon: "DollarSign",
+    placeHolder: "Choose insurance company currency",
+  },
+  {
     subItem: "Rate",
     attributeName: "rate",
     typeOfInput: "number",

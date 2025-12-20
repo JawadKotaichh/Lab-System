@@ -22,6 +22,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
   patient_insurance_company_rate,
   showSignature,
   discount_percentage,
+  currency,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -78,6 +79,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         total_price={total_price}
         patient={patient!}
         patient_insurance_company_rate={patient_insurance_company_rate}
+        currency={currency}
       />
       <View style={[{ textAlign: "right" }]}>
         {showSignature && (
