@@ -57,11 +57,8 @@ const TestsTableResults = ({
               style={{
                 fontSize: 13,
                 fontWeight: "600",
-                borderBottomWidth: 1,
-                borderTopWidth: 1,
-                borderLeftWidth: 0,
-                borderRightWidth: 0,
-                borderColor: "#262626",
+                borderBottom: 1,
+                borderTop: 1,
                 paddingBottom: 5,
                 paddingTop: 2,
                 padding: 4,
@@ -76,18 +73,11 @@ const TestsTableResults = ({
                   <View
                     style={[
                       styles.tableRow,
-                      {
-                        borderBottomWidth: 0.3,
-                        borderStyle: "dotted",
-                        borderColor: "#262626",
-                        borderTopWidth: 0,
-                        borderLeftWidth: 0,
-                        borderRightWidth: 0,
-                      },
+                      { borderBottom: 0.3, borderStyle: "dotted" },
                     ]}
                     key={`${rowIdx}-s-${idx}`}
                   >
-                    <View style={styles.tableCol}>
+                    <View style={styles.tableColleft}>
                       <Text style={styles.tableCellText}>
                         {t.lab_test_type.name}
                       </Text>
@@ -158,10 +148,6 @@ const TestsTableResults = ({
                             fontWeight: "bold",
                             borderStyle: "dotted",
                             borderBottomWidth: 0.3,
-                            borderColor: "#262626",
-                            borderTopWidth: 0,
-                            borderLeftWidth: 0,
-                            borderRightWidth: 0,
                           },
                         ]}
                       >
@@ -172,18 +158,11 @@ const TestsTableResults = ({
                       <View
                         style={[
                           styles.tableRow,
-                          {
-                            borderBottomWidth: 0.3,
-                            borderStyle: "dotted",
-                            borderColor: "#262626",
-                            borderTopWidth: 0,
-                            borderLeftWidth: 0,
-                            borderRightWidth: 0,
-                          },
+                          { borderBottom: 0.3, borderStyle: "dotted" },
                         ]}
                         key={`${rowIdx}-p-${idx}-r-${i}`}
                       >
-                        <View style={styles.tableCol}>
+                        <View style={styles.tableColleft}>
                           <Text style={styles.tableCellText}>
                             {t.lab_test_type.name}
                           </Text>

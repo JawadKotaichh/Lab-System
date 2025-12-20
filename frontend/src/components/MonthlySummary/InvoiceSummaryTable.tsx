@@ -21,18 +21,7 @@ const InvoiceSummaryTable = ({ summaryData }: SummaryInvoice) => {
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View
-          style={[
-            styles.tableRow,
-            {
-              borderBottomWidth: 0.1,
-              borderTopWidth: 0,
-              borderLeftWidth: 0,
-              borderRightWidth: 0,
-              borderColor: "#262626",
-            },
-          ]}
-        >
+        <View style={[styles.tableRow, { borderBottom: 0.1 }]}>
           {headers.map((h) => (
             <View style={styles.tableColHeader} key={h}>
               <Text
@@ -48,19 +37,7 @@ const InvoiceSummaryTable = ({ summaryData }: SummaryInvoice) => {
           const cuurent_patient = currentInvoice.patient;
 
           return (
-            <View
-              style={[
-                styles.tableRow,
-                {
-                  borderBottomWidth: 0.1,
-                  borderTopWidth: 0,
-                  borderLeftWidth: 0,
-                  borderRightWidth: 0,
-                  borderColor: "#262626",
-                },
-              ]}
-              key={rowIdx}
-            >
+            <View style={[styles.tableRow, { borderBottom: 0.1 }]} key={rowIdx}>
               <View style={styles.tableCol}>
                 <Text style={styles.tableCellText}>
                   {current_invoice_data.visit_date
