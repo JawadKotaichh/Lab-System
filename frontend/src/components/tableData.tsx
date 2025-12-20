@@ -47,7 +47,9 @@ export interface LabTestColumnOptions {
   panelResults?: patientPanelResult[];
   setPanelResults?: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
   standAloneTestResults?: patientTestResult[];
-  setStandAloneTestResults?: React.Dispatch<React.SetStateAction<patientTestResult[]>>;
+  setStandAloneTestResults?: React.Dispatch<
+    React.SetStateAction<patientTestResult[]>
+  >;
   onAddedRefresh?: () => Promise<void>;
   showTestsTable?: boolean;
   setShowTestsTable?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -102,6 +104,24 @@ export function getInsuranceCompanyColumns(
         const a = parseFloat(rowA.getValue(columnId) as string) || 0;
         const b = parseFloat(rowB.getValue(columnId) as string) || 0;
         return a - b;
+      },
+    },
+    {
+      accessorKey: "currency",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          placeholder="Search currency..."
+          label="Currency"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
       },
     },
     {
@@ -788,8 +808,12 @@ export function getVisitsColumns(
     // },
     {
       accessorKey: "total_price_with_insurance",
-      cell: ({ row }) =>
-        `${row.original.total_price_with_insurance.toFixed(2)} $ `,
+      cell: ({ row }) => {
+        const currency = row.original.currency ?? "$";
+        return `${row.original.total_price_with_insurance.toFixed(2)} ${
+          currency === "USD" ? "$" : "LBP"
+        } `;
+      },
       header: ({ column }) => (
         <ColumnFilter
           withFilter={false}
