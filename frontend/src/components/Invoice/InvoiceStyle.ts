@@ -53,63 +53,6 @@ export const styles = StyleSheet.create({
     flexDirection:"column",
     gap:"2px",
   },
-  patientCol: {
-  width: "33.33%",
-  paddingRight: 14,
-},
-
-patientInfoRow: {
-  flexDirection: "row",
-  marginBottom: 6,
-},
-
-// patientCol: {
-//   flexGrow: 1,
-//   flexBasis: 0,      
-//   minWidth: 0,       
-//   paddingRight: 18,  
-// },
-
-patientColLast: {
-  flexGrow: 1,
-  flexBasis: 0,
-  minWidth: 0,
-  paddingRight: 0,
-},
-
-patientField: {
-  flexDirection: "row",
-  alignItems: "center",
-  minWidth: 0,
-},
-
-labelCol1: { width: 135 },
-labelCol2: { width: 110 },
-labelCol3: { width: 75 },
-
-patientLabel: {
-  fontSize: 10,
-  fontWeight: "bold",
-},
-
-patientValue: {
-  fontSize: 10,
-  flexGrow: 1,
-  flexShrink: 1,
-  minWidth: 0,       
-},
-// patientColLast: {
-//   width: "33.33%",
-//   paddingRight: 0,
-// },
-// patientField: {
-//   flexDirection: "row",
-//   alignItems: "center",
-// },
-// patientLabel: {
-//   fontSize: 10,
-//   fontWeight: "bold",
-// },  
    patientCard: {  
     borderWidth: 1,
     borderColor:'#262626',
@@ -119,53 +62,25 @@ patientValue: {
     marginTop:20,
     backgroundColor: '#f9f9f9',
   },
-//   labelCol1: { width: 115 },
-//   labelCol2: { width: 95 }, 
-//   labelCol3: { width: 70 },
-//   patientValue: {
-//     fontSize: 10,
-//     flexShrink: 1,
-//   },
-//   // patientInfoRow: {
-//   //   flexDirection: 'row',
-//   //   // justifyContent: 'space-between',
-//   //   marginBottom: 4,
-//   // },
-// //   patientInfoRow: {
-// //   flexDirection: "row",
-// //   marginBottom: 6,
-// // },
+  patientInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   patientInfoPair: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop:5,
-    flex: 1,    
-    flexBasis: 0,
-    flexGrow: 1,
-    minWidth: 0,            
+    flex: 1,               
   },
-  patientInfoPairGap: {
-    paddingRight: 16,  
+  patientLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginRight: 2,         
   },
-  patientInfoPairWide: {
-    flexGrow: 1.6,       
+  patientValue: {
+    fontSize: 10,
   },
-  patientInfoPairMid: {
-    flexGrow: 1.2,
-  },
-  patientInfoPairNarrow: {
-    flexGrow: 1,
-  },
-  // patientLabel: {
-  //   fontSize: 10,
-  //   fontWeight: "bold",
-  //   marginRight: 6,
-  // },
-  // patientValue: {
-  //   fontSize: 10,
-  //   flexShrink: 1,
-  // },
-  
   tableRow:{
     flexDirection: 'row',
   },
