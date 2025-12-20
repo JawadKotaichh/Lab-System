@@ -92,9 +92,9 @@ const EditPatientPage = ({ title }: PageTitle) => {
     }
     try {
       if (patient_id) {
-        api.put(PatientsApiURL + patient_id, data);
+        await api.put(PatientsApiURL + patient_id, data);
       } else {
-        api.post(PatientsApiURL, data);
+        await api.post(PatientsApiURL, data);
       }
       window.dispatchEvent(new Event("patients:changed"));
 
