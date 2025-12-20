@@ -120,14 +120,22 @@ const TestsTableInvoice = ({
                 { textAlign: "right", fontWeight: "9000" },
               ]}
             >
-              {(
-                total_price * patient_insurance_company_rate -
-                (total_price *
-                  patient_insurance_company_rate *
-                  discount_percentage) /
-                  100
-              ).toFixed(2)}{" "}
-              {currency === "USD" ? "$" : "LBP"}
+              {currency === "USD"
+                ? `${(
+                    total_price * patient_insurance_company_rate -
+                    (total_price *
+                      patient_insurance_company_rate *
+                      discount_percentage) /
+                      100
+                  ).toFixed(2)} $`
+                : `${
+                    total_price * patient_insurance_company_rate -
+                    (total_price *
+                      patient_insurance_company_rate *
+                      discount_percentage) /
+                      100
+                  } LBP`}
+              `
             </Text>
           </View>
         </View>
