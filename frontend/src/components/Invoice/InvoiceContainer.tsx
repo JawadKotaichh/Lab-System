@@ -19,6 +19,7 @@ export default function InvoiceContainer() {
   const version = useRef(0);
   const [listOfPanels, setListOfPanels] = useState<labPanel[]>([]);
   const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+  const [currency, setCurrency] = useState<string>("");
   const [showSignature, setShowSignature] = useState<boolean>(true);
   const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function InvoiceContainer() {
           0
         );
         setDiscountPercentage(data.invoice_data.discount_percentage);
+        setCurrency(data.invoice_data.currency);
         setTotalPrice(testsTotal + panelsTotal);
         setListOfPanels(data.invoice_data.list_of_lab_panels);
         setPatientInsuranceCompanyRate(
@@ -76,6 +78,7 @@ export default function InvoiceContainer() {
           list_of_tests={listOfTests}
           total_price={totalPrice}
           visit_date={visitDate}
+          currency={currency}
         />
       )}
     </div>

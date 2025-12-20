@@ -12,6 +12,7 @@ import InvoiceSummaryTable from "./InvoiceSummaryTable";
 import { styles } from "./InvoiceSummaryStyle";
 export interface SummaryInvoice {
   summaryData: fetchedInvoiceData[];
+  currency: string;
   showSignature: boolean;
   start_date: Date;
   end_date: Date;
@@ -21,6 +22,7 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
   showSignature,
   start_date,
   end_date,
+  currency,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -54,6 +56,7 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
       </View>
       <InvoiceSummaryTable
         start_date={start_date}
+        currency={currency}
         end_date={end_date}
         summaryData={summaryData}
         showSignature={showSignature}
@@ -84,10 +87,12 @@ export default function InvoiceSummaryList({
   showSignature,
   start_date,
   end_date,
+  currency,
 }: SummaryInvoice) {
   return (
     <PDFViewer width="100%" height="100%">
       <InvoiceSummaryPDF
+        currency={currency}
         end_date={end_date}
         start_date={start_date}
         summaryData={summaryData}
