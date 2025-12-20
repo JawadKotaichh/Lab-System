@@ -20,6 +20,7 @@ class Invoice(BaseModel):
 class invoiceData(BaseModel):
     patient: Patient
     invoice_data: Invoice
+    currency: str
 
 
 class monthlySummaryInvoicesParams(BaseModel):

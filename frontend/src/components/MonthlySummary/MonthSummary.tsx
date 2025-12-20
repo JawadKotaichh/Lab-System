@@ -25,6 +25,7 @@ const MonthSummary = () => {
     insurance_company_id: "",
     start_date: new Date(),
     end_date: new Date(),
+    currency: "",
   });
   const navigate = useNavigate();
 
@@ -54,14 +55,26 @@ const MonthSummary = () => {
     attributeName: string;
     value: string;
   }) => {
-    setData((prev) => ({
-      ...prev,
-      [attributeName]: value,
-    }));
+    setData((prev) => {
+      if (attributeName === "insurance_company_id") {
+        const selected = allInsuranceCompanies.find(
+          (ic) => ic.insurance_company_id === value
+        );
+        return {
+          ...prev,
+          [attributeName]: value,
+          currency: selected?.currency ?? "",
+        };
+      }
+      return {
+        ...prev,
+        [attributeName]: value,
+      };
+    });
   };
   const handleSave = async () => {
     if (data.insurance_company_id == "") {
-      setState("Please insert all the reuqired fields!");
+      setState("Please insert all the required fields!");
       return;
     }
     try {
@@ -71,11 +84,25 @@ const MonthSummary = () => {
         end_date: data.end_date,
       });
 
-      navigate(`/summary-invoice/${data.insurance_company_id}`, {
+      const startParam =
+        data.start_date instanceof Date
+          ? data.start_date.toISOString()
+          : String(data.start_date);
+      const endParam =
+        data.end_date instanceof Date
+          ? data.end_date.toISOString()
+          : String(data.end_date);
+      const query = new URLSearchParams({
+        start_date: startParam,
+        end_date: endParam,
+      }).toString();
+
+      navigate(`/summary-invoice/${data.insurance_company_id}?${query}`, {
         state: {
           summaryData: response,
           start_date: data.start_date,
           end_date: data.end_date,
+          currency: data.currency,
         },
       });
     } catch (err) {

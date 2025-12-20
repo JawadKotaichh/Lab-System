@@ -87,7 +87,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
       data.phone_number == "" ||
       data.insurance_company_id == ""
     ) {
-      setState("Please insert all the reuqired fields!");
+      setState("Please insert all the required fields!");
       return;
     }
     try {

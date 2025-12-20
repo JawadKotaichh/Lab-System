@@ -52,6 +52,7 @@ async def get_insurance_company_with_page_size(
                 "insurance_company_id": str(insurance_company.id),
                 "insurance_company_name": insurance_company.insurance_company_name,
                 "rate": insurance_company.rate,
+                "currency": insurance_company.currency,
             }
         )
 
@@ -64,6 +65,15 @@ async def get_insurance_company_with_page_size(
     return result
 
 
+@router.get("/get_currencies", response_model=List[str])
+async def get_currencies() -> List[str]:
+    cursor = DBInsurance_company.find()
+    currencies: set[str] = set()
+    async for insurance_company in cursor:
+        currencies.add(insurance_company.currency)
+    return list(currencies)
+
+
 @router.get("/all", response_model=List[Dict[str, Any]])
 async def getAllInsuranceCompany() -> List[Dict[str, Any]]:
     cursor = DBInsurance_company.find()
@@ -74,6 +84,7 @@ async def getAllInsuranceCompany() -> List[Dict[str, Any]]:
                 "insurance_company_id": str(insurance_company.id),
                 "insurance_company_name": insurance_company.insurance_company_name,
                 "rate": insurance_company.rate,
+                "currency": insurance_company.currency,
             }
         )
     return all_insurance_companies
@@ -87,7 +98,9 @@ async def getAllInsuranceCompany() -> List[Dict[str, Any]]:
 )
 async def create_insurance_company(data: Insurance_company):
     db_insurance_company = DBInsurance_company(
-        insurance_company_name=data.insurance_company_name, rate=data.rate
+        insurance_company_name=data.insurance_company_name,
+        rate=data.rate,
+        currency=data.currency,
     )
     new_insurance_company = await db_insurance_company.insert()
     if not new_insurance_company:
@@ -110,6 +123,7 @@ async def get_insurance_company(insurance_company_id: str):
     output["insurance_company_id"] = str(insurance_company.id)
     output["insurance_company_name"] = insurance_company.insurance_company_name
     output["rate"] = insurance_company.rate
+    output["currency"] = insurance_company.currency
     return output
 
 
@@ -138,6 +152,8 @@ async def update_Insurance_company(
         )
     if update_data.rate is not None:
         existing_insurance_company.rate = update_data.rate
+    if update_data.currency is not None:
+        existing_insurance_company.currency = update_data.currency
 
     await existing_insurance_company.replace()
 

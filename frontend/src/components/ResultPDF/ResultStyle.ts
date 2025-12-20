@@ -124,7 +124,7 @@ export const styles = StyleSheet.create({
   borderColor: '#262626',
   backgroundColor: '#f0f0f0',
   padding: 4,
-  borderBottom: 1,
+  borderBottomWidth: 1,
   textAlign: 'center',
 },
 tableCol: {
