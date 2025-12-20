@@ -64,22 +64,38 @@ export const styles = StyleSheet.create({
   },
   patientInfoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     marginBottom: 4,
   },
   patientInfoPair: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop:5,
-    flex: 1,               
+    flex: 1,    
+    flexBasis: 0,
+    flexGrow: 1,
+    minWidth: 0,            
+  },
+  patientInfoPairGap: {
+    paddingRight: 16,  
+  },
+  patientInfoPairWide: {
+    flexGrow: 1.6,       
+  },
+  patientInfoPairMid: {
+    flexGrow: 1.2,
+  },
+  patientInfoPairNarrow: {
+    flexGrow: 1,
   },
   patientLabel: {
     fontSize: 10,
-    fontWeight: 'bold',
-    marginRight: 2,         
+    fontWeight: "bold",
+    marginRight: 6,
   },
   patientValue: {
     fontSize: 10,
+    flexShrink: 1,
   },
   tableRow:{
     flexDirection: 'row',

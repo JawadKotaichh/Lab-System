@@ -349,6 +349,7 @@ export type paginatedVisitData = {
 };
 export type visitData = {
   visit_id: string;
+  currency: string;
   visit_date: Date;
   report_date: Date;
   patient: patientInfo;

@@ -53,7 +53,6 @@ export default function InvoiceContainer() {
 
   console.log("patient: ", patient);
   console.log("visisDate: ", visitDate);
-
   console.log("totalPrice: ", totalPrice);
 
   if (loading) return <div>Loading invoice…</div>;

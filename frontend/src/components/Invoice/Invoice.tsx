@@ -51,6 +51,40 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
           </View>
         </View>
         <View style={styles.patientInfoRow}>
+          <View
+            style={[
+              styles.patientInfoPair,
+              styles.patientInfoPairWide,
+              styles.patientInfoPairGap,
+            ]}
+          >
+            <Text style={styles.patientLabel}>Insurance Company:</Text>
+            <Text style={styles.patientValue}>
+              {patient!.insurance_company_name}
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.patientInfoPair,
+              styles.patientInfoPairMid,
+              styles.patientInfoPairGap,
+            ]}
+          >
+            <Text style={styles.patientLabel}>Phone Number:</Text>
+            <Text style={styles.patientValue}>{patient!.phone_number}</Text>
+          </View>
+
+          <View style={[styles.patientInfoPair, styles.patientInfoPairNarrow]}>
+            <Text style={styles.patientLabel}>Visit Date:</Text>
+            <Text style={styles.patientValue}>
+              {visit_date.toString().split("T")[0]}
+            </Text>
+          </View>
+        </View>
+
+        {/* 
+        <View style={styles.patientInfoRow}>
           <View style={styles.patientInfoPair}>
             <Text style={styles.patientLabel}>Insurance Company:</Text>
             <Text style={styles.patientValue}>
@@ -67,7 +101,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
               {visit_date.toString().split("T")[0]}
             </Text>
           </View>
-        </View>
+        </View> */}
       </View>
       <TestsTableInvoice
         invoice_number={invoice_number}

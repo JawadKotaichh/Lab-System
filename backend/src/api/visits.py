@@ -318,6 +318,7 @@ async def get_visits_with_page_size(
                 completed_tests_results=completed_tests_results,
                 total_tests_results=total_tests_results,
                 insurance_company_name=insurance_company.insurance_company_name,
+                currency=insurance_company.currency,
             )
         )
 
@@ -464,6 +465,7 @@ async def get_visit(visit_id: PydanticObjectId):
         completed_tests_results=completed_tests_results,
         total_tests_results=total_tests_results,
         insurance_company_name=insurance_company_name,
+        currency=insurance_company.currency,
     )
     return visit_data
 
