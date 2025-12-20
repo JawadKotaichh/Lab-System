@@ -35,144 +35,6 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
       </View>
       <View style={styles.patientCard}>
         <View style={styles.patientInfoRow}>
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text
-                wrap={false}
-                style={[styles.patientLabel, styles.labelCol1]}
-              >
-                Name:
-              </Text>
-              <Text style={styles.patientValue}>{patient!.name}</Text>
-            </View>
-          </View>
-
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text
-                wrap={false}
-                style={[styles.patientLabel, styles.labelCol2]}
-              >
-                Gender:
-              </Text>
-              <Text style={styles.patientValue}>{patient!.gender}</Text>
-            </View>
-          </View>
-
-          <View style={styles.patientColLast}>
-            <View style={styles.patientField}>
-              <Text
-                wrap={false}
-                style={[styles.patientLabel, styles.labelCol3]}
-              >
-                DOB:
-              </Text>
-              <Text style={styles.patientValue}>
-                {patient!.DOB?.toString().split("T")[0]}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.patientInfoRow}>
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text
-                wrap={false}
-                style={[styles.patientLabel, styles.labelCol1]}
-              >
-                Insurance Company:
-              </Text>
-              <Text style={styles.patientValue}>
-                {patient!.insurance_company_name}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text
-                wrap={false}
-                style={[styles.patientLabel, styles.labelCol2]}
-              >
-                Phone Number:
-              </Text>
-              <Text style={styles.patientValue}>{patient!.phone_number}</Text>
-            </View>
-          </View>
-
-          <View style={styles.patientColLast}>
-            <View style={styles.patientField}>
-              <Text
-                wrap={false}
-                style={[styles.patientLabel, styles.labelCol3]}
-              >
-                Visit Date:
-              </Text>
-              <Text style={styles.patientValue}>
-                {visit_date.toString().split("T")[0]}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* <View style={styles.patientInfoRow}>
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text style={[styles.patientLabel, styles.labelCol1]}>Name:</Text>
-              <Text style={styles.patientValue}>{patient!.name}</Text>
-            </View>
-          </View>
-
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text style={[styles.patientLabel, styles.labelCol2]}>
-                Gender:
-              </Text>
-              <Text style={styles.patientValue}>{patient!.gender}</Text>
-            </View>
-          </View>
-
-          <View style={styles.patientColLast}>
-            <View style={styles.patientField}>
-              <Text style={[styles.patientLabel, styles.labelCol3]}>DOB:</Text>
-              <Text style={styles.patientValue}>{patient!.DOB}</Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.patientInfoRow}>
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text style={[styles.patientLabel, styles.labelCol1]}>
-                Insurance Company:
-              </Text>
-              <Text style={styles.patientValue}>
-                {patient!.insurance_company_name}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.patientCol}>
-            <View style={styles.patientField}>
-              <Text style={[styles.patientLabel, styles.labelCol2]}>
-                Phone Number:
-              </Text>
-              <Text style={styles.patientValue}>{patient!.phone_number}</Text>
-            </View>
-          </View>
-          <View style={styles.patientColLast}>
-            <View style={styles.patientField}>
-              <Text style={[styles.patientLabel, styles.labelCol3]}>
-                Visit Date:
-              </Text>
-              <Text style={styles.patientValue}>
-                {visit_date.toString().split("T")[0]}
-              </Text>
-            </View>
-          </View>
-        </View> */}
-
-        {/* <View style={styles.patientInfoRow}>
           <View style={styles.patientInfoPair}>
             <Text style={styles.patientLabel}>Name:</Text>
             <Text style={styles.patientValue}>{patient!.name}</Text>
@@ -189,58 +51,24 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
           </View>
         </View>
         <View style={styles.patientInfoRow}>
-          <View
-            style={[
-              styles.patientInfoPair,
-              styles.patientInfoPairWide,
-              styles.patientInfoPairGap,
-            ]}
-          >
+          <View style={styles.patientInfoPair}>
             <Text style={styles.patientLabel}>Insurance Company:</Text>
             <Text style={styles.patientValue}>
               {patient!.insurance_company_name}
             </Text>
           </View>
-
-          <View
-            style={[
-              styles.patientInfoPair,
-              styles.patientInfoPairMid,
-              styles.patientInfoPairGap,
-            ]}
-          >
+          <View style={styles.patientInfoPair}>
             <Text style={styles.patientLabel}>Phone Number:</Text>
             <Text style={styles.patientValue}>{patient!.phone_number}</Text>
           </View>
-
-          <View style={[styles.patientInfoPair, styles.patientInfoPairNarrow]}>
+          <View style={styles.patientInfoPair}>
             <Text style={styles.patientLabel}>Visit Date:</Text>
             <Text style={styles.patientValue}>
               {visit_date.toString().split("T")[0]}
             </Text>
-          </View> */}
+          </View>
+        </View>
       </View>
-
-      {/* 
-        <View style={styles.patientInfoRow}>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Insurance Company:</Text>
-            <Text style={styles.patientValue}>
-              {patient!.insurance_company_name}
-            </Text>
-          </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Phone Number:</Text>
-            <Text style={styles.patientValue}>{patient!.phone_number}</Text>
-          </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Visit Date:</Text>
-            <Text style={styles.patientValue}>
-              {visit_date.toString().split("T")[0]}
-            </Text>
-          </View>
-        </View> */}
-      {/* </View> */}
       <TestsTableInvoice
         invoice_number={invoice_number}
         discount_percentage={discount_percentage}
