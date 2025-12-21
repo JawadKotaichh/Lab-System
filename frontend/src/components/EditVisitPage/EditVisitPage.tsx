@@ -185,7 +185,8 @@ const EditVisitPage: React.FC = () => {
     };
 
     loadPage();
-  }, [refreshResults, visit_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visit_id]);
 
   const handleSaveAll = async () => {
     if (!Object.keys(pendingResults).length) {
@@ -268,8 +269,6 @@ const EditVisitPage: React.FC = () => {
       )}
       <AddTestResultTable
         refreshResults={refreshResults}
-        // updatedInvoiceData={updatedInvoiceData}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
         showAdd={showAdd}
         addError={addError}
         visit_id={visit_id}
@@ -284,9 +283,8 @@ const EditVisitPage: React.FC = () => {
         error={error}
         setError={setError}
         markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
-
-        //showTestsTable={showTestsTable}
-        // setShowPanelsTable={setShowPanelsTable}
+        setUpdatedInvoiceData={setUpdatedInvoiceData}
+        setCurrency={setCurrency}
       />
       <LabPanelsTable
         refreshResults={refreshResults}
@@ -296,7 +294,7 @@ const EditVisitPage: React.FC = () => {
         setTotalNumberOfTests={setTotalNumberOfTests}
         panelResults={panelResults}
         setUpdatedInvoiceData={setUpdatedInvoiceData}
-        // updatedInvoiceData={updatedInvoiceData}
+        setCurrency={setCurrency}
         showPanelsTable={showPanelsTable}
         setShowPanelsTable={setShowPanelsTable}
         visit_id={visit_id}
