@@ -70,15 +70,14 @@ const TestsTableResults = ({
               if (item.type == "standalone") {
                 const t = item.test;
                 return (
-                  <View
-                    style={[
-                      styles.tableRow,
-                      {
-                        borderWidth: 0,
-                        borderBottomWidth: 0.3,
-                        borderStyle: "dotted",
-                      },
-                    ]}
+                    <View
+                      style={[
+                        styles.tableRow,
+                        {
+                          borderBottomWidth: 0.3,
+                          borderStyle: "dotted",
+                        },
+                      ]}
                     key={`${rowIdx}-s-${idx}`}
                   >
                     <View style={styles.tableCol}>
@@ -163,7 +162,6 @@ const TestsTableResults = ({
                         style={[
                           styles.tableRow,
                           {
-                            borderWidth: 0,
                             borderBottomWidth: 0.3,
                             borderStyle: "dotted",
                           },
