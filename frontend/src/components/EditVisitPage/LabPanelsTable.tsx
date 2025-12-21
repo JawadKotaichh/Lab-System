@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { labPanel, patientPanelResult, patientTestResult } from "../types";
+import type { labPanel, patientPanelResult, patientTestResult, updateInvoiceData } from "../types";
 import {
   fetchLabPanelsPaginated,
   fetchLabTestResultsAndPanelsPaginated,
@@ -27,10 +27,10 @@ interface labPanelTableParams {
   pagination: PaginationState;
   visit_id: string;
   showPanelsTable: boolean;
-  // updatedInvoiceData: updateInvoiceData;
-  // setUpdatedInvoiceData: React.Dispatch<
-  //   React.SetStateAction<updateInvoiceData>
-  // >;
+  setUpdatedInvoiceData: React.Dispatch<
+    React.SetStateAction<updateInvoiceData>
+  >;
+  setCurrency: React.Dispatch<React.SetStateAction<string>>;
   setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
   setStandAloneTestResults: React.Dispatch<
     React.SetStateAction<patientTestResult[]>
@@ -46,8 +46,8 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   visit_id,
   showPanelsTable,
   setShowPanelsTable,
-  // updatedInvoiceData,
-  // setUpdatedInvoiceData,
+  setUpdatedInvoiceData,
+  setCurrency,
   pagination,
   setPanelResults,
   setStandAloneTestResults,
@@ -85,7 +85,9 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       setPanelResults(res.list_of_panel_results);
       setTotalPages(res.total_pages);
       setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
-      rebuildInvoice(visit_id);
+      const invoiceData = await rebuildInvoice(visit_id);
+      setUpdatedInvoiceData(invoiceData.invoice_data);
+      setCurrency(invoiceData.currency);
       setShowPanelsTable(false);
       markExistingLabTestIdsDirty();
       void refreshResults();
