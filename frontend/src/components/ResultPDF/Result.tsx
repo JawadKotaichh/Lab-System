@@ -11,14 +11,6 @@ import type { visitResultData } from "../types";
 import { styles } from "./ResultStyle";
 import TestsTableResults from "./TestsTableResults";
 
-const tableHeaders = [
-  "Test Name",
-  "Result",
-  "Unit",
-  "Normal Value",
-  "Previous Result",
-];
-
 const ResultPdf: React.FC<visitResultData> = ({
   patient,
   list_of_panel_results,
@@ -36,62 +28,44 @@ const ResultPdf: React.FC<visitResultData> = ({
         />
         <View style={styles.patientCard}>
           <View style={styles.patientInfoRow}>
-            <View style={styles.patientInfoColumnWide}>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Name:</Text>
-                <Text style={styles.patientValue}>{patient!.name}</Text>
-              </View>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Insurance Company:</Text>
-                <Text style={styles.patientValue}>
-                  {patient!.insurance_company_name}
-                </Text>
-              </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Name:</Text>
+              <Text style={styles.patientValue}>{patient!.name}</Text>
             </View>
-            <View style={styles.patientInfoColumn}>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Gender:</Text>
-                <Text style={styles.patientValue}>{patient!.gender}</Text>
-              </View>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Exam Date:</Text>
-                <Text style={styles.patientValue}>
-                  {visit_date.toISOString().split("T")[0]}
-                </Text>
-              </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Gender:</Text>
+              <Text style={styles.patientValue}>{patient!.gender}</Text>
             </View>
-            <View style={styles.patientInfoColumnLast}>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>DOB:</Text>
-                <Text style={styles.patientValue}>
-                  {patient!.DOB.split("T")[0]}
-                </Text>
-              </View>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Report Date:</Text>
-                <Text style={styles.patientValue}>
-                  {report_date.toISOString().split("T")[0]}
-                </Text>
-              </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>DOB:</Text>
+              <Text style={styles.patientValue}>
+                {patient!.DOB.split("T")[0]}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.patientInfoRow}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Insurance Company:</Text>
+              <Text style={styles.patientValue}>
+                {patient!.insurance_company_name}
+              </Text>
+            </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Exam Date:</Text>
+              <Text style={styles.patientValue}>
+                {visit_date.toISOString().split("T")[0]}
+              </Text>
+            </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Report Date:</Text>
+              <Text style={styles.patientValue}>
+                {report_date.toISOString().split("T")[0]}
+              </Text>
             </View>
           </View>
         </View>
         <Text style={styles.labTitle}>Lab Results</Text>
-        <View style={styles.tableHeaderWrapper}>
-          <View style={styles.tableRowWithoutBorder}>
-            {tableHeaders.map((h) => (
-              <View style={styles.tableColHeader} key={h}>
-                <Text
-                  style={[styles.tableCellTextHeader, { fontWeight: "4000" }]}
-                >
-                  {h}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
       </View>
-      <View style={styles.tableFrame} fixed />
       <TestsTableResults
         patientGender={patient.gender}
         visit_date={visit_date}
