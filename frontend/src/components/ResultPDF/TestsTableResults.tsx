@@ -81,7 +81,7 @@ const TestsTableResults = ({
                     ]}
                     key={`${rowIdx}-s-${idx}`}
                   >
-                    <View style={styles.tableColleft}>
+                    <View style={styles.tableCol}>
                       <Text style={styles.tableCellText}>
                         {t.lab_test_type.name}
                       </Text>
@@ -170,7 +170,7 @@ const TestsTableResults = ({
                         ]}
                         key={`${rowIdx}-p-${idx}-r-${i}`}
                       >
-                        <View style={styles.tableColleft}>
+                        <View style={styles.tableCol}>
                           <Text style={styles.tableCellText}>
                             {t.lab_test_type.name}
                           </Text>

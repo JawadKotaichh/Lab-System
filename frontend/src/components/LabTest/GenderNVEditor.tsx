@@ -6,6 +6,7 @@ import type {
   upper_bound_only,
 } from "../types";
 import createEmptyNormalValues from "./createEmptyNV";
+import FractionInput from "./FractionInput";
 
 const GenderNVEditor: React.FC<{
   value: GenderNV;
@@ -55,12 +56,11 @@ const GenderNVEditor: React.FC<{
       {"lower_bound_value" in value && (
         <div className="flex items-center gap-2">
           <label className="text-sm w-28">Lower bound</label>
-          <input
-            type="number"
+          <FractionInput
             className="flex-1 border rounded px-2 py-1"
             value={value.lower_bound_value}
-            onChange={(e) =>
-              onChange({ ...value, lower_bound_value: Number(e.target.value) })
+            onChange={(next) =>
+              onChange({ ...value, lower_bound_value: next })
             }
           />
         </div>
@@ -69,17 +69,16 @@ const GenderNVEditor: React.FC<{
       {"upper_bound_value" in value && (
         <div className="flex items-center gap-2">
           <label className="text-sm w-28">Upper bound</label>
-          <input
-            type="number"
+          <FractionInput
             className="flex-1 border rounded px-2 py-1"
             value={
               (value as upper_bound_only | upper_and_lower_bound_only)
                 .upper_bound_value
             }
-            onChange={(e) =>
+            onChange={(next) =>
               onChange({
                 ...(value as upper_bound_only | upper_and_lower_bound_only),
-                upper_bound_value: Number(e.target.value),
+                upper_bound_value: next,
               })
             }
           />
