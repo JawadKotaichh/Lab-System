@@ -15,6 +15,7 @@ import type {
   upper_and_lower_bound_only,
   upper_bound_only,
   description_only,
+  updateInvoiceData,
   visitData,
 } from "./types";
 import {
@@ -58,6 +59,7 @@ export interface LabTestColumnOptions {
   labTestCategoryOptions?: { value: string; label: string }[];
   existingLabTestTypeIds?: Set<string>;
   markExistingLabTestIdsDirty?: () => void;
+  setUpdatedInvoiceData?: React.Dispatch<React.SetStateAction<updateInvoiceData>>;
 }
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
@@ -355,6 +357,7 @@ export function getLabTestColumns(
     labTestCategoryOptions,
     existingLabTestTypeIds,
     markExistingLabTestIdsDirty,
+    setUpdatedInvoiceData,
   } = options ?? {};
   type BoundsNV =
     | upper_and_lower_bound_only
@@ -575,6 +578,7 @@ export function getLabTestColumns(
                 // setTotalPages,
                 lab_test_id,
                 refreshResults: onAddedRefresh,
+                setUpdatedInvoiceData,
               });
             },
           });
