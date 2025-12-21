@@ -1,5 +1,8 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
+
+# from dotenv import load_dotenv
+# from pathlib import Path
 import os
 from .models import (
     Visit,
@@ -11,6 +14,10 @@ from .models import (
     lab_panel,
     Invoice,
 )
+
+# ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
+# # Load root .env so local runs pick up MONGODB_URL without manual exports.
+# load_dotenv(ENV_PATH)
 
 
 async def init_db():

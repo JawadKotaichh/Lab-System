@@ -86,16 +86,10 @@ const ResultPdf: React.FC<visitResultData> = ({
         list_of_panel_results={list_of_panel_results}
         patient={patient!}
       />
-      <View
-        style={styles.fixedOverlay}
-        fixed
-        render={(props: { pageNumber: number; totalPages?: number }) => {
-          const { pageNumber, totalPages } = props;
-          if (typeof totalPages === "number" && pageNumber === totalPages)
-            return null;
-          return <View style={styles.tableCloseLine} />;
-        }}
-      />
+
+      <View style={styles.tableCloseLineContainer} fixed>
+        <View style={styles.tableCloseLine} />
+      </View>
 
       <View style={[{ textAlign: "right", paddingTop: 15 }]}>
         {showSignature && (
