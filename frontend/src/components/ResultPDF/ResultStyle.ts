@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
     fontFamily:'Helvetica',
     fontSize:12,
     padding:"30px 50px",
-    paddingTop: 220,
+    paddingTop: 240,
     paddingHorizontal: 25,
     paddingBottom: 80,
   },
@@ -65,7 +65,8 @@ thPrev:   { width: "25%", textAlign: "center" },
   },
   lab_header:{
     width:"100%",
-    objectFit: "cover",
+    height: 90,
+    objectFit: "contain",
   },
   lab_signature:{
     position: 'absolute',

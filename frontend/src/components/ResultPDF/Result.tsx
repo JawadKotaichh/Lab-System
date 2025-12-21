@@ -89,12 +89,10 @@ const ResultPdf: React.FC<visitResultData> = ({
       <View
         style={styles.fixedOverlay}
         fixed
-        render={(props) => {
-          const { pageNumber, totalPages } = props as {
-            pageNumber: number;
-            totalPages: number;
-          };
-          if (pageNumber === totalPages) return null;
+        render={(props: { pageNumber: number; totalPages?: number }) => {
+          const { pageNumber, totalPages } = props;
+          if (typeof totalPages === "number" && pageNumber === totalPages)
+            return null;
           return <View style={styles.tableCloseLine} />;
         }}
       />
