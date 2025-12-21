@@ -73,7 +73,11 @@ const TestsTableResults = ({
                   <View
                     style={[
                       styles.tableRow,
-                      { borderBottomWidth: 0.3, borderStyle: "dotted" },
+                      {
+                        borderWidth: 0,
+                        borderBottomWidth: 0.3,
+                        borderStyle: "dotted",
+                      },
                     ]}
                     key={`${rowIdx}-s-${idx}`}
                   >
@@ -158,7 +162,11 @@ const TestsTableResults = ({
                       <View
                         style={[
                           styles.tableRow,
-                          { borderBottomWidth: 0.3, borderStyle: "dotted" },
+                          {
+                            borderWidth: 0,
+                            borderBottomWidth: 0.3,
+                            borderStyle: "dotted",
+                          },
                         ]}
                         key={`${rowIdx}-p-${idx}-r-${i}`}
                       >
