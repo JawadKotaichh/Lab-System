@@ -71,7 +71,7 @@ const ResultPdf: React.FC<visitResultData> = ({
         <Text style={styles.labTitle}>Lab Results</Text>
       </View>
 
-      <View style={styles.tableHeaderRow}>
+      <View style={styles.tableHeaderRow} fixed>
         <Text style={styles.thTest}>Test</Text>
         <Text style={styles.thResult}>Result</Text>
         <Text style={styles.thUnit}>Unit</Text>
