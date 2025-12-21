@@ -2,8 +2,8 @@ import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
 import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
-import { create_invoice, createVisit, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice } from "./utils";
-import type {  labPanelsWithIdsList, labTest, patientInfo, patientPanelResult, patientTestResult } from "./types";
+import { create_invoice, createVisit, fetchInvoice, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice } from "./utils";
+import type {  labPanelsWithIdsList, labTest, patientInfo, patientPanelResult, patientTestResult, updateInvoiceData } from "./types";
 import type { PaginationState } from "@tanstack/react-table";
 
 interface deleteElement {
@@ -135,6 +135,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     refreshResults?: () => Promise<void>;
     existingLabTestTypeIds?: Set<string>;
     markExistingLabTestIdsDirty?: () => void;
+    setUpdatedInvoiceData?: React.Dispatch<React.SetStateAction<updateInvoiceData>>;
    
   }
 export const handleAddLabTest = async ({
@@ -151,6 +152,7 @@ export const handleAddLabTest = async ({
   visit_id,
   existingLabTestTypeIds,
   markExistingLabTestIdsDirty,
+  setUpdatedInvoiceData,
 }: addLabTestParams) => {
   const duplicateMessage = "This test already exists for this visit.";
   const alreadyExistsStandalone = standAloneTestResults.some(
@@ -177,9 +179,20 @@ export const handleAddLabTest = async ({
       visit_id,
       result: "",
     });
+    const updated = await fetchLabTestResultsAndPanelsPaginated(
+      visit_id,
+      pagination.pageIndex + 1,
+      pagination.pageSize
+    );
+    setStandAloneTestResults(updated.list_of_standalone_test_results);
+    setPanelResults(updated.list_of_panel_results);
     markExistingLabTestIdsDirty?.();
     if (refreshResults) await refreshResults();
-    rebuildInvoice(visit_id);
+    await rebuildInvoice(visit_id);
+    if (setUpdatedInvoiceData) {
+      const fetched_invoice = await fetchInvoice(visit_id);
+      setUpdatedInvoiceData(fetched_invoice.invoice_data);
+    }
     setShowTestsTable(false);
   } catch (err: unknown) {
     console.error(err);

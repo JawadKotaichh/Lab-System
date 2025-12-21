@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import type { labPanel, patientPanelResult, patientTestResult } from "../types";
+import type { labPanel, patientPanelResult, patientTestResult, updateInvoiceData } from "../types";
 import {
+  fetchInvoice,
   fetchLabPanelsPaginated,
   fetchLabTestResultsAndPanelsPaginated,
   rebuildInvoice,
@@ -28,9 +29,9 @@ interface labPanelTableParams {
   visit_id: string;
   showPanelsTable: boolean;
   // updatedInvoiceData: updateInvoiceData;
-  // setUpdatedInvoiceData: React.Dispatch<
-  //   React.SetStateAction<updateInvoiceData>
-  // >;
+  setUpdatedInvoiceData?: React.Dispatch<
+    React.SetStateAction<updateInvoiceData>
+  >;
   setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
   setStandAloneTestResults: React.Dispatch<
     React.SetStateAction<patientTestResult[]>
@@ -47,7 +48,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   showPanelsTable,
   setShowPanelsTable,
   // updatedInvoiceData,
-  // setUpdatedInvoiceData,
+  setUpdatedInvoiceData,
   pagination,
   setPanelResults,
   setStandAloneTestResults,
@@ -76,10 +77,23 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
     }
     try {
       await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
-      rebuildInvoice(visit_id);
+      const res = await fetchLabTestResultsAndPanelsPaginated(
+        visit_id,
+        pagination.pageIndex + 1,
+        pagination.pageSize
+      );
+      setStandAloneTestResults(res.list_of_standalone_test_results);
+      setPanelResults(res.list_of_panel_results);
+      setTotalPages(res.total_pages);
+      setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+      await rebuildInvoice(visit_id);
+      if (setUpdatedInvoiceData) {
+        const fetched_invoice = await fetchInvoice(visit_id);
+        setUpdatedInvoiceData(fetched_invoice.invoice_data);
+      }
       setShowPanelsTable(false);
       markExistingLabTestIdsDirty();
-      await refreshResults();
+      void refreshResults();
       // window.location.reload();
     } catch (err: unknown) {
       console.error("🛑 handleAddLabPanel error:", err);
