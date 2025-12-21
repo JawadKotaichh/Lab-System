@@ -1,123 +1,123 @@
 
-  
+
 import { StyleSheet } from '@react-pdf/renderer';
 import { Font } from "@react-pdf/renderer";
 Font.register({
   family: "Amiri",
-  src: "/fonts/Amiri-Regular.ttf", 
+  src: "/fonts/Amiri-Regular.ttf",
   fontWeight: "normal",
 });
 
 export const styles = StyleSheet.create({
-  tableRowWithoutBorder:{
-      flexDirection: 'row',
-      borderRightWidth:0,
+  tableRowWithoutBorder: {
+    flexDirection: 'row',
+    borderRightWidth: 0,
   },
   page: {
-    backgroundColor:'#fff',
-    color:'#262626',
-    fontFamily:'Helvetica',
-    fontSize:12,
-    padding:"30px 50px",
+    backgroundColor: '#fff',
+    color: '#262626',
+    fontFamily: 'Helvetica',
+    fontSize: 12,
+    padding: "30px 50px",
     paddingTop: 240,
     paddingHorizontal: 25,
     paddingBottom: 80,
   },
-tableHeaderRow: {
-  flexDirection: "row",
-  borderTopWidth: 1,
-  borderLeftWidth: 1,
-  borderRightWidth: 1,
-  borderBottomWidth: 0,
-  paddingVertical: 6,
-  fontSize: 15,
-  fontWeight: 700,
-  width: "100%",
-},
-tableHeaderRowWithBottomBorder: {
-  flexDirection: "row",
-  borderTopWidth: 1,
-  borderLeftWidth: 1,
-  borderRightWidth: 1,
-  borderBottomWidth: 1,
-  paddingVertical: 6,
-  fontSize: 15,
-  fontWeight: 700,
-  width: "100%",
-},
-tableCloseLineContainer: {
-  position: "absolute",
-  left: 25,
-  right: 25,
-  bottom: 80,
-  height: 1,
-},
-tableCloseLine: {
-  width: "100%",
-  height: 1,
-  borderTopWidth: 1,
-  borderColor: "#262626",
-},
-thTest:   { width: "20%", paddingLeft: 6 },
-thResult: { width: "17%", textAlign: "center" },
-thUnit:   { width: "18%", textAlign: "center" },
-thNormal: { width: "20%", textAlign: "center" },
-thPrev:   { width: "25%", textAlign: "center" },
+  tableHeaderRow: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
+    paddingVertical: 6,
+    fontSize: 15,
+    fontWeight: 700,
+    width: "100%",
+  },
+  tableHeaderRowWithBottomBorder: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    paddingVertical: 6,
+    fontSize: 15,
+    fontWeight: 700,
+    width: "100%",
+  },
+  tableCloseLineContainer: {
+    position: "absolute",
+    left: 25,
+    right: 25,
+    bottom: 80,
+    height: 1,
+  },
+  tableCloseLine: {
+    width: "100%",
+    height: 1,
+    borderTopWidth: 1,
+    borderColor: "#262626",
+  },
+  thTest: { width: "20%", paddingLeft: 4, paddingRight: 4 },
+  thResult: { width: "17%", textAlign: "center", paddingLeft: 4, paddingRight: 4 },
+  thUnit: { width: "18%", textAlign: "center", paddingLeft: 4, paddingRight: 4 },
+  thNormal: { width: "20%", textAlign: "center", paddingLeft: 4, paddingRight: 4 },
+  thPrev: { width: "25%", textAlign: "center", paddingLeft: 4, paddingRight: 4 },
 
   section: {
     margin: 10,
     padding: 10,
     flexGrow: 1
   },
-  header:{
-    flexDirection:"row",
-    justifyContent:"space-between",
-    marginBottom:20,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
   },
-  lab_header:{
-    width:"100%",
+  lab_header: {
+    width: "100%",
     height: 90,
     objectFit: "contain",
   },
-  lab_signature:{
+  lab_signature: {
     position: 'absolute',
-    marginTop: -20, 
-    marginRight:-25,
-    right: 0, 
+    marginTop: -20,
+    marginRight: -25,
+    right: 0,
     width: 120,
     height: 100,
   },
   logo: {
     position: 'absolute',
-    right: 0, 
+    right: 0,
     width: 50,
     height: 50,
   },
   title: {
-   fontSize:24,
+    fontSize: 24,
   },
-  textBold:{   
-    fontFamily:"Helvetica-Bold",
+  textBold: {
+    fontFamily: "Helvetica-Bold",
   },
-  spaceY:{
-    display:"flex",
-    flexDirection:"column",
-    gap:"2px",
+  spaceY: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
   },
-   labTitle:{
-    paddingBottom:5,
-    fontSize:15,
-    fontWeight:"bold",
-    textAlign:'center',
+  labTitle: {
+    paddingBottom: 5,
+    fontSize: 15,
+    fontWeight: "bold",
+    textAlign: 'center',
   },
-   patientCard: {  
+  patientCard: {
     borderWidth: 1,
     width: "100%",
     borderColor: '#262626',
     borderRadius: 5,
     padding: 10,
     marginBottom: 20,
-    marginTop:20,
+    marginTop: 20,
     backgroundColor: '#f9f9f9',
   },
   patientInfoRow: {
@@ -144,35 +144,80 @@ thPrev:   { width: "25%", textAlign: "center" },
   patientLabel: {
     fontSize: 10,
     fontWeight: 'bold',
-    marginRight: 2,         
+    marginRight: 2,
   },
   patientValue: {
     fontSize: 10,
     flexShrink: 1,
     maxWidth: '100%',
   },
-  tableRow:{
+  tableRow: {
     flexDirection: 'row',
   },
   tableWrapper: {
-    width: '100%', 
-    borderWidth:1,        
+    width: '100%',
+    borderWidth: 1,
     borderColor: '#262626',
   },
-tableColHeader: {
-  flex: 1,
-  borderWidth: 1,
-  borderColor: "#262626",
-  backgroundColor: "#f0f0f0",
-  padding: 4,
-  textAlign: "center",
-},
-tableCol: {
-  flex: 1,
-  borderColor: '#262626',
-  padding: 4,
-  textAlign: 'left', 
-},
+  tableColHeader: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#262626",
+    backgroundColor: "#f0f0f0",
+    padding: 4,
+    textAlign: "center",
+  },
+  tableCol: {
+    flex: 1,
+    borderColor: '#262626',
+    padding: 4,
+    textAlign: 'left',
+  },
+  tableColTest: {
+    width: "20%",
+    borderColor: '#262626',
+    paddingLeft: 4,
+    paddingRight: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+    textAlign: 'left',
+  },
+  tableColResult: {
+    width: "17%",
+    borderColor: '#262626',
+    paddingLeft: 4,
+    paddingRight: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+    textAlign: 'center',
+  },
+  tableColUnit: {
+    width: "18%",
+    borderColor: '#262626',
+    paddingLeft: 4,
+    paddingRight: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+    textAlign: 'center',
+  },
+  tableColNormal: {
+    width: "20%",
+    borderColor: '#262626',
+    paddingLeft: 4,
+    paddingRight: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+    textAlign: 'center',
+  },
+  tableColPrev: {
+    width: "25%",
+    borderColor: '#262626',
+    paddingLeft: 4,
+    paddingRight: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+    textAlign: 'center',
+  },
   tableCellText: {
     fontSize: 10,
   },
@@ -181,7 +226,7 @@ tableCol: {
     bottom: 20,
     left: 40,
     right: 40,
-    paddingTop:30,
+    paddingTop: 30,
     textAlign: "center",
   },
   footerImage: {
@@ -189,9 +234,9 @@ tableCol: {
     height: 30,
     objectFit: "contain",
   },
-  tableCellTextHeader:{
+  tableCellTextHeader: {
     fontSize: 10,
-    paddingTop:5,
+    paddingTop: 5,
     textAlign: 'center',
   },
   tableColLast: {
@@ -207,4 +252,4 @@ tableCol: {
     alignItems: "center",
   },
 });
-  
+
