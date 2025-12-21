@@ -35,37 +35,41 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
       </View>
       <View style={styles.patientCard}>
         <View style={styles.patientInfoRow}>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Name:</Text>
-            <Text style={styles.patientValue}>{patient!.name}</Text>
+          <View style={styles.patientInfoColumn}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Name:</Text>
+              <Text style={styles.patientValue}>{patient!.name}</Text>
+            </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Insurance Company:</Text>
+              <Text style={styles.patientValue}>
+                {patient!.insurance_company_name}
+              </Text>
+            </View>
           </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Gender:</Text>
-            <Text style={styles.patientValue}>{patient!.gender}</Text>
+          <View style={styles.patientInfoColumn}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Gender:</Text>
+              <Text style={styles.patientValue}>{patient!.gender}</Text>
+            </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Phone Number:</Text>
+              <Text style={styles.patientValue}>{patient!.phone_number}</Text>
+            </View>
           </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>DOB:</Text>
-            <Text style={styles.patientValue}>
-              {patient!.DOB.split("T")[0]}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.patientInfoRow}>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Insurance Company:</Text>
-            <Text style={styles.patientValue}>
-              {patient!.insurance_company_name}
-            </Text>
-          </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Phone Number:</Text>
-            <Text style={styles.patientValue}>{patient!.phone_number}</Text>
-          </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Visit Date:</Text>
-            <Text style={styles.patientValue}>
-              {visit_date.toString().split("T")[0]}
-            </Text>
+          <View style={styles.patientInfoColumnLast}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>DOB:</Text>
+              <Text style={styles.patientValue}>
+                {patient!.DOB.split("T")[0]}
+              </Text>
+            </View>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Visit Date:</Text>
+              <Text style={styles.patientValue}>
+                {visit_date.toString().split("T")[0]}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
