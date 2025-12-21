@@ -52,7 +52,7 @@ const TestsTableResults = ({
     <View>
       <View style={styles.tableWrapper}>
         {groupedData.map((currentCategory, rowIdx) => (
-          <View key={rowIdx}>
+          <View key={rowIdx} wrap={false}>
             <Text
               style={{
                 fontSize: 13,
@@ -70,15 +70,16 @@ const TestsTableResults = ({
               if (item.type == "standalone") {
                 const t = item.test;
                 return (
-                    <View
-                      style={[
-                        styles.tableRow,
-                        {
-                          borderBottomWidth: 0.3,
-                          borderStyle: "dotted",
-                        },
-                      ]}
+                  <View
+                    style={[
+                      styles.tableRow,
+                      {
+                        borderBottomWidth: 0.3,
+                        borderStyle: "dotted",
+                      },
+                    ]}
                     key={`${rowIdx}-s-${idx}`}
+                    wrap={false}
                   >
                     <View style={styles.tableCol}>
                       <Text style={styles.tableCellText}>
@@ -140,6 +141,7 @@ const TestsTableResults = ({
                     <View
                       style={styles.tableRow}
                       key={`${rowIdx}-p-${idx}-r-$`}
+                      wrap={false}
                     >
                       <Text
                         style={[
@@ -167,6 +169,7 @@ const TestsTableResults = ({
                           },
                         ]}
                         key={`${rowIdx}-p-${idx}-r-${i}`}
+                        wrap={false}
                       >
                         <View style={styles.tableCol}>
                           <Text style={styles.tableCellText}>
