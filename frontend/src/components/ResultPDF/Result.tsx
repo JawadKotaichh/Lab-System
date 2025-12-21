@@ -86,6 +86,7 @@ const ResultPdf: React.FC<visitResultData> = ({
         list_of_panel_results={list_of_panel_results}
         patient={patient!}
       />
+      <View style={styles.tableCloseLine} fixed />
 
       <View style={[{ textAlign: "right", paddingTop: 15 }]}>
         {showSignature && (
