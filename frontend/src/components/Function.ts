@@ -177,13 +177,6 @@ export const handleAddLabTest = async ({
       visit_id,
       result: "",
     });
-    const updated = await fetchLabTestResultsAndPanelsPaginated(
-      visit_id,
-      pagination.pageIndex + 1,
-      pagination.pageSize
-    );
-    setStandAloneTestResults(updated.list_of_standalone_test_results);
-    setPanelResults(updated.list_of_panel_results);
     markExistingLabTestIdsDirty?.();
     if (refreshResults) await refreshResults();
     rebuildInvoice(visit_id);

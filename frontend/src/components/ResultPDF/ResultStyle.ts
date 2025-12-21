@@ -226,7 +226,7 @@ export const styles = StyleSheet.create({
     bottom: 20,
     left: 40,
     right: 40,
-    paddingTop: 30,
+    paddingTop: 20,
     textAlign: "center",
   },
   footerImage: {
