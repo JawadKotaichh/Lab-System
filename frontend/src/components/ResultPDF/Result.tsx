@@ -72,7 +72,6 @@ const ResultPdf: React.FC<visitResultData> = ({
       </View>
 
       <View 
-        style={styles.tableHeaderRow} 
         fixed
         render={({ pageNumber }: { pageNumber: number; totalPages?: number }) => {
           const headerStyle = pageNumber === 1 
