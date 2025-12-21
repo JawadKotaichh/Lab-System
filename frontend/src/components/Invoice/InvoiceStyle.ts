@@ -66,6 +66,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
+  patientInfoColumnWide: {
+    flex: 1.35,
+    marginRight: 12,
+  },
   patientInfoColumn: {
     flex: 1,
     marginRight: 12,
