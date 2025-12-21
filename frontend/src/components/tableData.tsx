@@ -812,7 +812,10 @@ export function getVisitsColumns(
         const currency = row.original.currency ?? "$";
         if (currency === "USD")
           return `${row.original.total_price_with_insurance.toFixed(2)} $`;
-        else return `${row.original.total_price_with_insurance} LBP`;
+        else
+          return `${row.original.total_price_with_insurance.toLocaleString(
+            "en-US"
+          )} LBP`;
       },
       header: ({ column }) => (
         <ColumnFilter
