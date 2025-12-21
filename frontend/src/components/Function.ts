@@ -3,7 +3,7 @@ import api from "../api";
 import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
 import { create_invoice, createVisit, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice } from "./utils";
-import type {  labPanelsWithIdsList, labTest, patientInfo, patientPanelResult, patientTestResult } from "./types";
+import type {  labPanelsWithIdsList, labTest, patientInfo, patientPanelResult, patientTestResult, updateInvoiceData } from "./types";
 import type { PaginationState } from "@tanstack/react-table";
 
 interface deleteElement {
@@ -135,6 +135,8 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     refreshResults?: () => Promise<void>;
     existingLabTestTypeIds?: Set<string>;
     markExistingLabTestIdsDirty?: () => void;
+    setUpdatedInvoiceData?: React.Dispatch<React.SetStateAction<updateInvoiceData>>;
+    setCurrency?: React.Dispatch<React.SetStateAction<string>>;
    
   }
 export const handleAddLabTest = async ({
@@ -151,6 +153,8 @@ export const handleAddLabTest = async ({
   visit_id,
   existingLabTestTypeIds,
   markExistingLabTestIdsDirty,
+  setUpdatedInvoiceData,
+  setCurrency,
 }: addLabTestParams) => {
   const duplicateMessage = "This test already exists for this visit.";
   const alreadyExistsStandalone = standAloneTestResults.some(
@@ -186,7 +190,9 @@ export const handleAddLabTest = async ({
     setPanelResults(updated.list_of_panel_results);
     markExistingLabTestIdsDirty?.();
     if (refreshResults) await refreshResults();
-    rebuildInvoice(visit_id);
+    const invoiceData = await rebuildInvoice(visit_id);
+    if (setUpdatedInvoiceData) setUpdatedInvoiceData(invoiceData.invoice_data);
+    if (setCurrency) setCurrency(invoiceData.currency);
     setShowTestsTable(false);
   } catch (err: unknown) {
     console.error(err);
