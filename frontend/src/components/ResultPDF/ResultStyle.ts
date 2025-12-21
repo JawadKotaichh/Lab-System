@@ -40,6 +40,13 @@ tableCloseLine: {
   borderTopWidth: 1,
   borderColor: "#262626",
 },
+fixedOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+},
 thTest:   { width: "20%", paddingLeft: 6 },
 thResult: { width: "17%", textAlign: "center" },
 thUnit:   { width: "18%", textAlign: "center" },
