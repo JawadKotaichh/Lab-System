@@ -70,6 +70,14 @@ const ResultPdf: React.FC<visitResultData> = ({
         </View>
         <Text style={styles.labTitle}>Lab Results</Text>
       </View>
+
+      <View style={styles.tableHeaderRow}>
+        <Text style={styles.thTest}>Test</Text>
+        <Text style={styles.thResult}>Result</Text>
+        <Text style={styles.thUnit}>Unit</Text>
+        <Text style={styles.thNormal}>Normal Range</Text>
+        <Text style={styles.thPrev}>Previous</Text>
+      </View>
       <TestsTableResults
         patientGender={patient.gender}
         visit_date={visit_date}
