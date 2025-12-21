@@ -52,10 +52,10 @@ const TestsTableResults = ({
     <View>
       <View style={styles.tableWrapper}>
         {groupedData.map((currentCategory, rowIdx) => (
-          <View key={rowIdx} wrap={false}>
+          <View key={rowIdx}>
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: "600",
                 borderBottomWidth: 1,
                 borderTopWidth: 1,
