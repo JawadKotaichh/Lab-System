@@ -35,7 +35,7 @@ const LabPanelsList = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize, setPageSize] = useState<number>(50);
   const [totalNumberOfLabPanels, setTotalNumberOfLabPanels] =
     useState<number>(0);
   const navigate = useNavigate();

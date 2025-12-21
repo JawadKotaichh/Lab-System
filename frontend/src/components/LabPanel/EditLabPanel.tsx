@@ -39,7 +39,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize, setPageSize] = useState<number>(50);
   const [totalNumberOfTests, setTotalNumberOfTests] = useState<number>(0);
 
   const [labTestCategories, setLabTestCategories] = useState<

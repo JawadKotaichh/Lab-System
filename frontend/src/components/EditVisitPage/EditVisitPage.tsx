@@ -47,7 +47,7 @@ const EditVisitPage: React.FC = () => {
   const existingLabTestIdsFetchId = useRef(0);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 50,
   });
   const [updatedInvoiceData, setUpdatedInvoiceData] =
     useState<updateInvoiceData>({ discount_percentage: 0 });
