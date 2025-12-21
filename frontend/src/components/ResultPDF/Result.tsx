@@ -20,95 +20,106 @@ const ResultPdf: React.FC<visitResultData> = ({
   showSignature,
 }) => (
   <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.fixedHeader} fixed>
-        <Image
-          src={`${baseURLL}/branding/lab_header`}
-          style={styles.lab_header}
-        />
-        <View style={styles.patientCard}>
-          <View style={styles.patientInfoRow}>
-            <View style={styles.patientInfoColumnWide}>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Name:</Text>
-                <Text style={styles.patientValue}>{patient!.name}</Text>
-              </View>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Insurance Company:</Text>
-                <Text style={styles.patientValue}>
-                  {patient!.insurance_company_name}
-                </Text>
+    <Page 
+      size="A4" 
+      style={styles.page}
+      render={({ pageNumber, totalPages }) => (
+        <>
+          <View style={styles.fixedHeader} fixed>
+            <Image
+              src={`${baseURLL}/branding/lab_header`}
+              style={styles.lab_header}
+            />
+            <View style={styles.patientCard}>
+              <View style={styles.patientInfoRow}>
+                <View style={styles.patientInfoColumnWide}>
+                  <View style={styles.patientInfoPair}>
+                    <Text style={styles.patientLabel}>Name:</Text>
+                    <Text style={styles.patientValue}>{patient!.name}</Text>
+                  </View>
+                  <View style={styles.patientInfoPair}>
+                    <Text style={styles.patientLabel}>Insurance Company:</Text>
+                    <Text style={styles.patientValue}>
+                      {patient!.insurance_company_name}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.patientInfoColumn}>
+                  <View style={styles.patientInfoPair}>
+                    <Text style={styles.patientLabel}>Gender:</Text>
+                    <Text style={styles.patientValue}>{patient!.gender}</Text>
+                  </View>
+                  <View style={styles.patientInfoPair}>
+                    <Text style={styles.patientLabel}>Exam Date:</Text>
+                    <Text style={styles.patientValue}>
+                      {visit_date.toISOString().split("T")[0]}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.patientInfoColumnLast}>
+                  <View style={styles.patientInfoPair}>
+                    <Text style={styles.patientLabel}>DOB:</Text>
+                    <Text style={styles.patientValue}>
+                      {patient!.DOB.split("T")[0]}
+                    </Text>
+                  </View>
+                  <View style={styles.patientInfoPair}>
+                    <Text style={styles.patientLabel}>Report Date:</Text>
+                    <Text style={styles.patientValue}>
+                      {report_date.toISOString().split("T")[0]}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
-            <View style={styles.patientInfoColumn}>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Gender:</Text>
-                <Text style={styles.patientValue}>{patient!.gender}</Text>
-              </View>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Exam Date:</Text>
-                <Text style={styles.patientValue}>
-                  {visit_date.toISOString().split("T")[0]}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.patientInfoColumnLast}>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>DOB:</Text>
-                <Text style={styles.patientValue}>
-                  {patient!.DOB.split("T")[0]}
-                </Text>
-              </View>
-              <View style={styles.patientInfoPair}>
-                <Text style={styles.patientLabel}>Report Date:</Text>
-                <Text style={styles.patientValue}>
-                  {report_date.toISOString().split("T")[0]}
-                </Text>
-              </View>
-            </View>
+            <Text style={styles.labTitle}>Lab Results</Text>
           </View>
-        </View>
-        <Text style={styles.labTitle}>Lab Results</Text>
-      </View>
 
-      <View style={styles.tableHeaderRow} fixed>
-        <Text style={styles.thTest}>Test</Text>
-        <Text style={styles.thResult}>Result</Text>
-        <Text style={styles.thUnit}>Unit</Text>
-        <Text style={styles.thNormal}>Normal Range</Text>
-        <Text style={styles.thPrev}>Previous</Text>
-      </View>
-      <TestsTableResults
-        patientGender={patient.gender}
-        visit_date={visit_date}
-        report_date={report_date}
-        list_of_standalone_test_results={list_of_standalone_test_results}
-        list_of_panel_results={list_of_panel_results}
-        patient={patient!}
-      />
-
-      <View style={styles.tableCloseLineContainer} fixed>
-        <View style={styles.tableCloseLine} />
-      </View>
-
-      <View style={[{ textAlign: "right", paddingTop: 15 }]}>
-        {showSignature && (
-          <Image
-            src={`${baseURLL}/branding/lab_signature`}
-            style={styles.lab_signature}
+          <View 
+            style={pageNumber === 1 ? styles.tableHeaderRow : styles.tableHeaderRowWithBottomBorder} 
+            fixed
+          >
+            <Text style={styles.thTest}>Test</Text>
+            <Text style={styles.thResult}>Result</Text>
+            <Text style={styles.thUnit}>Unit</Text>
+            <Text style={styles.thNormal}>Normal Range</Text>
+            <Text style={styles.thPrev}>Previous</Text>
+          </View>
+          <TestsTableResults
+            patientGender={patient.gender}
+            visit_date={visit_date}
+            report_date={report_date}
+            list_of_standalone_test_results={list_of_standalone_test_results}
+            list_of_panel_results={list_of_panel_results}
+            patient={patient!}
           />
-        )}
-        <Text>Signature</Text>
-        <Text style={[{ top: 20 }]}>2009/37</Text>
-      </View>
 
-      <View style={styles.footer} fixed>
-        <Image
-          src={`${baseURLL}/branding/lab_address`}
-          style={styles.footerImage}
-        />
-      </View>
-    </Page>
+          {pageNumber !== totalPages && (
+            <View style={styles.tableCloseLineContainer} fixed>
+              <View style={styles.tableCloseLine} />
+            </View>
+          )}
+
+          <View style={[{ textAlign: "right", paddingTop: 15 }]}>
+            {showSignature && (
+              <Image
+                src={`${baseURLL}/branding/lab_signature`}
+                style={styles.lab_signature}
+              />
+            )}
+            <Text>Signature</Text>
+            <Text style={[{ top: 20 }]}>2009/37</Text>
+          </View>
+
+          <View style={styles.footer} fixed>
+            <Image
+              src={`${baseURLL}/branding/lab_address`}
+              style={styles.footerImage}
+            />
+          </View>
+        </>
+      )}
+    />
   </Document>
 );
 export default function ResultList(props: visitResultData) {
