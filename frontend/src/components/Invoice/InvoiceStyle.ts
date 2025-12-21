@@ -64,14 +64,20 @@ export const styles = StyleSheet.create({
   },
   patientInfoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
+    alignItems: 'flex-start',
+  },
+  patientInfoColumn: {
+    flex: 1,
+    marginRight: 12,
+  },
+  patientInfoColumnLast: {
+    flex: 1,
   },
   patientInfoPair: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop:5,
-    flex: 1,               
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    marginBottom: 4,
   },
   patientLabel: {
     fontSize: 10,
@@ -80,6 +86,8 @@ export const styles = StyleSheet.create({
   },
   patientValue: {
     fontSize: 10,
+    flexShrink: 1,
+    maxWidth: '100%',
   },
   tableRow:{
     flexDirection: 'row',
