@@ -134,13 +134,13 @@ const Prices: React.FC<PricesParams> = ({
                       patientInsuranceCompanyRate *
                       (updatedInvoiceData.discount_percentage! / 100),
                   2
-                )} $`
-              : `${
+                ).toLocaleString("en-US")} $`
+              : `${(
                   totalPrice * patientInsuranceCompanyRate -
                   totalPrice *
                     patientInsuranceCompanyRate *
                     (updatedInvoiceData.discount_percentage! / 100)
-                } LBP`}
+                ).toLocaleString("en-US")} LBP`}
           </td>
         </tr>
       </tbody>
