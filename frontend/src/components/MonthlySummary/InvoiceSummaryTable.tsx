@@ -35,6 +35,12 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
         {summaryData.map((currentInvoice, rowIdx) => {
           const current_invoice_data = currentInvoice.invoice_data;
           const cuurent_patient = currentInvoice.patient;
+          const rowTotal = getTotalPrice(
+            current_invoice_data.patient_insurance_company_rate,
+            current_invoice_data.discount_percentage,
+            current_invoice_data.list_of_tests,
+            current_invoice_data.list_of_lab_panels
+          );
 
           return (
             <View
@@ -60,12 +66,9 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
               </View>
               <View style={[styles.tableColLast, { textAlign: "right" }]}>
                 <Text style={styles.tableCellText}>
-                  {getTotalPrice(
-                    current_invoice_data.patient_insurance_company_rate,
-                    current_invoice_data.discount_percentage,
-                    current_invoice_data.list_of_tests,
-                    current_invoice_data.list_of_lab_panels
-                  )}{" "}
+                  {currency === "USD"
+                    ? rowTotal.toFixed(2)
+                    : rowTotal.toLocaleString("en-US")}{" "}
                   {currency === "USD" ? "$" : "LBP"}
                 </Text>
               </View>
@@ -85,7 +88,10 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
                 { textAlign: "right", fontWeight: "9000" },
               ]}
             >
-              {totalPrice.toFixed(2)} {currency === "USD" ? "$" : "LBP"}
+              {currency === "USD"
+                ? totalPrice.toFixed(2)
+                : totalPrice.toLocaleString("en-US")}{" "}
+              {currency === "USD" ? "$" : "LBP"}
             </Text>
           </View>
         </View>
