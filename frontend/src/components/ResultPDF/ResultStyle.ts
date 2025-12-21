@@ -32,6 +32,7 @@ tableHeaderRow: {
   paddingVertical: 6,
   fontSize: 15,
   fontWeight: 700,
+  width: "100%",
 },
 tableHeaderRowWithBottomBorder: {
   flexDirection: "row",
@@ -42,6 +43,7 @@ tableHeaderRowWithBottomBorder: {
   paddingVertical: 6,
   fontSize: 15,
   fontWeight: 700,
+  width: "100%",
 },
 tableCloseLineContainer: {
   position: "absolute",
@@ -199,10 +201,9 @@ tableCol: {
   },
   fixedHeader: {
     position: "absolute",
-    width:"95%",
     top: 30,
-    left: "2.5%",
-    right: "2.5%",
+    left: 25,
+    right: 25,
     alignItems: "center",
   },
 });
