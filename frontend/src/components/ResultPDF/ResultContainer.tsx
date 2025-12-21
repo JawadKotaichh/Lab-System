@@ -44,7 +44,7 @@ export default function ResultContainer() {
   // console.log("listOfStandAloneTestResults: ", listOfStandAloneTestResults);
   // console.log("listOfPanelResults: ", listOfPanelResults);
 
-  if (loading) return <div>Loading Result</div>;
+  if (loading) return <div>Loading results...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
