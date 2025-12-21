@@ -141,7 +141,6 @@ const TestsTableResults = ({
                     <View
                       style={styles.tableRow}
                       key={`${rowIdx}-p-${idx}-r-$`}
-                      wrap={false}
                     >
                       <Text
                         style={[
