@@ -136,6 +136,7 @@ tableCol: {
     bottom: 20,
     left: 40,
     right: 40,
+    paddingTop:30,
     textAlign: "center",
   },
   footerImage: {
