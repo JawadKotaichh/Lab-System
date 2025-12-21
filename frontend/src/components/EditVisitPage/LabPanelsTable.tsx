@@ -74,21 +74,12 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       setLoading(false);
       return;
     }
-      try {
-        await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
-      const res = await fetchLabTestResultsAndPanelsPaginated(
-        visit_id,
-        pagination.pageIndex + 1,
-        pagination.pageSize
-      );
-      setStandAloneTestResults(res.list_of_standalone_test_results);
-      setPanelResults(res.list_of_panel_results);
-      setTotalPages(res.total_pages);
-      setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+    try {
+      await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
       rebuildInvoice(visit_id);
       setShowPanelsTable(false);
       markExistingLabTestIdsDirty();
-      void refreshResults();
+      await refreshResults();
       // window.location.reload();
     } catch (err: unknown) {
       console.error("🛑 handleAddLabPanel error:", err);
