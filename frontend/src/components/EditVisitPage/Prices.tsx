@@ -12,6 +12,7 @@ interface PricesParams {
   setUpdatedInvoiceData: React.Dispatch<
     React.SetStateAction<updateInvoiceData>
   >;
+  currency: string;
   visit_id: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
   patientData: patientInfo;
@@ -22,6 +23,7 @@ const Prices: React.FC<PricesParams> = ({
   visit_id,
   patientData,
   setUpdatedInvoiceData,
+  currency,
 }) => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
@@ -102,7 +104,9 @@ const Prices: React.FC<PricesParams> = ({
       <tbody>
         <tr>
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
-            {roundTo(totalPrice * patientInsuranceCompanyRate, 2)} $
+            {currency === "USD"
+              ? `${roundTo(totalPrice * patientInsuranceCompanyRate, 2)} $`
+              : `${totalPrice * patientInsuranceCompanyRate} LBP`}
           </td>
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
             <label>
@@ -123,14 +127,20 @@ const Prices: React.FC<PricesParams> = ({
             </label>
           </td>
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
-            {roundTo(
-              totalPrice * patientInsuranceCompanyRate -
-                totalPrice *
-                  patientInsuranceCompanyRate *
-                  (updatedInvoiceData.discount_percentage! / 100),
-              2
-            )}{" "}
-            $
+            {currency === "USD"
+              ? `${roundTo(
+                  totalPrice * patientInsuranceCompanyRate -
+                    totalPrice *
+                      patientInsuranceCompanyRate *
+                      (updatedInvoiceData.discount_percentage! / 100),
+                  2
+                )} $`
+              : `${
+                  totalPrice * patientInsuranceCompanyRate -
+                  totalPrice *
+                    patientInsuranceCompanyRate *
+                    (updatedInvoiceData.discount_percentage! / 100)
+                } LBP`}
           </td>
         </tr>
       </tbody>
