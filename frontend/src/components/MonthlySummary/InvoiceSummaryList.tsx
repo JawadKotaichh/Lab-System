@@ -32,25 +32,33 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
       />
       <View style={styles.patientCard}>
         <View style={styles.patientInfoRow}>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>Insurance Company:</Text>
-            <Text style={styles.patientValue}>
-              {summaryData[0].patient.insurance_company_name}
-            </Text>
+          <View style={styles.patientInfoColumnWide}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>Insurance Company:</Text>
+              <Text style={styles.patientValue}>
+                {summaryData[0].patient.insurance_company_name}
+              </Text>
+            </View>
           </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>From:</Text>
-            <Text style={styles.patientValue}>
-              {start_date
-                ? new Date(start_date).toISOString().split("T")[0]
-                : null}
-            </Text>
+          <View style={styles.patientInfoColumn}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>From:</Text>
+              <Text style={styles.patientValue}>
+                {start_date
+                  ? new Date(start_date).toISOString().split("T")[0]
+                  : null}
+              </Text>
+            </View>
           </View>
-          <View style={styles.patientInfoPair}>
-            <Text style={styles.patientLabel}>To:</Text>
-            <Text style={styles.patientValue}>
-              {end_date ? new Date(end_date).toISOString().split("T")[0] : null}
-            </Text>
+          <View style={styles.patientInfoColumnLast}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel}>To:</Text>
+              <Text style={styles.patientValue}>
+                {end_date
+                  ? new Date(end_date).toISOString().split("T")[0]
+                  : null}
+              </Text>
+            </View>
           </View>
         </View>
       </View>

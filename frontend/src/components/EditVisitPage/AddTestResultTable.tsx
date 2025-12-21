@@ -105,24 +105,24 @@ TestsList) => {
     toggleFilter,
     setError,
     showAdd,
-      {
-        pagination,
-        setPagination,
-        visit_id,
-        panelResults,
-        setPanelResults,
-        standAloneTestResults,
-        setStandAloneTestResults,
-        existingLabTestTypeIds,
-        setAddError,
-        showTestsTable,
-        setShowTestsTable,
-        setTotalPages,
-        setTotalNumberOfTests: setTotalNumberOfPaginatedItems,
-        onAddedRefresh: refreshResults,
-        labTestCategoryOptions,
-        markExistingLabTestIdsDirty,
-      }
+    {
+      pagination,
+      setPagination,
+      visit_id,
+      panelResults,
+      setPanelResults,
+      standAloneTestResults,
+      setStandAloneTestResults,
+      existingLabTestTypeIds,
+      setAddError,
+      showTestsTable,
+      setShowTestsTable,
+      setTotalPages,
+      setTotalNumberOfTests: setTotalNumberOfPaginatedItems,
+      onAddedRefresh: refreshResults,
+      labTestCategoryOptions,
+      markExistingLabTestIdsDirty,
+    }
   );
   ///neeed adjusments
   //   const labPanelsCols = getLabTestColumns(
