@@ -81,12 +81,12 @@ const TestsTableResults = ({
                     key={`${rowIdx}-s-${idx}`}
                     wrap={false}
                   >
-                    <View style={styles.tableCol}>
+                    <View style={styles.tableColTest}>
                       <Text style={styles.tableCellText}>
                         {t.lab_test_type.name}
                       </Text>
                     </View>
-                    <View style={[styles.tableCol, { textAlign: "center" }]}>
+                    <View style={styles.tableColResult}>
                       <Text style={styles.tableCellText}>
                         {t.result}{" "}
                         {isAbnormal(
@@ -98,21 +98,18 @@ const TestsTableResults = ({
                           : ""}
                       </Text>
                     </View>
-                    <View style={styles.tableCol}>
+                    <View style={styles.tableColUnit}>
                       <Text style={styles.tableCellText}>
                         {t.lab_test_type.unit}
                       </Text>
                     </View>
-                    <View style={styles.tableCol}>
+                    <View style={styles.tableColNormal}>
                       {t.lab_test_type?.normal_value_list?.length ? (
                         <View>
                           {t.lab_test_type.normal_value_list.map((nv, i) => (
                             <Text
                               key={i}
-                              style={[
-                                styles.tableCellText,
-                                { textAlign: "left" },
-                              ]}
+                              style={styles.tableCellText}
                             >
                               {renderNormalValue(nv, { ascii: true })}
                             </Text>
@@ -124,7 +121,7 @@ const TestsTableResults = ({
                         </Text>
                       )}
                     </View>
-                    <View style={styles.tableCol}>
+                    <View style={styles.tableColPrev}>
                       <Text style={styles.tableCellText}>
                         {t.prev_result}{" "}
                         {t.prev_date
@@ -170,18 +167,13 @@ const TestsTableResults = ({
                         key={`${rowIdx}-p-${idx}-r-${i}`}
                         wrap={false}
                       >
-                        <View style={styles.tableCol}>
+                        <View style={styles.tableColTest}>
                           <Text style={styles.tableCellText}>
                             {t.lab_test_type.name}
                           </Text>
                         </View>
-                        <View style={styles.tableCol}>
-                          <Text
-                            style={[
-                              styles.tableCellText,
-                              { textAlign: "center" },
-                            ]}
-                          >
+                        <View style={styles.tableColResult}>
+                          <Text style={styles.tableCellText}>
                             {t.result}
                             {isAbnormal(
                               t.lab_test_type?.normal_value_list,
@@ -192,22 +184,19 @@ const TestsTableResults = ({
                               : ""}
                           </Text>
                         </View>
-                        <View style={styles.tableCol}>
+                        <View style={styles.tableColUnit}>
                           <Text style={styles.tableCellText}>
                             {t.lab_test_type.unit}
                           </Text>
                         </View>
-                        <View style={styles.tableCol}>
+                        <View style={styles.tableColNormal}>
                           {t.lab_test_type?.normal_value_list?.length ? (
                             <View>
                               {t.lab_test_type.normal_value_list.map(
                                 (nv, i) => (
                                   <Text
                                     key={i}
-                                    style={[
-                                      styles.tableCellText,
-                                      { textAlign: "left" },
-                                    ]}
+                                    style={styles.tableCellText}
                                   >
                                     {renderNormalValue(nv, { ascii: true })}
                                   </Text>
@@ -218,7 +207,7 @@ const TestsTableResults = ({
                             <Text
                               style={[
                                 styles.tableCellText,
-                                { opacity: 0.6, textAlign: "left" },
+                                { opacity: 0.6 },
                               ]}
                             >
                               —
@@ -226,7 +215,7 @@ const TestsTableResults = ({
                           )}
                         </View>
 
-                        <View style={styles.tableCol}>
+                        <View style={styles.tableColPrev}>
                           <Text style={styles.tableCellText}>
                             {t.prev_result}{" "}
                             {t.prev_date
