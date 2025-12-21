@@ -12,8 +12,26 @@ export const styles = StyleSheet.create({
     color:'#262626',
     fontFamily:'Helvetica',
     fontSize:12,
-    padding:"30px 50px"
+    padding:"30px 50px",
+    paddingTop: 230,        
+    paddingBottom: 70,     
+    paddingHorizontal: 50,
   },
+  headerFixed: {
+    position: "absolute",
+    top: 30,
+    left: 50,
+    right: 50,
+  },
+  lab_header: {
+    width: "100%",
+    height: 70,
+    objectFit: "cover",
+  },
+  // lab_header:{
+  //   width:"100%",
+  //   objectFit: "cover",
+  // },
   section: {
     margin: 10,
     padding: 10,
@@ -24,10 +42,7 @@ export const styles = StyleSheet.create({
     justifyContent:"space-between",
     marginBottom:20,
   },
-  lab_header:{
-    width:"100%",
-    objectFit: "cover",
-  },
+  
   lab_signature:{
     position: 'absolute',
     marginTop: - 40, 
