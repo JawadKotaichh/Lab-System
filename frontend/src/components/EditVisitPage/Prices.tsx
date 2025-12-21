@@ -106,7 +106,9 @@ const Prices: React.FC<PricesParams> = ({
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
             {currency === "USD"
               ? `${roundTo(totalPrice * patientInsuranceCompanyRate, 2)} $`
-              : `${totalPrice * patientInsuranceCompanyRate} LBP`}
+              : `${(totalPrice * patientInsuranceCompanyRate).toLocaleString(
+                  "en-US"
+                )} LBP`}
           </td>
           <td className="border rounded-b-sm  px-4 py-2 font-bold">
             <label>
@@ -134,7 +136,7 @@ const Prices: React.FC<PricesParams> = ({
                       patientInsuranceCompanyRate *
                       (updatedInvoiceData.discount_percentage! / 100),
                   2
-                ).toLocaleString("en-US")} $`
+                )} $`
               : `${(
                   totalPrice * patientInsuranceCompanyRate -
                   totalPrice *
