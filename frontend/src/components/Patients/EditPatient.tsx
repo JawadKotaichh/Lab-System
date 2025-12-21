@@ -27,6 +27,13 @@ const EditPatientPage = ({ title }: PageTitle) => {
   const { patient_id } = useParams();
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const toTitleCase = (value: string) =>
+    value
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word[0].toUpperCase() + word.slice(1))
+      .join(" ");
   const [data, setData] = useState<patientInfo>({
     patient_id: `${patient_id}`,
     name: "",
@@ -171,20 +178,40 @@ const EditPatientPage = ({ title }: PageTitle) => {
                 )}
               </select>
             ) : (
+              // <input
+              //   className={inputFormAttributeListItemInput}
+              //   type={i.typeOfInput}
+              //   value={data[i.attributeName as keyof patientInfo] || ""}
+              //   placeholder={i.placeHolder}
+              //   onKeyDown={(e) => {
+              //     if (e.key === "Enter") e.currentTarget.blur();
+              //   }}
+              //   onChange={(e) =>
+              //     handleInputChange({
+              //       attributeName: i.attributeName,
+              //       value: e.target.value,
+              //     })
+              //   }
+              // />
               <input
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
                 value={data[i.attributeName as keyof patientInfo] || ""}
                 placeholder={i.placeHolder}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") e.currentTarget.blur();
-                }}
                 onChange={(e) =>
                   handleInputChange({
                     attributeName: i.attributeName,
                     value: e.target.value,
                   })
                 }
+                onBlur={() => {
+                  if (i.attributeName === "name") {
+                    setData((prev) => ({
+                      ...prev,
+                      name: toTitleCase(prev.name),
+                    }));
+                  }
+                }}
               />
             )}
           </div>
