@@ -30,7 +30,7 @@ const TestsTableInvoice = ({
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View style={[styles.tableRow, { borderBottomWidth: 0.1 }]}>
+        <View style={[styles.tableRow, { borderBottomWidth: 0.1 }]} fixed>
           {headers.map((h) => (
             <View style={styles.tableColHeader} key={h}>
               <Text
@@ -46,6 +46,7 @@ const TestsTableInvoice = ({
           return (
             <View
               style={[styles.tableRow, { borderBottomWidth: 0.1 }]}
+              wrap={false}
               key={test.lab_test_id ?? `${test.name}-${rowIdx}`}
             >
               {testValues.map((val, colIdx) => (
@@ -81,6 +82,7 @@ const TestsTableInvoice = ({
           return (
             <View
               style={[styles.tableRow, { borderBottomWidth: 0.1 }]}
+              wrap={false}
               key={panel.id ?? `${panel.panel_name}-${rowIdx}`}
             >
               {panelValues.map((val, colIdx) => (
@@ -109,7 +111,7 @@ const TestsTableInvoice = ({
           );
         })}
 
-        <View style={[styles.tableRow, styles.subTotal]}>
+        <View style={[styles.tableRow, styles.subTotal]} wrap={false}>
           <View style={styles.subTotalCol}>
             <Text style={[styles.subtotalCellText, { fontWeight: "9000" }]}>
               Subtotal
