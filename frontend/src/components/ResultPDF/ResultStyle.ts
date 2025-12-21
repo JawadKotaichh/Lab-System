@@ -111,7 +111,6 @@ export const styles = StyleSheet.create({
   },
   tableWrapper: {
     width: "100%",
-    borderWidth: 0,
   },
   tableHeaderWrapper: {
     width: "100%",
@@ -132,6 +131,7 @@ export const styles = StyleSheet.create({
   },
   tableColHeader: {
   flex: 1,
+  borderWidth: 0,
   borderStyle: 'solid',
   borderColor: '#262626',
   backgroundColor: '#f0f0f0',
@@ -141,12 +141,14 @@ export const styles = StyleSheet.create({
 },
 tableCol: {
   flex: 1,
+   borderWidth: 0,
   borderColor: '#262626',
   padding: 4,
   textAlign: 'center', 
 },
 tableColleft: {
   flex: 1,
+   borderWidth: 0,
   borderColor: '#262626',
   padding: 4,
   textAlign: 'left', 
