@@ -11,7 +11,8 @@ Font.register({
 export const styles = StyleSheet.create({
   tableRowWithoutBorder:{
       flexDirection: 'row',
-      borderRightWidth:0,},
+      borderRightWidth:0,
+  },
   page: {
     backgroundColor:'#fff',
     color:'#262626',
@@ -139,14 +140,13 @@ thPrev:   { width: "25%", textAlign: "center" },
     borderWidth:1,        
     borderColor: '#262626',
   },
-  tableColHeader: {
+tableColHeader: {
   flex: 1,
-  borderStyle: 'solid',
-  borderColor: '#262626',
-  backgroundColor: '#f0f0f0',
+  borderWidth: 1,
+  borderColor: "#262626",
+  backgroundColor: "#f0f0f0",
   padding: 4,
-  borderBottomWidth: 1,
-  textAlign: 'center',
+  textAlign: "center",
 },
 tableCol: {
   flex: 1,
