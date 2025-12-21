@@ -45,6 +45,7 @@ import {
 } from "./guessNormalValueType";
 import createEmptyNormalValues from "./createEmptyNV";
 import GenderNVEditor from "./GenderNVEditor";
+import FractionInput from "./FractionInput";
 
 interface EditLabTestProps {
   title: string;
@@ -365,27 +366,21 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center gap-2">
                       <label className="text-sm w-28">Lower bound</label>
-                      <input
-                        type="number"
+                      <FractionInput
                         className="flex-1 border rounded px-2 py-1"
                         value={nv.lower_bound_value}
-                        onChange={(e) =>
-                          updateNV(idx, {
-                            lower_bound_value: Number(e.target.value),
-                          })
+                        onChange={(next) =>
+                          updateNV(idx, { lower_bound_value: next })
                         }
                       />
                     </div>
                     <div className="flex items-center gap-2">
                       <label className="text-sm w-28">Upper bound</label>
-                      <input
-                        type="number"
+                      <FractionInput
                         className="flex-1 border rounded px-2 py-1"
                         value={nv.upper_bound_value}
-                        onChange={(e) =>
-                          updateNV(idx, {
-                            upper_bound_value: Number(e.target.value),
-                          })
+                        onChange={(next) =>
+                          updateNV(idx, { upper_bound_value: next })
                         }
                       />
                     </div>
@@ -395,14 +390,11 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
                 {isUpperOnly(nv) && (
                   <div className="flex items-center gap-2">
                     <label className="text-sm w-28">Upper bound</label>
-                    <input
-                      type="number"
+                    <FractionInput
                       className="flex-1 border rounded px-2 py-1"
                       value={nv.upper_bound_value}
-                      onChange={(e) =>
-                        updateNV(idx, {
-                          upper_bound_value: Number(e.target.value),
-                        })
+                      onChange={(next) =>
+                        updateNV(idx, { upper_bound_value: next })
                       }
                     />
                   </div>
@@ -411,14 +403,11 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
                 {isLowerOnly(nv) && (
                   <div className="flex items-center gap-2">
                     <label className="text-sm w-28">Lower bound</label>
-                    <input
-                      type="number"
+                    <FractionInput
                       className="flex-1 border rounded px-2 py-1"
                       value={nv.lower_bound_value}
-                      onChange={(e) =>
-                        updateNV(idx, {
-                          lower_bound_value: Number(e.target.value),
-                        })
+                      onChange={(next) =>
+                        updateNV(idx, { lower_bound_value: next })
                       }
                     />
                   </div>
