@@ -269,7 +269,7 @@ const EditVisitPage: React.FC = () => {
       <AddTestResultTable
         refreshResults={refreshResults}
         // updatedInvoiceData={updatedInvoiceData}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
+        // setUpdatedInvoiceData={setUpdatedInvoiceData}
         showAdd={showAdd}
         addError={addError}
         visit_id={visit_id}
@@ -295,7 +295,7 @@ const EditVisitPage: React.FC = () => {
         setStandAloneTestResults={setStandAloneTestResults}
         setTotalNumberOfTests={setTotalNumberOfTests}
         panelResults={panelResults}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
+        // setUpdatedInvoiceData={setUpdatedInvoiceData}
         // updatedInvoiceData={updatedInvoiceData}
         showPanelsTable={showPanelsTable}
         setShowPanelsTable={setShowPanelsTable}
