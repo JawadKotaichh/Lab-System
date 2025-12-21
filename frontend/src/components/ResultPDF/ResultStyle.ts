@@ -28,7 +28,7 @@ tableHeaderRow: {
   borderLeftWidth: 1,
   borderRightWidth: 1,
   paddingVertical: 6,
-  fontSize: 13,
+  fontSize: 15,
   fontWeight: 700,
 },
 tableCloseLine: {
@@ -40,9 +40,9 @@ tableCloseLine: {
   borderColor: "#262626",
 },
 thTest:   { width: "20%", paddingLeft: 6 },
-thResult: { width: "20%", textAlign: "center" },
-thUnit:   { width: "10%", textAlign: "center" },
-thNormal: { width: "25%", textAlign: "center" },
+thResult: { width: "17%", textAlign: "center" },
+thUnit:   { width: "18%", textAlign: "center" },
+thNormal: { width: "20%", textAlign: "center" },
 thPrev:   { width: "25%", textAlign: "center" },
 
   section: {
@@ -61,7 +61,7 @@ thPrev:   { width: "25%", textAlign: "center" },
   },
   lab_signature:{
     position: 'absolute',
-    marginTop: - 20, 
+    marginTop: -20, 
     marginRight:-25,
     right: 0, 
     width: 120,
@@ -92,6 +92,7 @@ thPrev:   { width: "25%", textAlign: "center" },
   },
    patientCard: {  
     borderWidth: 1,
+    width: "100%",
     borderColor: '#262626',
     borderRadius: 5,
     padding: 10,
@@ -165,7 +166,7 @@ tableCol: {
     textAlign: "center",
   },
   footerImage: {
-    width: 500,         
+    width: "100%",
     height: 30,
     objectFit: "contain",
   },
@@ -181,6 +182,7 @@ tableCol: {
   },
   fixedHeader: {
     position: "absolute",
+    width:"100%",
     top: 30,
     left: 50,
     right: 50,
