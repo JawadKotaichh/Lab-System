@@ -35,7 +35,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
       </View>
       <View style={styles.patientCard}>
         <View style={styles.patientInfoRow}>
-          <View style={styles.patientInfoColumn}>
+          <View style={styles.patientInfoColumnWide}>
             <View style={styles.patientInfoPair}>
               <Text style={styles.patientLabel}>Name:</Text>
               <Text style={styles.patientValue}>{patient!.name}</Text>
