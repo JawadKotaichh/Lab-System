@@ -36,39 +36,43 @@ const ResultPdf: React.FC<visitResultData> = ({
         />
         <View style={styles.patientCard}>
           <View style={styles.patientInfoRow}>
-            <View style={styles.patientInfoPair}>
-              <Text style={styles.patientLabel}>Name:</Text>
-              <Text style={styles.patientValue}>{patient!.name}</Text>
+            <View style={styles.patientInfoColumnWide}>
+              <View style={styles.patientInfoPair}>
+                <Text style={styles.patientLabel}>Name:</Text>
+                <Text style={styles.patientValue}>{patient!.name}</Text>
+              </View>
+              <View style={styles.patientInfoPair}>
+                <Text style={styles.patientLabel}>Insurance Company:</Text>
+                <Text style={styles.patientValue}>
+                  {patient!.insurance_company_name}
+                </Text>
+              </View>
             </View>
-            <View style={styles.patientInfoPair}>
-              <Text style={styles.patientLabel}>Gender:</Text>
-              <Text style={styles.patientValue}>{patient!.gender}</Text>
+            <View style={styles.patientInfoColumn}>
+              <View style={styles.patientInfoPair}>
+                <Text style={styles.patientLabel}>Gender:</Text>
+                <Text style={styles.patientValue}>{patient!.gender}</Text>
+              </View>
+              <View style={styles.patientInfoPair}>
+                <Text style={styles.patientLabel}>Exam Date:</Text>
+                <Text style={styles.patientValue}>
+                  {visit_date.toISOString().split("T")[0]}
+                </Text>
+              </View>
             </View>
-            <View style={styles.patientInfoPair}>
-              <Text style={styles.patientLabel}>DOB:</Text>
-              <Text style={styles.patientValue}>
-                {patient!.DOB.split("T")[0]}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.patientInfoRow}>
-            <View style={styles.patientInfoPair}>
-              <Text style={styles.patientLabel}>Insurance Company:</Text>
-              <Text style={styles.patientValue}>
-                {patient!.insurance_company_name}
-              </Text>
-            </View>
-            <View style={styles.patientInfoPair}>
-              <Text style={styles.patientLabel}>Exam Date:</Text>
-              <Text style={styles.patientValue}>
-                {visit_date.toISOString().split("T")[0]}
-              </Text>
-            </View>
-            <View style={styles.patientInfoPair}>
-              <Text style={styles.patientLabel}>Report Date:</Text>
-              <Text style={styles.patientValue}>
-                {report_date.toISOString().split("T")[0]}
-              </Text>
+            <View style={styles.patientInfoColumnLast}>
+              <View style={styles.patientInfoPair}>
+                <Text style={styles.patientLabel}>DOB:</Text>
+                <Text style={styles.patientValue}>
+                  {patient!.DOB.split("T")[0]}
+                </Text>
+              </View>
+              <View style={styles.patientInfoPair}>
+                <Text style={styles.patientLabel}>Report Date:</Text>
+                <Text style={styles.patientValue}>
+                  {report_date.toISOString().split("T")[0]}
+                </Text>
+              </View>
             </View>
           </View>
         </View>

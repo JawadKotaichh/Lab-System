@@ -66,17 +66,25 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   patientInfoRow: {
-    justifyContent: 'center', 
-    alignItems: 'center',
     flexDirection: 'row',
-    marginBottom: 4,
+    alignItems: 'flex-start',
+  },
+  patientInfoColumnWide: {
+    flex: 1.35,
+    marginRight: 12,
+  },
+  patientInfoColumn: {
+    flex: 1,
+    marginRight: 12,
+  },
+  patientInfoColumnLast: {
+    flex: 1,
   },
   patientInfoPair: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop:5,
-    flex: 1,               
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    marginBottom: 4,
   },
   patientLabel: {
     fontSize: 10,
@@ -85,6 +93,8 @@ export const styles = StyleSheet.create({
   },
   patientValue: {
     fontSize: 10,
+    flexShrink: 1,
+    maxWidth: '100%',
   },
   tableRow:{
     flexDirection: 'row',
