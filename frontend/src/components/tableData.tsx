@@ -60,6 +60,7 @@ export interface LabTestColumnOptions {
   existingLabTestTypeIds?: Set<string>;
   markExistingLabTestIdsDirty?: () => void;
   setUpdatedInvoiceData?: React.Dispatch<React.SetStateAction<updateInvoiceData>>;
+  setCurrency?: React.Dispatch<React.SetStateAction<string>>;
 }
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
@@ -358,6 +359,7 @@ export function getLabTestColumns(
     existingLabTestTypeIds,
     markExistingLabTestIdsDirty,
     setUpdatedInvoiceData,
+    setCurrency,
   } = options ?? {};
   type BoundsNV =
     | upper_and_lower_bound_only
@@ -579,6 +581,7 @@ export function getLabTestColumns(
                 lab_test_id,
                 refreshResults: onAddedRefresh,
                 setUpdatedInvoiceData,
+                setCurrency,
               });
             },
           });

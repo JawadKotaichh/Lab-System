@@ -26,10 +26,6 @@ import {
 import GenericTable from "../react-table/GeneralTable";
 
 interface TestsList {
-  // updatedInvoiceData: updateInvoiceData;
-  setUpdatedInvoiceData?: React.Dispatch<
-    React.SetStateAction<updateInvoiceData>
-  >;
   addError: string;
   showTestsTable: boolean;
   error: string;
@@ -48,6 +44,8 @@ interface TestsList {
   refreshResults: () => Promise<void>;
   existingLabTestTypeIds: Set<string>;
   markExistingLabTestIdsDirty: () => void;
+  setUpdatedInvoiceData: React.Dispatch<React.SetStateAction<updateInvoiceData>>;
+  setCurrency: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AddTestResultTable: React.FC<TestsList> = ({
@@ -65,9 +63,9 @@ const AddTestResultTable: React.FC<TestsList> = ({
   showAdd,
   error,
   setError,
-  // updatedInvoiceData,
   refreshResults,
   setUpdatedInvoiceData,
+  setCurrency,
 }: TestsList) => {
   const [data, setData] = useState<labTest[]>([]);
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
@@ -123,6 +121,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
       labTestCategoryOptions,
       markExistingLabTestIdsDirty,
       setUpdatedInvoiceData,
+      setCurrency,
     }
   );
   ///neeed adjusments
