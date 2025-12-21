@@ -34,14 +34,16 @@ const EditVisitPage: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [showPanelsTable, setShowPanelsTable] = useState<boolean>(false);
   const [showTestsTable, setShowTestsTable] = useState<boolean>(false);
-  const [pendingResults, setPendingResults] = useState<Record<string, string>>({});
+  const [pendingResults, setPendingResults] = useState<Record<string, string>>(
+    {}
+  );
   const pendingResultsRef = useRef<Record<string, string>>({});
   useEffect(() => {
     pendingResultsRef.current = pendingResults;
   }, [pendingResults]);
-  const [existingLabTestTypeIds, setExistingLabTestTypeIds] = useState<Set<string>>(
-    new Set()
-  );
+  const [existingLabTestTypeIds, setExistingLabTestTypeIds] = useState<
+    Set<string>
+  >(new Set());
   const [shouldRefreshFullList, setShouldRefreshFullList] =
     useState<boolean>(true);
   const existingLabTestIdsFetchId = useRef(0);
@@ -58,7 +60,7 @@ const EditVisitPage: React.FC = () => {
   const [totalNumberOfTests, setTotalNumberOfTests] = useState<number>(0);
   const showAdd = true;
   useState<number>(0);
-
+  const [currency, setCurrency] = useState<string>("");
   const applyPendingToTestResults = (results: patientTestResult[]) =>
     results.map((test) => {
       const pending = pendingResultsRef.current[test.lab_test_result_id];
@@ -174,6 +176,7 @@ const EditVisitPage: React.FC = () => {
         await refreshResults();
         const fetched_invoice = await fetchInvoice(visit_id);
         setUpdatedInvoiceData(fetched_invoice.invoice_data);
+        setCurrency(fetched_invoice.currency);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -228,6 +231,7 @@ const EditVisitPage: React.FC = () => {
         visit_id={visit_id}
         setError={setError}
         updatedInvoiceData={updatedInvoiceData}
+        currency={currency}
       />
       <button
         className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
