@@ -93,13 +93,25 @@ const fetchCurrencies = async (): Promise<string[]> => {
   const response = await api.get(url);
   return response.data;
 };
+// const fetchResultSuggestions = async (
+//   lab_test_type_id: string,
+//   prefix: string
+// ): Promise<result_suggestions[]> => {
+//   const url = `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`;
+//   const response = await api.get(url, { params: prefix });
+//   return response.data;
+// };
 const fetchResultSuggestions = async (
   lab_test_type_id: string,
   prefix: string
 ): Promise<result_suggestions[]> => {
-  const url = `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`;
-  const response = await api.get(url, { params: prefix });
-  return response.data;
+  const { data } = await api.get<result_suggestions[]>(
+    `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`,
+    {
+      params: { lab_test_type_id, prefix },
+    }
+  );
+  return data;
 };
 const fetchLabTestResultsAndPanelsPaginated = async (
   visit_id: string,
