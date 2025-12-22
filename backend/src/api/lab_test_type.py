@@ -8,6 +8,7 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
 from typing import Any, Dict, List
+from ..models import Result_suggestions as DBResult_suggestions
 
 
 router = APIRouter(
@@ -250,5 +251,10 @@ async def delete_lab_test_type(lab_test_type_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Lab_test_type not found",
         )
+    await DBResult_suggestions.find(
+        DBResult_suggestions.lab_test_type_id == lab_test_type_id
+    ).delete()
+
     await lab_test_type_to_be_deleted.delete()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
