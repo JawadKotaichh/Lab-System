@@ -14,12 +14,11 @@ const TestsTableInvoice = ({
   const headers = ["Nssf ID", "Test Name", "Price"];
 
   const formatPrice = (currency: string, value?: number) =>
-    ` ${
-      currency === "USD"
-        ? `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} $`
-        : `${(
-            patient_insurance_company_rate * (value ?? 0)
-          ).toLocaleString("en-US")} LBP`
+    ` ${currency === "USD"
+      ? `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} $`
+      : `${(
+        patient_insurance_company_rate * (value ?? 0)
+      ).toLocaleString("en-US")} LBP`
     }`;
 
   const getPrice = (test: labTest) => formatPrice(currency, test.price);
@@ -56,6 +55,7 @@ const TestsTableInvoice = ({
                     styles.tableCol,
                     colIdx === testValues.length - 1 ? styles.tableColLast : {},
                   ]}
+                  wrap={false}
                 >
                   <Text
                     style={[
@@ -126,21 +126,20 @@ const TestsTableInvoice = ({
             >
               {currency === "USD"
                 ? `${(
-                    total_price * patient_insurance_company_rate -
-                    (total_price *
-                      patient_insurance_company_rate *
-                      discount_percentage) /
-                      100
-                  ).toFixed(2)} $`
-                : `${
-                    (
-                      total_price * patient_insurance_company_rate -
-                      (total_price *
-                        patient_insurance_company_rate *
-                        discount_percentage) /
-                        100
-                    ).toLocaleString("en-US")
-                  } LBP`}
+                  total_price * patient_insurance_company_rate -
+                  (total_price *
+                    patient_insurance_company_rate *
+                    discount_percentage) /
+                  100
+                ).toFixed(2)} $`
+                : `${(
+                  total_price * patient_insurance_company_rate -
+                  (total_price *
+                    patient_insurance_company_rate *
+                    discount_percentage) /
+                  100
+                ).toLocaleString("en-US")
+                } LBP`}
             </Text>
           </View>
         </View>
@@ -149,10 +148,10 @@ const TestsTableInvoice = ({
         <Text>
           {amountToWords(
             total_price * patient_insurance_company_rate -
-              (total_price *
-                patient_insurance_company_rate *
-                discount_percentage) /
-                100,
+            (total_price *
+              patient_insurance_company_rate *
+              discount_percentage) /
+            100,
             currency
           )}
         </Text>
