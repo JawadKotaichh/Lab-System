@@ -98,6 +98,15 @@ class lab_panel(Document):
         name = "lab_panel"
 
 
+class Result_suggestions(Document):
+    lab_test_type_id: str = Field(...)
+    value: str = Field(...)
+    use_count: int = Field(...)
+
+    class Settings:
+        name = "result_suggestions"
+
+
 class Invoice(Document):
     invoice_number: int = Field(...)
     list_of_tests: List[lab_test_type] = Field(...)

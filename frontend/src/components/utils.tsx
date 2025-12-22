@@ -19,6 +19,7 @@ import type {
   paginatedVisitResults,
   patientInfo,
   patientsFilters,
+  result_suggestions,
   resultListData,
   updateInvoiceData,
   visitData,
@@ -34,6 +35,7 @@ import {
   labTestCategoryApiURL,
   labTestResultApiURL,
   PatientsApiURL,
+  resultSuggestionsApiURL,
   visitsApiURL,
 } from "./data.js";
 
@@ -91,7 +93,14 @@ const fetchCurrencies = async (): Promise<string[]> => {
   const response = await api.get(url);
   return response.data;
 };
-
+const fetchResultSuggestions = async (
+  lab_test_type_id: string,
+  prefix: string
+): Promise<result_suggestions[]> => {
+  const url = `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`;
+  const response = await api.get(url, { params: prefix });
+  return response.data;
+};
 const fetchLabTestResultsAndPanelsPaginated = async (
   visit_id: string,
   page_number: number,
@@ -289,3 +298,4 @@ export { rebuildInvoice };
 export { create_invoice };
 export { getMonthlyInvoiceSummary };
 export { fetchCurrencies };
+export { fetchResultSuggestions };

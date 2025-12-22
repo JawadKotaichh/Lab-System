@@ -139,6 +139,7 @@ export const visitCreatePageURL="/create-visit";
 
 // lab test results
 export const labTestResultApiURL="/lab_tests_results";
+export const resultSuggestionsApiURL = "/result_suggestions";
 
 // invoice
 export const invoicesApiURL = "/invoices";

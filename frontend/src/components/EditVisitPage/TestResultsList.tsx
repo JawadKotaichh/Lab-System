@@ -1,9 +1,13 @@
-import type { patientPanelResult, patientTestResult } from "../types.js";
+import type {
+  patientPanelResult,
+  patientTestResult,
+  result_suggestions,
+} from "../types.js";
 import api from "../../api.js";
 import { labTestResultApiURL } from "../data.js";
-import React from "react";
+import React, { useRef, useState } from "react";
 import renderNormalValue from "../renderNormalValue.js";
-import { rebuildInvoice } from "../utils.js";
+import { fetchResultSuggestions, rebuildInvoice } from "../utils.js";
 
 interface ShowResultsListParams {
   panelResults: patientPanelResult[];
@@ -32,6 +36,52 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   setPendingResults,
   markExistingLabTestIdsDirty,
 }: ShowResultsListParams) => {
+  const [activeInputId, setActiveInputId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<result_suggestions[]>([]);
+  const [loadingSug, setLoadingSug] = useState(false);
+  const [sugError, setSugError] = useState<string | null>(null);
+  const debounceRef = useRef<number | null>(null);
+  const closeDropdown = () => {
+    setActiveInputId(null);
+    setSuggestions([]);
+    setSugError(null);
+    setLoadingSug(false);
+  };
+  const requestSuggestions = (
+    lab_test_type_id: string,
+    prefix: string,
+    inputId: string
+  ) => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+
+    debounceRef.current = window.setTimeout(async () => {
+      const trimmed = prefix.trim();
+      if (!trimmed) {
+        setSuggestions([]);
+        setSugError(null);
+        return;
+      }
+      try {
+        setLoadingSug(true);
+        setSugError(null);
+
+        const data = await fetchResultSuggestions(lab_test_type_id, trimmed);
+        if (activeInputId !== inputId) return;
+        setSuggestions(data);
+      } catch (e) {
+        if (activeInputId !== inputId) return;
+        setSuggestions([]);
+        setSugError(`Failed to load suggestions: ${e}`);
+      } finally {
+        if (activeInputId === inputId) setLoadingSug(false);
+      }
+    }, 200);
+  };
+  const onPickSuggestion = (lab_test_result_id: string, value: string) => {
+    void handleChange(lab_test_result_id, value);
+    closeDropdown();
+  };
+
   const handleChange = async (
     lab_test_result_id: string,
     newResult: string
@@ -115,21 +165,118 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               <td className="border rounded-b-sm px-4 py-2">
                 {r.lab_test_type.name}
               </td>
-              <td className="border rounded-b-sm  px-4 py-2">
+              <td className="border rounded-b-sm px-4 py-2">
+                <div className="relative">
+                  <input
+                    className="h-8 text-center w-full"
+                    placeholder="Enter result"
+                    value={r.result}
+                    onFocus={() => {
+                      setActiveInputId(r.lab_test_result_id);
+                      requestSuggestions(
+                        r.lab_test_type.lab_test_id,
+                        r.result ?? "",
+                        r.lab_test_result_id
+                      );
+                    }}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      handleChange(r.lab_test_result_id, v);
+                      setActiveInputId(r.lab_test_result_id);
+                      requestSuggestions(
+                        r.lab_test_type.lab_test_id,
+                        v,
+                        r.lab_test_result_id
+                      );
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => closeDropdown(), 150);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                      if (e.key === "Escape") closeDropdown();
+                    }}
+                  />
+                  {activeInputId === r.lab_test_result_id &&
+                    (loadingSug || sugError || suggestions.length > 0) && (
+                      <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow z-50 max-h-44 overflow-auto text-left">
+                        {loadingSug && (
+                          <div className="px-3 py-2 text-gray-500">
+                            Loading…
+                          </div>
+                        )}
+                        {sugError && (
+                          <div className="px-3 py-2 text-red-600">
+                            {sugError}
+                          </div>
+                        )}
+                        {!loadingSug &&
+                          !sugError &&
+                          suggestions.length === 0 && (
+                            <div className="px-3 py-2 text-gray-500">
+                              No suggestions
+                            </div>
+                          )}
+
+                        {!loadingSug &&
+                          !sugError &&
+                          suggestions.map((s, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className="w-full px-3 py-2 hover:bg-gray-100 text-left"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() =>
+                                onPickSuggestion(r.lab_test_result_id, s.value)
+                              }
+                            >
+                              {s.value}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                </div>
+              </td>
+              {/* <td className="border rounded-b-sm  px-4 py-2">
                 <input
                   className="h-8 text-center"
                   placeholder="Enter result"
                   value={r.result}
-                  onChange={(e) =>
-                    handleChange(r.lab_test_result_id, e.target.value)
-                  }
+                  // onChange={(e) =>
+                  //   handleChange(r.lab_test_result_id, e.target.value)
+                  // }
+                  // onKeyDown={(e) => {
+                  //   if (e.key === "Enter") {
+                  //     e.currentTarget.blur();
+                  //   }
+                  // }}
+                  onFocus={() => {
+                    setActiveInputId(r.lab_test_result_id);
+                    requestSuggestions(
+                      r.lab_test_type.lab_test_id,
+                      r.result ?? "",
+                      r.lab_test_result_id
+                    );
+                  }}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    handleChange(r.lab_test_result_id, v);
+                    setActiveInputId(r.lab_test_result_id);
+                    requestSuggestions(
+                      r.lab_test_type.lab_test_id,
+                      v,
+                      r.lab_test_result_id
+                    );
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => closeDropdown(), 150);
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur();
-                    }
+                    if (e.key === "Enter") e.currentTarget.blur();
+                    if (e.key === "Escape") closeDropdown();
                   }}
                 />
-              </td>
+              </td> */}
               <td className="border rounded-b-sm px-4 py-2">
                 {r.lab_test_type.unit}
               </td>

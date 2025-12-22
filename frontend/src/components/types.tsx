@@ -19,7 +19,11 @@ export type positive_or_negative = {
   description?: string;
   normal_value: string;
 };
-
+export type result_suggestions = {
+  lab_test_type_id: string;
+  value: string;
+  use_count: number;
+};
 export type normal_value_by_gender = {
   description?: string;
   male_normal_value_type:

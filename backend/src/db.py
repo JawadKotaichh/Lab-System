@@ -13,6 +13,7 @@ from .models import (
     lab_test_category,
     lab_panel,
     Invoice,
+    Result_suggestions,
 )
 
 # ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
@@ -34,5 +35,6 @@ async def init_db():
             lab_test_category,
             lab_panel,
             Invoice,
+            Result_suggestions,
         ],
     )
