@@ -106,7 +106,7 @@ const fetchResultSuggestions = async (
   prefix: string
 ): Promise<result_suggestions[]> => {
   const { data } = await api.get<result_suggestions[]>(
-    `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`,
+    `${resultSuggestionsApiURL}/use/${lab_test_type_id}`,
     {
       params: { lab_test_type_id, prefix },
     }
