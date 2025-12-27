@@ -2,7 +2,7 @@ import re
 from typing import Any, Dict, List, Optional
 from beanie import SortDirection
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, Path, Query, status
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import Response
 
 from ..models import Result_suggestions as DBResult_suggestions
@@ -21,7 +21,7 @@ def normalize(s: str) -> str:
 @router.get("/by_test/{lab_test_type_id}", response_model=List[Result_suggestions])
 async def get_result_suggestions(
     lab_test_type_id: str,
-    prefix: Optional[str] = Query(None),
+    prefix: Optional[str],
 ) -> List[Result_suggestions]:
     mongo_filter: Dict[str, Any] = {"lab_test_type_id": lab_test_type_id}
 
@@ -53,9 +53,9 @@ async def get_result_suggestions(
     summary="Increment suggestion use_count (create if new)",
 )
 async def use_result_suggestion(
-    lab_test_type_id: str = Path(...),
-    value: str = Query(...),
-) -> Dict[str, Any]:
+    lab_test_type_id: str,
+    value: str,
+):
     n = normalize(value)
     existing = await DBResult_suggestions.find_one(
         DBResult_suggestions.lab_test_type_id == lab_test_type_id,
@@ -76,7 +76,7 @@ async def use_result_suggestion(
     doc = await doci.insert()
     if not doc:
         raise HTTPException(status_code=404, detail="result_suggestion was not created")
-    return doc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post(
