@@ -117,7 +117,7 @@ const trackResultSuggestionUse = async (
   value: string
 ): Promise<void> => {
   await api.post(`${resultSuggestionsApiURL}/use/${lab_test_type_id}`, null, {
-    params: { lab_test_type_id, value },
+    params: { value: String(value) },
   });
 };
 const fetchLabTestResultsAndPanelsPaginated = async (
