@@ -101,17 +101,24 @@ const fetchCurrencies = async (): Promise<string[]> => {
 //   const response = await api.get(url, { params: prefix });
 //   return response.data;
 // };
-const fetchResultSuggestions = async (
+export async function fetchResultSuggestions(
   lab_test_type_id: string,
   prefix: string
-): Promise<result_suggestions[]> => {
-  const { data } = await api.get<result_suggestions[]>(
-    `${resultSuggestionsApiURL}/use/${lab_test_type_id}`,
-    {
-      params: { lab_test_type_id, prefix },
-    }
-  );
+) {
+  const url = `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`;
+  const { data } = await api.get<result_suggestions[]>(url, {
+    params: { prefix },
+  });
   return data;
+}
+
+const trackResultSuggestionUse = async (
+  lab_test_type_id: string,
+  value: string
+): Promise<void> => {
+  await api.post(`${resultSuggestionsApiURL}/use/${lab_test_type_id}`, null, {
+    params: { lab_test_type_id, value },
+  });
 };
 const fetchLabTestResultsAndPanelsPaginated = async (
   visit_id: string,
@@ -310,4 +317,4 @@ export { rebuildInvoice };
 export { create_invoice };
 export { getMonthlyInvoiceSummary };
 export { fetchCurrencies };
-export { fetchResultSuggestions };
+export { trackResultSuggestionUse };
