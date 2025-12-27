@@ -14,6 +14,7 @@ import TestResultsList from "./TestResultsList.js";
 import {
   fetchInvoice,
   fetchLabTestResultsAndPanelsPaginated,
+  trackResultSuggestionUse,
   fetchVisit,
 } from "../utils.js";
 import Pagination from "../Pagination.js";
@@ -192,12 +193,32 @@ const EditVisitPage: React.FC = () => {
     if (!Object.keys(pendingResults).length) {
       return;
     }
+    const resultToTestTypeId = new Map<string, string>();
+    standAloneTestResults.forEach((test) => {
+      resultToTestTypeId.set(test.lab_test_result_id, test.lab_test_type_id);
+    });
+    panelResults.forEach((panel) => {
+      panel.list_of_test_results.forEach((test) => {
+        resultToTestTypeId.set(test.lab_test_result_id, test.lab_test_type_id);
+      });
+    });
     try {
       await Promise.all(
         Object.entries(pendingResults).map(([lab_test_result_id, result]) => {
           const url = `${labTestResultApiURL}/${lab_test_result_id}`;
           return api.put(url, null, { params: { result } });
         })
+      );
+      await Promise.all(
+        Object.entries(pendingResults)
+          .map(([lab_test_result_id, result]) => {
+            const lab_test_type_id =
+              resultToTestTypeId.get(lab_test_result_id);
+            const trimmed = result.trim();
+            if (!lab_test_type_id || !trimmed) return null;
+            return trackResultSuggestionUse(lab_test_type_id, trimmed);
+          })
+          .filter((request) => request !== null)
       );
       setPendingResults({});
       await refreshResults();
