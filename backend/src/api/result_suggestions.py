@@ -2,7 +2,7 @@ import re
 from typing import Any, Dict, List, Optional
 from beanie import SortDirection
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Path, Query, status
 from fastapi.responses import Response
 
 from ..models import Result_suggestions as DBResult_suggestions
@@ -53,7 +53,7 @@ async def get_result_suggestions(
     summary="Increment suggestion use_count (create if new)",
 )
 async def use_result_suggestion(
-    lab_test_type_id: str = Query(...),
+    lab_test_type_id: str = Path(...),
     value: str = Query(...),
 ) -> Dict[str, Any]:
     n = normalize(value)
