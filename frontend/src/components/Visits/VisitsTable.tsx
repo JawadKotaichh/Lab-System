@@ -17,6 +17,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import GenericTable from "../react-table/GeneralTable";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 const VisitsTable: React.FC = () => {
   const [data, setData] = useState<visitData[]>([]);
@@ -115,7 +116,7 @@ const VisitsTable: React.FC = () => {
     );
   }, [columnFilters]);
 
-  if (loading) return <div>Loading visits...</div>;
+  if (loading) return <LoadingScreen title="Loading visits..." />;
 
   return (
     <div className="p-8 bg-white">
