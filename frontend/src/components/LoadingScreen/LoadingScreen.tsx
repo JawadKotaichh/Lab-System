@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { baseURLL } from "src/api";
+import { baseURLL } from "../../api";
 
 type LoadingScreenProps = {
   tips?: string[];
