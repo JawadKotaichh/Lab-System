@@ -116,7 +116,7 @@ const VisitsTable: React.FC = () => {
     );
   }, [columnFilters]);
 
-  if (loading) return <LoadingScreen title="Loading visits..." />;
+  if (loading) return <LoadingScreen title="Loading visits ..." />;
 
   return (
     <div className="p-8 bg-white">

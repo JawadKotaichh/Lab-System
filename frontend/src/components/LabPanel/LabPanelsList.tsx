@@ -19,6 +19,7 @@ import {
 import Pagination from "../Pagination";
 import SearchLabPanel from "./SearchLabPanel";
 import renderNormalValue from "../renderNormalValue";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 function useDebounced<T>(value: T, delay = 500) {
   const [v, setV] = useState(value);
@@ -113,7 +114,7 @@ const LabPanelsList = () => {
     };
   }, [currentPage, pageSize, debouncedSearch]);
 
-  if (loading) return <div className="p-4">Loading lab panels...</div>;
+  if (loading) return <LoadingScreen title="Loading lab panels ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
