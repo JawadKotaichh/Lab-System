@@ -26,14 +26,14 @@ export default function LoadingScreen({
     return () => window.clearInterval(id);
   }, [tips.length]);
   return (
-    <div className="w-full max-w-md px-6 items-center">
+    <div className="min-h-screen w-full flex items-center justify-center px-6">
       <div className="rounded-2xl border border-neutral-200 shadow-sm p-6">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-bold"></div>
+          <div className="h-5 w-5 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-bold"></div>
           <img src={`${baseURLL}/branding/logo`}></img>
         </div>
-        <div className="flex-1">
-          <div className="text-lg font-semibold">{title}</div>
+        <div className="flex-1 items-center">
+          <div className="text-lg font-semibold text-center">{title}</div>
           <div className="text-sm text-neutral-500">{subtitle}</div>
         </div>
         <div className="h-8 w-8 rounded-full border-2 border-neutral-200 border-t-neutral-900 animate-spin" />
@@ -42,7 +42,7 @@ export default function LoadingScreen({
         <span className="text-neutral-500">Status: </span>
         <span className="font-medium">{tips[tipIndex]}</span>
       </div>
-      <div className="mt-4">
+      <div className="mt-4 items-center">
         <div className="mt-4 flex gap-2">
           <Dot delay="0ms" />
           <Dot delay="150ms" />
