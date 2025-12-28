@@ -4,7 +4,7 @@ import { type labPanel, type labTest, type patientInfo } from "../types";
 import { fetchInvoice } from "../utils";
 import Invoice from "./Invoice";
 import ShowWithSignature from "../ShowWithSignature";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 export default function InvoiceContainer() {
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ export default function InvoiceContainer() {
   console.log("visisDate: ", visitDate);
   console.log("totalPrice: ", totalPrice);
 
-  if (loading) return <LoadingScreen title="Loading invoice ..." />;
+  if (loading) return <LoadingPage title="Loading invoice ..." />;
   if (error) return <div>Error: {error}</div>;
 
   return (

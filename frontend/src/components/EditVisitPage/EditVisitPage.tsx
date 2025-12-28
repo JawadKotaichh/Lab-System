@@ -21,7 +21,7 @@ import Pagination from "../Pagination.js";
 import AddTestResultTable from "./AddTestResultTable.js";
 import LabPanelsTable from "./LabPanelsTable.js";
 import Prices from "./Prices.js";
-import LoadingScreen from "../LoadingScreen/LoadingScreen.js";
+import LoadingPage from "../LoadingPage/LoadingPage.js";
 
 const EditVisitPage: React.FC = () => {
   const location = useLocation();
@@ -230,7 +230,7 @@ const EditVisitPage: React.FC = () => {
     }
   };
 
-  if (loading) return <LoadingScreen title="Loading lab results ..." />;
+  if (loading) return <LoadingPage title="Loading lab results ..." />;
   // if (loadingTests) return <div className="p-4">Loading lab tests</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   if (!visit_id) {

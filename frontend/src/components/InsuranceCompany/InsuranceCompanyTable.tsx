@@ -21,7 +21,7 @@ import { InsuranceCreatePageURL } from "../data";
 import Pagination from "../Pagination";
 import { getInsuranceCompanyColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 const InsuranceCompanyTable = () => {
   const [data, setData] = useState<insuranceCompanyParams[]>([]);
@@ -120,7 +120,7 @@ const InsuranceCompanyTable = () => {
       window.removeEventListener("insurance-company-deleted", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingScreen title="Loading insurance companies ..." />;
+  if (loading) return <LoadingPage title="Loading insurance companies ..." />;
   return (
     <div className="p-8 bg-white">
       <div className="grid grid-cols-2">

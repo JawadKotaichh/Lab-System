@@ -29,7 +29,7 @@ import {
   tableItem,
 } from "../../style";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 interface TestsList {
   addError: string;
@@ -209,7 +209,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
     );
   }, [columnFilters]);
 
-  if (loading) return <LoadingScreen title="Loading lab tests ..." />;
+  if (loading) return <LoadingPage title="Loading lab tests ..." />;
 
   return (
     <>
