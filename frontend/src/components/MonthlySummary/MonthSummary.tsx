@@ -18,6 +18,7 @@ import type {
 } from "../types";
 import { fetchAllInsuranceCompanies, getMonthlyInvoiceSummary } from "../utils";
 import { useNavigate } from "react-router-dom";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 const MonthSummary = () => {
   const [state, setState] = useState<string>("");
@@ -123,7 +124,7 @@ const MonthSummary = () => {
         return null;
     }
   };
-  if (loading) return <div className="p-4">Loading insurance companies…</div>;
+  if (loading) return <LoadingScreen title="Loading insurance companies ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (

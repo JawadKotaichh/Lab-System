@@ -8,8 +8,8 @@ type LoadingScreenProps = {
 export default function LoadingScreen({ title, subtitle }: LoadingScreenProps) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 gap-4">
-      <div className="rounded-2xl border border-neutral-200 shadow-sm p-6">
-        <div className="flex items-center gap-4">
+      <div className="w-full max-w-sm rounded-2xl border border-neutral-200 shadow-sm p-6 text-center">
+        <div className="w-full flex justify-center gap-4">
           <img
             src={`${baseURLL}/branding/logo`}
             className="w-40 max-w-full h-auto object-contain"

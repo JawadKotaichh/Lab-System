@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import type { labPanel, patientPanelResult, patientTestResult, updateInvoiceData } from "../types";
+import type {
+  labPanel,
+  patientPanelResult,
+  patientTestResult,
+  updateInvoiceData,
+} from "../types";
 import {
   fetchLabPanelsPaginated,
   fetchLabTestResultsAndPanelsPaginated,
@@ -19,6 +24,7 @@ import api from "../../api";
 import { labTestResultApiURL } from "../data";
 import type { PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "../renderNormalValue";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 interface ErrorResponse {
   detail: string;
@@ -126,7 +132,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       .finally(() => setLoading(false));
   }, [currentPage, pageSize]);
 
-  if (loading) return <div className="p-4">Loading lab panels...</div>;
+  if (loading) return <LoadingScreen title="Loading lab panels ..." />;
   return (
     <>
       {showPanelsTable && (

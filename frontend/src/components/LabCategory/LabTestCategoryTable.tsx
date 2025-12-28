@@ -21,6 +21,7 @@ import Pagination from "../Pagination";
 import { getLabTestCategoryColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
 import { handleCreateLabTestCategory } from "../Function";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 const LabTestCategoryTable = () => {
   const [data, setData] = useState<labTestCategoryParams[]>([]);
@@ -118,7 +119,8 @@ const LabTestCategoryTable = () => {
       window.removeEventListener("lab-test-category-deleted", handleRefresh);
   }, []);
 
-  if (loading) return <div>Loading Lab Tests Categories...</div>;
+  if (loading)
+    return <LoadingScreen title="Loading lab tests categories ..." />;
 
   return (
     <div className="p-8 bg-white">
