@@ -46,6 +46,7 @@ import {
 import createEmptyNormalValues from "./createEmptyNV";
 import GenderNVEditor from "./GenderNVEditor";
 import FractionInput from "./FractionInput";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 interface EditLabTestProps {
   title: string;
@@ -198,7 +199,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
     }
   };
 
-  if (loading) return <div className="p-4">Loading lab categories...</div>;
+  if (loading) return <LoadingScreen title="Loading lab categories ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (

@@ -8,6 +8,7 @@ import type {
 import { fetchResultList } from "../utils";
 import ResultList from "./Result";
 import ShowWithSignature from "../ShowWithSignature";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 export default function ResultContainer() {
   const [loading, setLoading] = useState(true);
@@ -44,7 +45,7 @@ export default function ResultContainer() {
   // console.log("listOfStandAloneTestResults: ", listOfStandAloneTestResults);
   // console.log("listOfPanelResults: ", listOfPanelResults);
 
-  if (loading) return <div>Loading results...</div>;
+  if (loading) return <LoadingScreen title="Loading results ..." />;
   if (error) return <div>Error: {error}</div>;
 
   return (

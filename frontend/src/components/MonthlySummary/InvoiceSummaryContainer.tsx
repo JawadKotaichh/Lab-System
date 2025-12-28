@@ -4,6 +4,7 @@ import ShowWithSignature from "../ShowWithSignature";
 import InvoiceSummaryList from "./InvoiceSummaryList";
 import { getMonthlyInvoiceSummary } from "../utils";
 import type { fetchedInvoiceData } from "../types";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 type SummaryState = {
   summaryData?: fetchedInvoiceData[];
@@ -20,9 +21,13 @@ const toDate = (value: Date | string | undefined): Date | undefined => {
 
 export default function InvoiceSummaryContainer() {
   const location = useLocation();
-  const { insurance_company_id } = useParams<{ insurance_company_id: string }>();
+  const { insurance_company_id } = useParams<{
+    insurance_company_id: string;
+  }>();
   const state = (location.state || {}) as SummaryState;
-  const stateSummary = Array.isArray(state.summaryData) ? state.summaryData : [];
+  const stateSummary = Array.isArray(state.summaryData)
+    ? state.summaryData
+    : [];
 
   const [summaryData, setSummaryData] =
     useState<fetchedInvoiceData[]>(stateSummary);
@@ -91,11 +96,12 @@ export default function InvoiceSummaryContainer() {
     state.currency,
     state.end_date,
     state.start_date,
+    stateSummary,
     stateSummary.length,
     summaryData.length,
   ]);
 
-  if (loading) return <div className="p-4">Loading Summary Invoice...</div>;
+  if (loading) return <LoadingScreen title="Loading summary invoice ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   if (!summaryData.length || !startDate || !endDate) {
     return <div className="p-4">No summary data found.</div>;
