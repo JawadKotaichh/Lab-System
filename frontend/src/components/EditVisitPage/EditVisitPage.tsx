@@ -21,6 +21,7 @@ import Pagination from "../Pagination.js";
 import AddTestResultTable from "./AddTestResultTable.js";
 import LabPanelsTable from "./LabPanelsTable.js";
 import Prices from "./Prices.js";
+import LoadingScreen from "../LoadingScreen/LoadingScreen.js";
 
 const EditVisitPage: React.FC = () => {
   const location = useLocation();
@@ -212,8 +213,7 @@ const EditVisitPage: React.FC = () => {
       await Promise.all(
         Object.entries(pendingResults)
           .map(([lab_test_result_id, result]) => {
-            const lab_test_type_id =
-              resultToTestTypeId.get(lab_test_result_id);
+            const lab_test_type_id = resultToTestTypeId.get(lab_test_result_id);
             const trimmed = result.trim();
             if (!lab_test_type_id || !trimmed) return null;
             return trackResultSuggestionUse(lab_test_type_id, trimmed);
@@ -230,7 +230,7 @@ const EditVisitPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="p-4">Loading lab results…</div>;
+  if (loading) return <LoadingScreen title="Loading lab results ..." />;
   // if (loadingTests) return <div className="p-4">Loading lab tests</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   if (!visit_id) {

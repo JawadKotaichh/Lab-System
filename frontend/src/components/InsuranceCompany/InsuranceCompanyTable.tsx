@@ -120,7 +120,7 @@ const InsuranceCompanyTable = () => {
       window.removeEventListener("insurance-company-deleted", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingScreen title="Loading Insurance Companies" />;
+  if (loading) return <LoadingScreen title="Loading insurance companies ..." />;
   return (
     <div className="p-8 bg-white">
       <div className="grid grid-cols-2">

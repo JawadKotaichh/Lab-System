@@ -123,7 +123,7 @@ const PatientTable = () => {
     return () => window.removeEventListener("patients:changed", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingScreen title="Loading Patients" />;
+  if (loading) return <LoadingScreen title="Loading patients ..." />;
 
   return (
     <div className="p-8 bg-white">

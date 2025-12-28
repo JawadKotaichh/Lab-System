@@ -8,7 +8,12 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type { labTest, patientPanelResult, patientTestResult, updateInvoiceData } from "../types";
+import type {
+  labTest,
+  patientPanelResult,
+  patientTestResult,
+  updateInvoiceData,
+} from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { getLabTestColumns } from "../tableData";
@@ -24,6 +29,7 @@ import {
   tableItem,
 } from "../../style";
 import GenericTable from "../react-table/GeneralTable";
+import LoadingScreen from "../LoadingScreen/LoadingScreen";
 
 interface TestsList {
   addError: string;
@@ -44,7 +50,9 @@ interface TestsList {
   refreshResults: () => Promise<void>;
   existingLabTestTypeIds: Set<string>;
   markExistingLabTestIdsDirty: () => void;
-  setUpdatedInvoiceData: React.Dispatch<React.SetStateAction<updateInvoiceData>>;
+  setUpdatedInvoiceData: React.Dispatch<
+    React.SetStateAction<updateInvoiceData>
+  >;
   setCurrency: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -201,7 +209,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
     );
   }, [columnFilters]);
 
-  if (loading) return <div>Loading Lab Tests...</div>;
+  if (loading) return <LoadingScreen title="Loading lab tests ..." />;
 
   return (
     <>
