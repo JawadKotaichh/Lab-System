@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import Pagination from "../Pagination";
 import { getPatientsColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 const PatientTable = () => {
   const [data, setData] = useState<patientInfo[]>([]);
@@ -123,7 +123,7 @@ const PatientTable = () => {
     return () => window.removeEventListener("patients:changed", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingScreen title="Loading patients ..." />;
+  if (loading) return <LoadingPage title="Loading patients ..." />;
 
   return (
     <div className="p-8 bg-white">

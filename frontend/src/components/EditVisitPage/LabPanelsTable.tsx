@@ -24,7 +24,7 @@ import api from "../../api";
 import { labTestResultApiURL } from "../data";
 import type { PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "../renderNormalValue";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 interface ErrorResponse {
   detail: string;
@@ -132,7 +132,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       .finally(() => setLoading(false));
   }, [currentPage, pageSize]);
 
-  if (loading) return <LoadingScreen title="Loading lab panels ..." />;
+  if (loading) return <LoadingPage title="Loading lab panels ..." />;
   return (
     <>
       {showPanelsTable && (
