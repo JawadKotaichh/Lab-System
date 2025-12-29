@@ -1,11 +1,11 @@
 import { baseURLL } from "../../api";
 
-type LoadingScreenProps = {
+type LoadingPageProps = {
   title: string;
   subtitle?: string;
 };
 
-export default function LoadingScreen({ title, subtitle }: LoadingScreenProps) {
+export default function LoadingPage({ title, subtitle }: LoadingPageProps) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 gap-4">
       <div className="w-full max-w-sm shadow-sm p-6 text-center">

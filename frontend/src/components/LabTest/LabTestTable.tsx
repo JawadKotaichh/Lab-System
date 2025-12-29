@@ -25,7 +25,7 @@ import {
 } from "../../hooks/useLabTestCategoryOptions";
 import GenericTable from "../react-table/GeneralTable";
 import { handleCreateLabTest } from "../Function";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 const LabTestTable = () => {
   const [data, setData] = useState<labTest[]>([]);
@@ -120,7 +120,7 @@ const LabTestTable = () => {
     return () => window.removeEventListener("lab-test-deleted", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingScreen title="Loading lab tests ..." />;
+  if (loading) return <LoadingPage title="Loading lab tests ..." />;
 
   return (
     <div className="p-8 bg-white">
