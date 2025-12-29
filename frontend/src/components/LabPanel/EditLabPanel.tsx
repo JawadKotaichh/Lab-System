@@ -25,7 +25,7 @@ import {
 import Pagination from "../Pagination";
 import renderNormalValue from "../renderNormalValue";
 import AddTestToPanelTable from "./AddTestToPanelTable";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 interface EditLabPanelProps {
   title: string;
@@ -188,7 +188,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       console.error(err);
     }
   };
-  if (loading) return <LoadingScreen title="Loading lab categories ..." />;
+  if (loading) return <LoadingPage title="Loading lab categories ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   console.log("Data: ", data);
   console.log("lab_panel_id: ", lab_panel_id);

@@ -24,7 +24,7 @@ import {
   tableItem,
 } from "../../style";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 interface TestsList {
   addError: string;
@@ -141,7 +141,7 @@ const AddTestToPanelTable: React.FC<TestsList> = ({
     );
   }, [columnFilters]);
 
-  if (loading) return <LoadingScreen title="Loading Lab Tests ..." />;
+  if (loading) return <LoadingPage title="Loading Lab Tests ..." />;
 
   return (
     <>

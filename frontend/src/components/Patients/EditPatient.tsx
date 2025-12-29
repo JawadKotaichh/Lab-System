@@ -20,7 +20,7 @@ import {
   PatientsApiURL,
   PatientsMainPageURL,
 } from "../data";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 const EditPatientPage = ({ title }: PageTitle) => {
   const [state, setState] = useState<string>("");
@@ -130,7 +130,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
     }
   };
 
-  if (loading) return <LoadingScreen title="Loading insurance companies ..." />;
+  if (loading) return <LoadingPage title="Loading insurance companies ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (

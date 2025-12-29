@@ -4,7 +4,7 @@ import ShowWithSignature from "../ShowWithSignature";
 import InvoiceSummaryList from "./InvoiceSummaryList";
 import { getMonthlyInvoiceSummary } from "../utils";
 import type { fetchedInvoiceData } from "../types";
-import LoadingScreen from "../LoadingScreen/LoadingScreen";
+import LoadingPage from "../LoadingPage/LoadingPage";
 
 type SummaryState = {
   summaryData?: fetchedInvoiceData[];
@@ -101,7 +101,7 @@ export default function InvoiceSummaryContainer() {
     summaryData.length,
   ]);
 
-  if (loading) return <LoadingScreen title="Loading summary invoice ..." />;
+  if (loading) return <LoadingPage title="Loading summary invoice ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   if (!summaryData.length || !startDate || !endDate) {
     return <div className="p-4">No summary data found.</div>;
