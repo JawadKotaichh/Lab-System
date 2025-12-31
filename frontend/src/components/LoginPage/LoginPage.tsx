@@ -2,43 +2,27 @@ import { FormEvent, useState } from "react";
 import { baseURLL } from "../../api";
 
 type LoginInProps = {
-  onSubmit?: (data: {
-    username: string;
-    password: string;
-  }) => boolean | Promise<boolean>;
+  onSubmit?: (data: { username: string; password: string }) => void;
 };
 const LoginPage = ({ onSubmit }: LoginInProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  //   const [loading, setLoading] = useState(false);
+  //   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-
-    setLoading(true);
-    try {
-      const ok = await onSubmit?.({ username, password });
-
-      if (!ok) {
-        alert("Invalid credentials");
-        return;
-      }
-    } catch {
-      alert("Invalid credentials");
-    } finally {
-      setLoading(false);
-    }
+    onSubmit?.({ username, password });
   }
-
   return (
     <div className="min-h-screen w-full bg-white flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-4">
-          <div className="w-10 h-10 justify-center">
+          <div className="w-30 h-24 justify-center">
             <img
               src={`${baseURLL}/branding/logo`}
               alt="logo"
-              className="h-40 w-32 object-contain"
+              className="w-30 h-24 object-contain"
             />
           </div>
         </div>
@@ -59,7 +43,6 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
               required
-              disabled={loading}
             />
             <label className="block text-sm font-medium text-gray-800">
               Password:
@@ -72,14 +55,12 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              disabled={loading}
             />
             <button
               type="submit"
-              disabled={loading}
-              className="mt-5 w-full rounded-md text-white bg-indigo-600 px-4 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="mt-5 w-full rounded-md text-white bg-indigo-600 px-4 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              Sign in
             </button>
           </form>
         </div>
