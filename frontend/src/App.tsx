@@ -57,16 +57,22 @@ function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
           return false;
         }
 
-        const res = await loginUser(username, password);
+        try {
+          const res = await loginUser(username, password);
 
-        if (res.ok) {
-          onLoginSuccess();
-          navigate("/visits", { replace: true });
-          return true;
+          if (res.ok) {
+            onLoginSuccess();
+            navigate("/visits", { replace: true });
+            return true;
+          }
+
+          alert("Invalid credentials");
+          return false;
+        } catch (error) {
+          console.error("Login error:", error);
+          alert("Invalid credentials");
+          return false;
         }
-
-        alert("Invalid credentials");
-        return false;
       }}
     />
   );
