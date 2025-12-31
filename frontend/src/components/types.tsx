@@ -417,3 +417,15 @@ export type attributesParams = {
 export interface PageTitle {
   title: string;
 }
+
+// User params
+export type user = {
+  user_id: string;
+  username: string;
+  password: string;
+};
+export type LoginResponse = {
+  ok: boolean;
+  user_id: string;
+  username: string;
+};
