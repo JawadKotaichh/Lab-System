@@ -46,6 +46,37 @@ function RequireAuth({
   return <>{children}</>;
 }
 
+// function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
+//   const navigate = useNavigate();
+
+//   return (
+//     <LoginPage
+//       onSubmit={async ({ username, password }) => {
+//         if (!username.trim() || !password.trim()) {
+//           alert("Please fill username and password");
+//           return false;
+//         }
+
+//         try {
+//           const res = await loginUser(username, password);
+
+//           if (res.ok) {
+//             onLoginSuccess();
+//             navigate("/visits", { replace: true });
+//             return true;
+//           }
+
+//           alert("Invalid credentials");
+//           return false;
+//         } catch (error) {
+//           console.error("Login error:", error);
+//           alert("Invalid credentials");
+//           return false;
+//         }
+//       }}
+//     />
+//   );
+// }
 function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const navigate = useNavigate();
 
@@ -54,7 +85,7 @@ function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
       onSubmit={async ({ username, password }) => {
         if (!username.trim() || !password.trim()) {
           alert("Please fill username and password");
-          return false;
+          return;
         }
 
         try {
@@ -63,15 +94,15 @@ function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
           if (res.ok) {
             onLoginSuccess();
             navigate("/visits", { replace: true });
-            return true;
+            return;
           }
 
           alert("Invalid credentials");
-          return false;
+          return;
         } catch (error) {
           console.error("Login error:", error);
-          alert("Invalid credentials");
-          return false;
+          alert("Login failed. Please try again.");
+          return;
         }
       }}
     />
@@ -169,14 +200,6 @@ const App: React.FC = () => {
             element={
               <RequireAuth isAuthed={isAuthed}>
                 <PatientTable />
-              </RequireAuth>
-            }
-          />{" "}
-          <Route
-            path="/insurance-companies"
-            element={
-              <RequireAuth isAuthed={isAuthed}>
-                <InsuranceCompanyTable />
               </RequireAuth>
             }
           />
