@@ -293,11 +293,14 @@ const loginUser = async (
   username: string,
   password: string
 ): Promise<LoginResponse> => {
+  console.log(`Loggin in username: ${username}, password: ${password} `);
   const url = "/users/login";
   const response = await api.post(url, {
     username,
     password,
   });
+  console.log(`Loggin response: ${response.data}`);
+
   return response.data;
 };
 

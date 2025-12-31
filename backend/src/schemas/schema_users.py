@@ -16,3 +16,10 @@ class login_data(BaseModel):
 class update_user(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
+
+
+class LoginResponse(BaseModel):
+    ok: bool
+    user_id: str
+    username: str
+    role: str
