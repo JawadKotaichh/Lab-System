@@ -54,7 +54,7 @@ function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
       onSubmit={async ({ username, password }) => {
         if (!username.trim() || !password.trim()) {
           alert("Please fill username and password");
-          return;
+          return false;
         }
 
         const res = await loginUser(username, password);
@@ -62,9 +62,11 @@ function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
         if (res.ok) {
           onLoginSuccess();
           navigate("/visits", { replace: true });
-        } else {
-          alert("Invalid credentials");
+          return true;
         }
+
+        alert("Invalid credentials");
+        return false;
       }}
     />
   );
