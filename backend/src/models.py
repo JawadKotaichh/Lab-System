@@ -38,6 +38,24 @@ class Patient(Document):
         name = "patients"
 
 
+class Admin(Document):
+    username: str = Field(...)
+    password_hashed: str = Field(...)
+    is_active: bool = Field(...)
+
+    class Settings:
+        name = "admins"
+
+
+class User(Document):
+    user_id: PydanticObjectId = Field(...)
+    username: str = Field(...)
+    password_hashed: str = Field(...)
+
+    class Settings:
+        name = "users"
+
+
 class lab_test_type(Document):
     nssf_id: int = Field(...)
     lab_test_category_id: PydanticObjectId = Field(...)
