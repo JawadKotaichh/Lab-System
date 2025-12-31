@@ -15,7 +15,7 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
     onSubmit?.({ username, password });
   }
   return (
-    <div className="min-h-screen w-full bg-white flex items-center">
+    <div className="min-h-screen w-full bg-white flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="flex justify-between mb-4">
           <div className="w-10 h-10 justify-center">
@@ -33,7 +33,7 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
         <div className="w-full mt-6 rounded-xl border border-gray-200 justify-center bg-white shadow-sm">
           <form onSubmit={handleSubmit} className="p-6">
             <label className="block text-sm font-medium text-gray-800">
-              Username
+              Username:
             </label>
             <input
               type="text"
@@ -50,7 +50,7 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
             <input
               type="password"
               autoComplete="current-password"
-              className="mt-2 rounded-md border border-gray-300 bg-white focus:ring-indigo-200 px-3 py-2 text-sm text-gray-900 outline-none"
+              className=" w-full mt-2 rounded-md border border-gray-300 bg-white focus:ring-indigo-200 px-3 py-2 text-sm text-gray-900 outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
