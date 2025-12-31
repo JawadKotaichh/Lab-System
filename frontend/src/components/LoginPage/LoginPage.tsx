@@ -17,7 +17,7 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
   return (
     <div className="min-h-screen w-full bg-white flex items-center justify-center">
       <div className="w-full max-w-md">
-        <div className="flex justify-between mb-4">
+        <div className="flex justify-center mb-4">
           <div className="w-40 h-34 justify-center">
             <img
               src={`${baseURLL}/branding/logo`}
