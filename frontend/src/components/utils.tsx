@@ -9,6 +9,7 @@ import type {
   labPanelsWithIdsList,
   labTestCategoryParams,
   labTestFilters,
+  LoginResponse,
   monthlySummaryInvoicesParams,
   paginatedlabPanel,
   paginatedlabTest,
@@ -288,7 +289,19 @@ const fetchVisitsPaginated = async (
   const response = await api.get(url, { params: filters });
   return response.data;
 };
+const loginUser = async (
+  username: string,
+  password: string
+): Promise<LoginResponse> => {
+  const url = "/users/login";
+  const response = await api.post(url, {
+    username,
+    password,
+  });
+  return response.data;
+};
 
+export { loginUser };
 export { fetchLabTestCategory };
 export { fetchLabPanel };
 export { fetchLabTestCategoryPaginated };
