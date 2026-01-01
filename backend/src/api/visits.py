@@ -399,7 +399,7 @@ async def create_visit(patient_id: PydanticObjectId, data: Visit):
         )
     db_visit = DBVisit(
         posted=data.posted,
-        patient_id=data.patient_id,
+        patient_id=PydanticObjectId(data.patient_id),
         visit_date=data.visit_date,
         report_date=data.report_date,
     )
