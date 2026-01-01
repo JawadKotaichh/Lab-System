@@ -7,6 +7,7 @@ import {
   useMatch,
   Navigate,
   useNavigate,
+  useParams,
 } from "react-router-dom";
 import "./App.css";
 import MaintenanceMenu from "./components/MaintenanceMenu";
@@ -28,7 +29,12 @@ import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryC
 import MonthSummary from "./components/MonthlySummary/MonthSummary";
 import { baseURLL } from "./api";
 import LoginPage from "./components/LoginPage/LoginPage";
-import { loginUser, refreshSession, logoutUser } from "./components/utils";
+import {
+  loginUser,
+  refreshSession,
+  logoutUser,
+  createPatientAccount,
+} from "./components/utils";
 import { AuthUser, Role } from "./components/types";
 import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
 type NavItem = {
@@ -99,6 +105,34 @@ function LoginRoute({
           console.error("Login error:", error);
           alert("Login failed. Please try again.");
           return;
+        }
+      }}
+    />
+  );
+}
+
+function CreatePatientAccountRoute() {
+  const { patient_id } = useParams<{ patient_id: string }>();
+  const navigate = useNavigate();
+  if (!patient_id) {
+    alert("Missing patient_id. Please try again.");
+    return <Navigate to="/patients" replace />;
+  }
+  return (
+    <LoginPage
+      title="Create patient account"
+      buttonText="Create account"
+      onSubmit={async ({ username, password }) => {
+        if (!username.trim() || !password.trim()) {
+          alert("Please fill username and password");
+          return;
+        }
+        try {
+          await createPatientAccount(patient_id, username, password);
+          alert("Patient account created ✅");
+          navigate("/patients", { replace: true });
+        } catch {
+          alert("Failed to create patient account.");
         }
       }}
     />
@@ -234,6 +268,14 @@ const App: React.FC = () => {
           <Route
             path="/login"
             element={<LoginRoute onLoginSuccess={handleLoginSuccess} />}
+          />
+          <Route
+            path="/login/:patient_id"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <CreatePatientAccountRoute />
+              </RequireAuth>
+            }
           />
           <Route
             path="/visits"
