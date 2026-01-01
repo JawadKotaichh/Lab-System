@@ -139,10 +139,13 @@ function CreatePatientAccountRoute() {
   );
 }
 
-const navItems: NavItem[] = [
+const navItemsAdmin: NavItem[] = [
   { to: "/visits", label: "Visits", end: true },
   { to: "/patients", label: "Patients" },
   { to: "/monthly-summary", label: "Month Summary" },
+];
+const navItemsUser: NavItem[] = [
+  { to: "/visits", label: "My Visits", end: true },
 ];
 
 const App: React.FC = () => {
@@ -164,7 +167,8 @@ const App: React.FC = () => {
       return null;
     }
   });
-
+  const isAdmin = user?.role === "admin";
+  const navItems = isAdmin ? navItemsAdmin : navItemsUser;
   useEffect(() => {
     if (!user) return;
     let isMounted = true;
@@ -237,10 +241,12 @@ const App: React.FC = () => {
                     {label}
                   </NavLink>
                 ))}
-                <MaintenanceMenu
-                  isMenuOpen={isMenuOpen}
-                  setIsMenuOpen={setIsMenuOpen}
-                />
+                {isAdmin && (
+                  <MaintenanceMenu
+                    isMenuOpen={isMenuOpen}
+                    setIsMenuOpen={setIsMenuOpen}
+                  />
+                )}
                 <button
                   type="button"
                   onClick={handleLogout}
