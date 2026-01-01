@@ -35,7 +35,6 @@ import {
   handleDeleteVisit,
   handleNewAccount,
   handleNewVisit,
-  handlePostVisit,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 
@@ -903,11 +902,6 @@ export function getVisitsColumns(
                       setError,
                     }),
                   className: "text-red-600",
-                },
-                {
-                  label: "Post Result",
-                  onClick: () => handlePostVisit(true, visit_id, setError),
-                  className: "text-green-600",
                 },
               ]}
             />
