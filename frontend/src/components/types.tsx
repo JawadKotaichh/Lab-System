@@ -352,6 +352,7 @@ export type paginatedVisitData = {
   TotalNumberOfVisits: number;
 };
 export type visitData = {
+  posted: boolean;
   visit_id: string;
   currency: string;
   visit_date: Date;
