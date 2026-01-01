@@ -30,6 +30,7 @@ import { baseURLL } from "./api";
 import LoginPage from "./components/LoginPage/LoginPage";
 import { loginUser } from "./components/utils";
 import { AuthUser, Role } from "./components/types";
+import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
 type NavItem = {
   to: string;
   label: string;
@@ -50,7 +51,7 @@ function RequireAuth({
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // if user tries to access a page not allowed for their role
-    return <Navigate to="/login" replace />;
+    return <UnauthorizedPage homePath={user.role === "admin" ? "/visits" : "/login"} />;
   }
 
   return <>{children}</>;
