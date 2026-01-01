@@ -1,6 +1,7 @@
 import type {
   CreateLabPanelParams,
   CreateLabTestParams,
+  CreatePatientAccountProps,
   fetchedInvoiceData,
   insuranceCompanyParams,
   InsuranceFilters,
@@ -78,11 +79,6 @@ const getMonthlyInvoiceSummary = async (
 };
 
 // Result
-// const fetchResultList = async (visit_id: string): Promise<visitResultData> => {
-//   const url = `${visitsApiURL}${visit_id}/result`;
-//   const response = await api.get(url);
-//   return response.data;
-// };
 
 const getInsuranceCompanyRate = async (patient_id: string): Promise<number> => {
   const url = `${PatientsApiURL}${patient_id}/get_insurance_company_rate`;
@@ -94,14 +90,7 @@ const fetchCurrencies = async (): Promise<string[]> => {
   const response = await api.get(url);
   return response.data;
 };
-// const fetchResultSuggestions = async (
-//   lab_test_type_id: string,
-//   prefix: string
-// ): Promise<result_suggestions[]> => {
-//   const url = `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`;
-//   const response = await api.get(url, { params: prefix });
-//   return response.data;
-// };
+
 export async function fetchResultSuggestions(
   lab_test_type_id: string,
   prefix: string
@@ -289,6 +278,15 @@ const fetchVisitsPaginated = async (
   const response = await api.get(url, { params: filters });
   return response.data;
 };
+const createPatientAccount = async (
+  user_id: string,
+  username: string,
+  password: string
+): Promise<CreatePatientAccountProps> => {
+  const url = `/users/create_user/${user_id}`;
+  const response = await api.post(url, { user_id, username, password });
+  return response.data;
+};
 const loginUser = async (
   username: string,
   password: string
@@ -356,3 +354,4 @@ export { create_invoice };
 export { getMonthlyInvoiceSummary };
 export { fetchCurrencies };
 export { trackResultSuggestionUse };
+export { createPatientAccount };

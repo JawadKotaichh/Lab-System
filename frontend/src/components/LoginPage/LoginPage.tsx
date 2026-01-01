@@ -3,9 +3,15 @@ import { baseURLL } from "../../api";
 
 type LoginInProps = {
   onSubmit?: (data: { username: string; password: string }) => Promise<void>;
+  title?: string;
+  buttonText?: string;
 };
 
-const LoginPage = ({ onSubmit }: LoginInProps) => {
+const LoginPage = ({
+  onSubmit,
+  title = "Sign in to your account",
+  buttonText = "Sign in",
+}: LoginInProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,7 +40,7 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
           </div>
         </div>
         <h1 className="text-center text-2xl font-semibold text-gray-900">
-          Sign in to your account
+          {title}
         </h1>
 
         <div className="w-full mt-6 rounded-xl border border-gray-200 justify-center bg-white shadow-sm">
@@ -73,10 +79,10 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
               {loading ? (
                 <span className="inline-flex items-center justify-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Signing in...
+                  {buttonText == "Sign in" ? "Signing in..." : "Creating..."}
                 </span>
               ) : (
-                "Sign in"
+                buttonText
               )}
             </button>
           </form>
