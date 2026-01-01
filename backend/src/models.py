@@ -6,6 +6,8 @@ from beanie import Document, PydanticObjectId
 
 from typing import Union
 
+from pymongo import IndexModel
+
 from .schemas.schema_Lab_Test_Type import (
     NormalValueByGender,
     PositiveOrNegative,
@@ -24,6 +26,7 @@ def utcnow() -> datetime:
 
 class Visit(Document):
     patient_id: PydanticObjectId = Field(...)
+    posted: bool = Field(...)
     visit_date: datetime = Field(...)
     report_date: datetime = Field(...)
 
@@ -58,6 +61,9 @@ class User(Document):
 
     class Settings:
         name = "users"
+        indexes = [
+            IndexModel([("user_id", 1)], unique=True),
+        ]
 
 
 class Session(Document):

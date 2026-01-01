@@ -74,6 +74,22 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
       }
     }
   };
+  const handlePostVisit = async (
+   post:boolean,
+   visit_id:string,
+   setError:Dispatch<SetStateAction<string>>,
+  ) => {
+    try {
+      await api.put(`${visitsApiURL}${visit_id}`, {
+        posted: post,
+      });
+    } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
 const handleCreateLabTest = (navigate: NavigateFunction) => {
     navigate(labTestCreatePageURL);
   };
@@ -279,3 +295,4 @@ export {handleDeletePatient};
 export{handleDeleteLabTestCategory};
 export{handleDeleteVisit};
 export{handleCreateLabTestCategory};
+export{handlePostVisit};
