@@ -1,9 +1,6 @@
 import { FormEvent, useState } from "react";
 import { baseURLL } from "../../api";
 
-// type LoginInProps = {
-//   onSubmit?: (data: { username: string; password: string }) => void;
-// };
 type LoginInProps = {
   onSubmit?: (data: { username: string; password: string }) => Promise<void>;
 };
@@ -12,11 +9,6 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // function handleSubmit(e: FormEvent) {
-  //   e.preventDefault();
-  //   onSubmit?.({ username, password });
-  // }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -73,12 +65,6 @@ const LoginPage = ({ onSubmit }: LoginInProps) => {
               required
               disabled={loading}
             />
-            {/* <button
-              type="submit"
-              className="mt-5 w-full rounded-md text-white bg-indigo-600 px-4 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            >
-              Sign in
-            </button> */}
             <button
               type="submit"
               disabled={loading}
