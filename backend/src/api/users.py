@@ -137,8 +137,7 @@ async def update_the_user(user_id: str, update_data: update_user):
 )
 async def login_user(data: login_data):
     user = await DBUser.find_one(DBUser.username == data.username)
-    admin = await DBAdmin.find_one(DBAdmin.username == data.username)
-
+    
     if user:
         if not verify_password(data.password, user.password_hashed):
             raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -149,6 +148,8 @@ async def login_user(data: login_data):
             "role": "patient",
         }
 
+    admin = await DBAdmin.find_one(DBAdmin.username == data.username)
+    
     if admin:
         if not verify_password(data.password, admin.password_hashed):
             raise HTTPException(status_code=401, detail="Invalid credentials")
