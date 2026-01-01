@@ -426,8 +426,8 @@ export type user = {
 };
 export type LoginResponse = {
   ok: boolean;
-  user_id: string;
-  username: string;
+  user_id?: string;
+  username?: string;
   role: string;
 };
 

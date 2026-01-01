@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import Field
-from typing import List
+from typing import List, Literal
 
 from beanie import Document, PydanticObjectId
 
@@ -16,6 +16,10 @@ from .schemas.schema_Lab_Test_Type import (
 )
 
 from .schemas.schema_Lab_Panel import LabPanelResponse
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class Visit(Document):
@@ -54,6 +58,18 @@ class User(Document):
 
     class Settings:
         name = "users"
+
+
+class Session(Document):
+    user_id: PydanticObjectId = Field(...)
+    role: Literal["admin", "user"] = Field(...)
+    refresh_hash: str = Field(...)
+    created_at: datetime = Field(default_factory=utcnow)
+    expires_at: datetime = Field(...)
+    revoked: bool = Field(...)
+
+    class Settings:
+        name = "sessions"
 
 
 class lab_test_type(Document):

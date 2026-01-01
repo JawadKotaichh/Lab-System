@@ -293,18 +293,40 @@ const loginUser = async (
   username: string,
   password: string
 ): Promise<LoginResponse> => {
-  console.log(`Loggin in username: ${username}, password: ${password} `);
-  const url = "/users/login";
-  const response = await api.post(url, {
+  const response = await api.post("/auth/login", {
     username,
     password,
   });
-  console.log(`Loggin response: ${response.data}`);
-
   return response.data;
 };
 
+const refreshSession = async (): Promise<boolean> => {
+  const response = await api.post("/auth/refresh");
+  return response.data?.ok === true;
+};
+
+const logoutUser = async (): Promise<void> => {
+  await api.post("/auth/logout");
+};
+async function apiFetch(input: RequestInfo, init: RequestInit = {}) {
+  const res = await fetch(input, { ...init, credentials: "include" });
+
+  if (res.status !== 401) return res;
+
+  // try refresh once
+  const refreshRes = await fetch("/auth/refresh", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!refreshRes.ok) return res;
+  return fetch(input, { ...init, credentials: "include" });
+}
+
+export { apiFetch };
 export { loginUser };
+export { refreshSession };
+export { logoutUser };
 export { fetchLabTestCategory };
 export { fetchLabPanel };
 export { fetchLabTestCategoryPaginated };
