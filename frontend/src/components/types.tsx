@@ -430,3 +430,11 @@ export type LoginResponse = {
   username: string;
   role: string;
 };
+
+export type Role = "admin" | "patient";
+
+export type AuthUser = {
+  user_id: string;
+  username: string;
+  role: Role;
+};
