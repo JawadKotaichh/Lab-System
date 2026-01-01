@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, status
 from ..models import User as DBUser
-from ..models import Admin as DBAdmin
+
+# from ..models import Admin as DBAdmin
 from ..schemas.schema_users import (
-    LoginResponse,
+    # LoginResponse,
     User,
-    login_data,
+    # login_data,
     update_user,
 )
 from fastapi.responses import Response
@@ -129,37 +130,38 @@ async def update_the_user(user_id: str, update_data: update_user):
     return existing_user
 
 
-@router.post(
-    "/login",
-    response_model=LoginResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Login user",
-)
-async def login_user(data: login_data):
-    user = await DBUser.find_one(DBUser.username == data.username)
-    admin = await DBAdmin.find_one(DBAdmin.username == data.username)
+# @router.post(
+#     "/login",
+#     response_model=LoginResponse,
+#     status_code=status.HTTP_200_OK,
+#     summary="Login user",
+# )
+# async def login_user(data: login_data):
+#     user = await DBUser.find_one(DBUser.username == data.username)
 
-    if user:
-        if not verify_password(data.password, user.password_hashed):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-        return {
-            "ok": True,
-            "user_id": str(user.user_id),
-            "username": user.username,
-            "role": "patient",
-        }
+#     if user:
+#         if not verify_password(data.password, user.password_hashed):
+#             raise HTTPException(status_code=401, detail="Invalid credentials")
+#         return {
+#             "ok": True,
+#             "user_id": str(user.user_id),
+#             "username": user.username,
+#             "role": "patient",
+#         }
 
-    if admin:
-        if not verify_password(data.password, admin.password_hashed):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-        return {
-            "ok": True,
-            "user_id": str(admin.id),
-            "username": admin.username,
-            "role": "admin",
-        }
+#     admin = await DBAdmin.find_one(DBAdmin.username == data.username)
 
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+#     if admin:
+#         if not verify_password(data.password, admin.password_hashed):
+#             raise HTTPException(status_code=401, detail="Invalid credentials")
+#         return {
+#             "ok": True,
+#             "user_id": str(admin.id),
+#             "username": admin.username,
+#             "role": "admin",
+#         }
+
+#     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
 @router.delete("/{user_id}", response_class=Response)
