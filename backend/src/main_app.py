@@ -13,6 +13,7 @@ from .api.Invoice import router as invoice_router
 from .api.branding_router import router as branding_router
 from .api.result_suggestions import router as result_suggestions_router
 from .api.users import router as users_router
+from .api.auth import router as authentication_router
 from fastapi_pagination import add_pagination
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -30,6 +31,7 @@ app.include_router(invoice_router)
 app.include_router(branding_router)
 app.include_router(result_suggestions_router)
 app.include_router(users_router)
+app.include_router(authentication_router)
 
 origins = [
     "http://20.174.9.177:5173",

@@ -16,6 +16,7 @@ from .models import (
     Result_suggestions,
     Admin,
     User,
+    Session,
 )
 
 # ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
@@ -40,5 +41,6 @@ async def init_db():
             Result_suggestions,
             Admin,
             User,
+            Session,
         ],
     )
