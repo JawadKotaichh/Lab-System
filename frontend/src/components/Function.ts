@@ -116,6 +116,26 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
       }
     }
   };
+  const handleNewAccount = async(patient:patientInfo,navigate:NavigateFunction,setError:Dispatch<SetStateAction<string>>)=>{
+    try{ 
+    navigate(`/login/${patient.patient_id}`, {
+        state: {
+          patientData: {
+            ...patient,
+          },
+        },
+      });
+    }catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+
+  
+
+  
   interface addLabTestParams {
     
     pagination: PaginationState;
@@ -250,47 +270,7 @@ export const handleAdd = async ({lab_test_id,lab_test,data,setAddError,setShowAd
   }
 };
 
-//   //   //  try {
-//   //   // if (data.list_of_lab_test_ids.some((id) => id === lab_test_id)) {
-//   //   //   setAddError("This test already exists.");
-//   //   //   alert("This test already exists.");
-//   //   //   setShowAddForLabPanels(false);
-//   //   //   setAddError("");
-//   //   //   return;
-//   //   // }
-
-//   //   // setAddError("");
-//   //   // const nextIds = [...data.list_of_lab_test_ids, lab_test_id];
-//   //   // setData((prev) => ({
-//   //   //   ...prev,
-//   //   //   list_of_lab_test_ids: nextIds, 
-//   //   // }));
-//   //   // console.log("nextIds: ",nextIds)
-    
-//   //   // if (data.lab_panel.id) {
-//   //   //     await api.put(`${labPanelApiURL}/${data.lab_panel.id}`, {
-//   //   //       panel_name: data.lab_panel.panel_name,
-//   //   //       nssf_id: data.lab_panel.nssf_id,
-//   //   //       lab_panel_price: data.lab_panel.lab_panel_price,
-//   //   //       list_of_test_type_ids: nextIds,
-//   //   //       lab_panel_category_id: data.lab_panel.lab_panel_category_id,
-//   //   //     });
-//   //   //   } else {
-//   //   //     await api.post(labPanelApiURL, {
-//   //   //       panel_name: data.lab_panel.panel_name,
-//   //   //       nssf_id: data.lab_panel.nssf_id,
-//   //   //       lab_panel_price: data.lab_panel.lab_panel_price,
-//   //   //       list_of_test_type_ids: nextIds,
-//   //   //       lab_panel_category_id: data.lab_panel.lab_panel_category_id,
-//   //   //     });
-//   //   //   }
-//   // } catch (err) {
-//   //   console.error(err);
-//   //   setAddError(err instanceof Error ? err.message : "Failed to add lab test");
-//   // } finally {
-//   //   setShowAddForLabPanels(false);
-//   // }
-// };
+export{handleNewAccount};
 export{handleNewVisit};
 export{handleDeleteLabTest};
 export{handleCreateLabTest};
