@@ -60,14 +60,14 @@ async def login(payload: dict, response: Response):
     if not principal:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    subject_id = str(principal["user_id"])
+    user_id = principal["user_id"]
     role = principal["role"]
 
-    access = create_access_token(subject_id, role)
+    access = create_access_token(str(user_id), role)
     refresh = create_refresh_token()
 
     await DBSession(
-        subject_id=subject_id,
+        user_id=user_id,
         role=role,
         refresh_hash=hash_refresh(refresh),
         expires_at=refresh_expires_at(),
@@ -75,7 +75,12 @@ async def login(payload: dict, response: Response):
     ).insert()
 
     set_auth_cookies(response, access, refresh, prod=PROD)
-    return {"ok": True, "role": role}
+    return {
+        "ok": True,
+        "user_id": principal["user_id"],
+        "username": principal["username"],
+        "role": role,
+    }
 
 
 @router.post("/refresh")
@@ -93,7 +98,7 @@ async def refresh(response: Response, refresh_token: str | None = Cookie(default
         raise HTTPException(status_code=401, detail="Session expired")
 
     # ✅ Issue new access token
-    new_access = create_access_token(session.subject_id, session.role)
+    new_access = create_access_token(str(session.user_id), session.role)
     new_refresh = create_refresh_token()
 
     session.refresh_hash = hash_refresh(new_refresh)
