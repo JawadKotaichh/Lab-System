@@ -438,3 +438,9 @@ export type AuthUser = {
   username: string;
   role: Role;
 };
+
+export type CreatePatientAccountProps = {
+  user_id: string;
+  username: string;
+  password: string;
+};

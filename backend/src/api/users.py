@@ -78,7 +78,7 @@ async def getAllUsers() -> List[Dict[str, Any]]:
 
 
 @router.post(
-    "/",
+    "/create_user/{user_id}",
     response_model=DBUser,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new user",
@@ -92,7 +92,7 @@ async def create_user(data: User):
     )
     new_user = await db_user.insert()
     if not new_user:
-        raise HTTPException(status_code=404, detail="User was not created")
+        raise HTTPException(status_code=500, detail="User was not created")
     return new_user
 
 
