@@ -29,55 +29,38 @@ import MonthSummary from "./components/MonthlySummary/MonthSummary";
 import { baseURLL } from "./api";
 import LoginPage from "./components/LoginPage/LoginPage";
 import { loginUser } from "./components/utils";
+import { AuthUser, Role } from "./components/types";
 type NavItem = {
   to: string;
   label: string;
   end?: boolean;
   dynamic?: boolean;
 };
+
 function RequireAuth({
-  isAuthed,
+  user,
+  allowedRoles,
   children,
 }: {
-  isAuthed: boolean;
+  user: AuthUser | null;
+  allowedRoles?: Role[];
   children: React.ReactNode;
 }) {
-  if (!isAuthed) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // if user tries to access a page not allowed for their role
+    return <Navigate to="/login" replace />;
+  }
+
   return <>{children}</>;
 }
 
-// function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
-//   const navigate = useNavigate();
-
-//   return (
-//     <LoginPage
-//       onSubmit={async ({ username, password }) => {
-//         if (!username.trim() || !password.trim()) {
-//           alert("Please fill username and password");
-//           return false;
-//         }
-
-//         try {
-//           const res = await loginUser(username, password);
-
-//           if (res.ok) {
-//             onLoginSuccess();
-//             navigate("/visits", { replace: true });
-//             return true;
-//           }
-
-//           alert("Invalid credentials");
-//           return false;
-//         } catch (error) {
-//           console.error("Login error:", error);
-//           alert("Invalid credentials");
-//           return false;
-//         }
-//       }}
-//     />
-//   );
-// }
-function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
+function LoginRoute({
+  onLoginSuccess,
+}: {
+  onLoginSuccess: (user: AuthUser) => void;
+}) {
   const navigate = useNavigate();
 
   return (
@@ -92,7 +75,11 @@ function LoginRoute({ onLoginSuccess }: { onLoginSuccess: () => void }) {
           const res = await loginUser(username, password);
 
           if (res.ok) {
-            onLoginSuccess();
+            onLoginSuccess({
+              user_id: res.user_id,
+              username: res.username,
+              role: res.role as Role,
+            });
             navigate("/visits", { replace: true });
             return;
           }
@@ -122,11 +109,11 @@ const App: React.FC = () => {
   const inactiveClass =
     "px-3 py-2 rounded-md text-gray-700 hover:text-white hover:bg-gradient-to-r from-blue-400 to-emerald-400 transition";
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [isAuthed, setIsAuthed] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   return (
     <div className="min-h-screen bg-white">
-      {isAuthed && (
+      {user && (
         <nav className="bg-white shadow w-full border-b">
           <div className="flex items-center h-20">
             <div className="pl-4">
@@ -168,7 +155,7 @@ const App: React.FC = () => {
           <Route
             path="/"
             element={
-              isAuthed ? (
+              user ? (
                 <Navigate to="/visits" replace />
               ) : (
                 <Navigate to="/login" replace />
@@ -177,12 +164,12 @@ const App: React.FC = () => {
           />
           <Route
             path="/login"
-            element={<LoginRoute onLoginSuccess={() => setIsAuthed(true)} />}
+            element={<LoginRoute onLoginSuccess={(user) => setUser(user)} />}
           />
           <Route
             path="/visits"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <VisitsTable />
               </RequireAuth>
             }
@@ -190,7 +177,7 @@ const App: React.FC = () => {
           <Route
             path="/visits/:visit_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditVisitPage />
               </RequireAuth>
             }
@@ -198,7 +185,7 @@ const App: React.FC = () => {
           <Route
             path="/patients"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <PatientTable />
               </RequireAuth>
             }
@@ -206,7 +193,7 @@ const App: React.FC = () => {
           <Route
             path="/insurance-companies"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <InsuranceCompanyTable />
               </RequireAuth>
             }
@@ -214,7 +201,7 @@ const App: React.FC = () => {
           <Route
             path="/patients/create-patient"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}> 
                 <EditPatientPage title="Create Patient" />
               </RequireAuth>
             }
@@ -222,7 +209,7 @@ const App: React.FC = () => {
           <Route
             path="/patients/edit-patient/:patient_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditPatientPage title="Edit Patient" />
               </RequireAuth>
             }
@@ -230,7 +217,7 @@ const App: React.FC = () => {
           <Route
             path="/edit-insurance-company/:insurance_company_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditInsuranceCompany title="Edit Insurance Company" />
               </RequireAuth>
             }
@@ -238,7 +225,7 @@ const App: React.FC = () => {
           <Route
             path="/lab-tests"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <LabTestTable />
               </RequireAuth>
             }
@@ -246,7 +233,7 @@ const App: React.FC = () => {
           <Route
             path="/edit-lab-test/:lab_test_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditLabTest title="Edit Lab Test" />
               </RequireAuth>
             }
@@ -254,7 +241,7 @@ const App: React.FC = () => {
           <Route
             path="/create-lab-test"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditLabTest title="Create Lab Test" />
               </RequireAuth>
             }
@@ -262,7 +249,7 @@ const App: React.FC = () => {
           <Route
             path="/lab-panels"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <LabPanelsList />
               </RequireAuth>
             }
@@ -270,7 +257,7 @@ const App: React.FC = () => {
           <Route
             path="/create-lab-panel"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditLabPanel title="Create Lab Panel" />
               </RequireAuth>
             }
@@ -278,7 +265,7 @@ const App: React.FC = () => {
           <Route
             path="/edit-lab-panel/:lab_panel_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditLabPanel title="Edit Lab Panel" />
               </RequireAuth>
             }
@@ -286,7 +273,7 @@ const App: React.FC = () => {
           <Route
             path="/lab-test-categories"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <LabTestCategoryTable />
               </RequireAuth>
             }
@@ -294,7 +281,7 @@ const App: React.FC = () => {
           <Route
             path="/edit-lab-test-category/:lab_test_category_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditLabTestCategory title="Edit Lab Test Category" />
               </RequireAuth>
             }
@@ -302,7 +289,7 @@ const App: React.FC = () => {
           <Route
             path="/create-lab-test-category"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditLabTestCategory title="Create Lab Test Category" />
               </RequireAuth>
             }
@@ -310,7 +297,7 @@ const App: React.FC = () => {
           <Route
             path="/invoice/:visit_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <InvoiceContainer />
               </RequireAuth>
             }
@@ -318,7 +305,7 @@ const App: React.FC = () => {
           <Route
             path="/result/:visit_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <ResultContainer />
               </RequireAuth>
             }
@@ -326,7 +313,7 @@ const App: React.FC = () => {
           <Route
             path="/monthly-summary"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <MonthSummary />
               </RequireAuth>
             }
@@ -334,7 +321,7 @@ const App: React.FC = () => {
           <Route
             path="/summary-invoice/:insurance_company_id"
             element={
-              <RequireAuth isAuthed={isAuthed}>
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <InvoiceSummaryContainer />
               </RequireAuth>
             }
@@ -342,7 +329,7 @@ const App: React.FC = () => {
           <Route
             path="*"
             element={
-              isAuthed ? (
+              user ? (
                 <Navigate to="/visits" replace />
               ) : (
                 <Navigate to="/login" replace />
