@@ -9,7 +9,7 @@ def utcnow() -> datetime:
 
 class Session(BaseModel):
     user_id: str = Field(...)
-    role: Literal["admin", "user"] = Field(...)
+    role: Literal["admin", "patient"] = Field(...)
     refresh_hash: str = Field(...)
     created_at: datetime = Field(default_factory=utcnow)
     expires_at: datetime = Field(...)
