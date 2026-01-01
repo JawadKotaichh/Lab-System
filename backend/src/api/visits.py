@@ -176,46 +176,55 @@ async def get_visits_with_page_size(
     patient_phone_number: Optional[str] = Query(
         None, description="Filter by insurance company name substring"
     ),
+    patient_id: Optional[str] = Query(None, description="Filter by patient_id"),
 ):
     offset = (page_number - 1) * page_size
     mongo_filter_visits: Dict[str, Any] = {}
     mongo_filter_patients: Dict[str, Any] = {}
 
-    if patient_name:
-        mongo_filter_patients["name"] = {"$regex": patient_name, "$options": "i"}
-    if insurance_company_name:
-        ins_coll = DBInsurance_company.get_motor_collection()
-        ins_cursor = ins_coll.find(
-            {
-                "insurance_company_name": {
-                    "$regex": insurance_company_name,
-                    "$options": "i",
-                }
-            },
-            {"_id": 1},
-        )
-        matching_cos = await ins_cursor.to_list(length=None)
-        if not matching_cos:
-            return PaginatedVisitDataList(
-                visitsData=[], total_pages=0, TotalNumberOfVisits=0
+    if patient_id:
+        if not PydanticObjectId.is_valid(patient_id):
+            raise HTTPException(
+                status_code=400, detail=f"Invalid patient ID: {patient_id}"
             )
-        co_ids = [doc["_id"] for doc in matching_cos]
-        mongo_filter_patients["insurance_company_id"] = {"$in": co_ids}
-    if patient_phone_number:
-        mongo_filter_patients["phone_number"] = {
-            "$regex": patient_phone_number,
-            "$options": "i",
-        }
-    if mongo_filter_patients:
-        pat_coll = DBPatient.get_motor_collection()
-        pat_cursor = pat_coll.find(mongo_filter_patients, {"_id": 1})
-        matching_patients = await pat_cursor.to_list(length=None)
-        if not matching_patients:
-            return PaginatedVisitDataList(
-                visitsData=[], total_pages=0, TotalNumberOfVisits=0
+        mongo_filter_visits["patient_id"] = PydanticObjectId(patient_id)
+        mongo_filter_visits["posted"] = True
+    else:
+        if patient_name:
+            mongo_filter_patients["name"] = {"$regex": patient_name, "$options": "i"}
+        if insurance_company_name:
+            ins_coll = DBInsurance_company.get_motor_collection()
+            ins_cursor = ins_coll.find(
+                {
+                    "insurance_company_name": {
+                        "$regex": insurance_company_name,
+                        "$options": "i",
+                    }
+                },
+                {"_id": 1},
             )
-        patient_ids = [doc["_id"] for doc in matching_patients]
-        mongo_filter_visits["patient_id"] = {"$in": patient_ids}
+            matching_cos = await ins_cursor.to_list(length=None)
+            if not matching_cos:
+                return PaginatedVisitDataList(
+                    visitsData=[], total_pages=0, TotalNumberOfVisits=0
+                )
+            co_ids = [doc["_id"] for doc in matching_cos]
+            mongo_filter_patients["insurance_company_id"] = {"$in": co_ids}
+        if patient_phone_number:
+            mongo_filter_patients["phone_number"] = {
+                "$regex": patient_phone_number,
+                "$options": "i",
+            }
+        if mongo_filter_patients:
+            pat_coll = DBPatient.get_motor_collection()
+            pat_cursor = pat_coll.find(mongo_filter_patients, {"_id": 1})
+            matching_patients = await pat_cursor.to_list(length=None)
+            if not matching_patients:
+                return PaginatedVisitDataList(
+                    visitsData=[], total_pages=0, TotalNumberOfVisits=0
+                )
+            patient_ids = [doc["_id"] for doc in matching_patients]
+            mongo_filter_visits["patient_id"] = {"$in": patient_ids}
 
     if visit_date:
         try:
@@ -226,7 +235,7 @@ async def get_visits_with_page_size(
             )
         start_dt = datetime.combine(parsed_date, time.min)
         end_dt = datetime.combine(parsed_date, time.max)
-        mongo_filter_visits["date"] = {"$gte": start_dt, "$lte": end_dt}
+        mongo_filter_visits["visit_date"] = {"$gte": start_dt, "$lte": end_dt}
 
     total_number_of_visits = await DBVisit.find(mongo_filter_visits).count()
     cursor = DBVisit.find(mongo_filter_visits).skip(offset).limit(page_size)
