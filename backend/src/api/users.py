@@ -84,7 +84,17 @@ async def getAllUsers() -> List[Dict[str, Any]]:
     summary="Create a new user",
 )
 async def create_user(data: User):
+    if not PydanticObjectId.is_valid(data.user_id):
+        raise HTTPException(status_code=400, detail="Invalid user ID")
+    pid = PydanticObjectId(data.user_id)
     hashed_password = hash_password(data.password)
+    existing = await DBUser.find_one(DBUser.user_id == pid)
+    if existing:
+        existing.username = data.username
+        existing.password_hashed = hashed_password
+        await existing.replace()
+        return existing
+
     db_user = DBUser(
         user_id=PydanticObjectId(data.user_id),
         username=data.username,
@@ -128,40 +138,6 @@ async def update_the_user(user_id: str, update_data: update_user):
     await existing_user.replace()
 
     return existing_user
-
-
-# @router.post(
-#     "/login",
-#     response_model=LoginResponse,
-#     status_code=status.HTTP_200_OK,
-#     summary="Login user",
-# )
-# async def login_user(data: login_data):
-#     user = await DBUser.find_one(DBUser.username == data.username)
-
-#     if user:
-#         if not verify_password(data.password, user.password_hashed):
-#             raise HTTPException(status_code=401, detail="Invalid credentials")
-#         return {
-#             "ok": True,
-#             "user_id": str(user.user_id),
-#             "username": user.username,
-#             "role": "patient",
-#         }
-
-#     admin = await DBAdmin.find_one(DBAdmin.username == data.username)
-
-#     if admin:
-#         if not verify_password(data.password, admin.password_hashed):
-#             raise HTTPException(status_code=401, detail="Invalid credentials")
-#         return {
-#             "ok": True,
-#             "user_id": str(admin.id),
-#             "username": admin.username,
-#             "role": "admin",
-#         }
-
-#     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
 @router.delete("/{user_id}", response_class=Response)

@@ -308,6 +308,7 @@ async def get_visits_with_page_size(
             )
         visits.append(
             VisitData(
+                posted=db_visit.posted,
                 total_price=total_price,
                 report_date=db_visit.report_date,
                 total_price_with_insurance=total_price_with_insurance
@@ -456,6 +457,7 @@ async def get_visit(visit_id: PydanticObjectId):
     total_price_with_insurance = total_price * insurance_company.rate
     insurance_company_name = insurance_company.insurance_company_name
     visit_data = VisitData(
+        posted=db_visit.posted,
         report_date=db_visit.report_date,
         total_price=total_price,
         total_price_with_insurance=total_price_with_insurance,
@@ -488,6 +490,8 @@ async def update_visit(visit_id: PydanticObjectId, update_data: update_visit_mod
         existing_visit.visit_date = update_data.visit_date
     if update_data.report_date is not None:
         existing_visit.report_date = update_data.report_date
+    if update_data.posted is not None:
+        existing_visit.posted = update_data.posted
     await existing_visit.replace()
 
     return existing_visit
