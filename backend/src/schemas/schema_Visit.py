@@ -10,6 +10,7 @@ from ..schemas.schema_Lab_Panel import Lab_Panel
 class Visit(BaseModel):
     patient_id: str
     visit_date: datetime = Field(...)
+    posted: bool = Field(default=False)
     report_date: datetime | None = None
 
     model_config = ConfigDict(
@@ -32,6 +33,7 @@ class Visit(BaseModel):
 
 class VisitData(BaseModel):
     visit_id: str
+    posted: bool
     visit_date: datetime
     report_date: datetime
     patient: Patient
@@ -62,6 +64,8 @@ class PaginatedVisitDataList(BaseModel):
 class update_visit_model(BaseModel):
     visit_date: Optional[datetime] = None
     report_date: Optional[datetime] = None
+    posted: Optional[bool] = None
+
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,

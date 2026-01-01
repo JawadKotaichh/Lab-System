@@ -217,6 +217,7 @@ const fetchLabTestCategory = async (
 export const createVisit = (patientId: string) => {
   return api.post(`/visits/${patientId}`, {
     patient_id: patientId,
+    posted: false,
     visit_date: new Date().toISOString(),
     report_date: new Date().toISOString(),
   });

@@ -35,6 +35,7 @@ import {
   handleDeleteVisit,
   handleNewAccount,
   handleNewVisit,
+  handlePostVisit,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 
@@ -69,6 +70,7 @@ export interface LabTestColumnOptions {
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
 import MeatballsMenu from "./react-table/MeatBallsMenu";
+import { PostResultCheckbox } from "./PostResultCheckbox";
 
 export function getInsuranceCompanyColumns(
   navigate: NavigateFunction,
@@ -803,25 +805,6 @@ export function getVisitsColumns(
         return a.localeCompare(b);
       },
     },
-    // {
-    //   accessorKey: "total_price",
-    //   cell: ({ row }) => `${row.original.total_price.toFixed(2)} $ `,
-    //   header: ({ column }) => (
-    //     <ColumnFilter
-    //       withFilter={false}
-    //       column={column}
-    //       placeholder="Search price..."
-    //       label="Total Price"
-    //       showFilter={!!showFilters[column.id]}
-    //       toggleShowFilter={() => toggleFilter(column.id)}
-    //     />
-    //   ),
-    //   sortingFn: (rowA, rowB, columnId) => {
-    //     const a = parseFloat(rowA.getValue(columnId) as string) || 0;
-    //     const b = parseFloat(rowB.getValue(columnId) as string) || 0;
-    //     return a - b;
-    //   },
-    // },
     {
       accessorKey: "total_price_with_insurance",
       cell: ({ row }) => {
@@ -879,9 +862,15 @@ export function getVisitsColumns(
       enableSorting: false,
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
-        const { visit_id, patient, insurance_company_name } = row.original;
+        const { visit_id, patient, insurance_company_name, posted } =
+          row.original;
         return (
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-4">
+            <PostResultCheckbox
+              visitId={visit_id}
+              initialPosted={posted}
+              setError={setError}
+            />
             <MeatballsMenu
               items={[
                 {
@@ -914,6 +903,11 @@ export function getVisitsColumns(
                       setError,
                     }),
                   className: "text-red-600",
+                },
+                {
+                  label: "Post Result",
+                  onClick: () => handlePostVisit(true, visit_id, setError),
+                  className: "text-green-600",
                 },
               ]}
             />
