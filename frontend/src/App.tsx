@@ -28,7 +28,7 @@ import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryC
 import MonthSummary from "./components/MonthlySummary/MonthSummary";
 import { baseURLL } from "./api";
 import LoginPage from "./components/LoginPage/LoginPage";
-import { loginUser, refreshSession } from "./components/utils";
+import { loginUser, refreshSession, logoutUser } from "./components/utils";
 import { AuthUser, Role } from "./components/types";
 import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
 type NavItem = {
@@ -113,6 +113,7 @@ const navItems: NavItem[] = [
 
 const App: React.FC = () => {
   const isOnEdit = !!useMatch("/visits/:visit_id");
+  const navigate = useNavigate();
   const activeClass =
     "px-3 py-2 rounded-md text-white bg-gradient-to-r from-blue-400 to-emerald-400 transition";
   const inactiveClass =
@@ -158,6 +159,18 @@ const App: React.FC = () => {
     localStorage.setItem("auth_user", JSON.stringify(nextUser));
   };
 
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("auth_user");
+      setUser(null);
+      navigate("/login", { replace: true });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {user && (
@@ -192,6 +205,13 @@ const App: React.FC = () => {
                   isMenuOpen={isMenuOpen}
                   setIsMenuOpen={setIsMenuOpen}
                 />
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className={inactiveClass}
+                >
+                  Logout
+                </button>
               </div>
             </div>
           </div>
