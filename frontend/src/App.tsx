@@ -118,6 +118,8 @@ const App: React.FC = () => {
     "px-3 py-2 rounded-md text-white bg-gradient-to-r from-blue-400 to-emerald-400 transition";
   const inactiveClass =
     "px-3 py-2 rounded-md text-gray-700 hover:text-white hover:bg-gradient-to-r from-blue-400 to-emerald-400 transition";
+  const logoutButtonStyle =
+    "px-3 py-2 rounded-md text-red-600 border border-red-600 hover:bg-red-700 hover:border-red-700 hover:text-white transition";
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [user, setUser] = useState<AuthUser | null>(() => {
     const stored = localStorage.getItem("auth_user");
@@ -208,7 +210,7 @@ const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className={inactiveClass}
+                  className={logoutButtonStyle}
                 >
                   Logout
                 </button>
