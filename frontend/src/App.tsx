@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Routes,
   Route,
@@ -28,7 +28,7 @@ import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryC
 import MonthSummary from "./components/MonthlySummary/MonthSummary";
 import { baseURLL } from "./api";
 import LoginPage from "./components/LoginPage/LoginPage";
-import { loginUser } from "./components/utils";
+import { loginUser, refreshSession } from "./components/utils";
 import { AuthUser, Role } from "./components/types";
 import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
 type NavItem = {
@@ -51,7 +51,11 @@ function RequireAuth({
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // if user tries to access a page not allowed for their role
-    return <UnauthorizedPage homePath={user.role === "admin" ? "/visits" : "/login"} />;
+    return (
+      <UnauthorizedPage
+        homePath={user.role === "admin" ? "/visits" : "/login"}
+      />
+    );
   }
 
   return <>{children}</>;
@@ -77,11 +81,15 @@ function LoginRoute({
 
           if (res.ok) {
             onLoginSuccess({
-              user_id: res.user_id,
-              username: res.username,
+              user_id: res.user_id ?? "",
+              username: res.username ?? username,
               role: res.role as Role,
             });
-            navigate("/visits", { replace: true });
+            if (res.role == "admin") {
+              navigate("/visits", { replace: true });
+            } else {
+              navigate("/visits", { replace: true });
+            }
             return;
           }
 
@@ -110,7 +118,45 @@ const App: React.FC = () => {
   const inactiveClass =
     "px-3 py-2 rounded-md text-gray-700 hover:text-white hover:bg-gradient-to-r from-blue-400 to-emerald-400 transition";
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem("auth_user");
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored) as AuthUser;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    let isMounted = true;
+
+    const ensureSession = async () => {
+      try {
+        const ok = await refreshSession();
+        if (!ok && isMounted) {
+          setUser(null);
+          localStorage.removeItem("auth_user");
+        }
+      } catch {
+        if (isMounted) {
+          setUser(null);
+          localStorage.removeItem("auth_user");
+        }
+      }
+    };
+
+    void ensureSession();
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  const handleLoginSuccess = (nextUser: AuthUser) => {
+    setUser(nextUser);
+    localStorage.setItem("auth_user", JSON.stringify(nextUser));
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -165,7 +211,7 @@ const App: React.FC = () => {
           />
           <Route
             path="/login"
-            element={<LoginRoute onLoginSuccess={(user) => setUser(user)} />}
+            element={<LoginRoute onLoginSuccess={handleLoginSuccess} />}
           />
           <Route
             path="/visits"
@@ -202,7 +248,7 @@ const App: React.FC = () => {
           <Route
             path="/patients/create-patient"
             element={
-              <RequireAuth user={user} allowedRoles={["admin"]}> 
+              <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditPatientPage title="Create Patient" />
               </RequireAuth>
             }
