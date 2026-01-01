@@ -37,6 +37,7 @@ import {
 } from "./components/utils";
 import { AuthUser, Role } from "./components/types";
 import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
+import UserVisitsPage from "./components/UserVisitsPage/UserVisitsPage";
 type NavItem = {
   to: string;
   label: string;
@@ -145,7 +146,7 @@ const navItemsAdmin: NavItem[] = [
   { to: "/monthly-summary", label: "Month Summary" },
 ];
 const navItemsUser: NavItem[] = [
-  { to: "/visits", label: "My Visits", end: true },
+  { to: "/my_visits", label: "My Visits", end: true },
 ];
 
 const App: React.FC = () => {
@@ -280,6 +281,14 @@ const App: React.FC = () => {
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
                 <CreatePatientAccountRoute />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/my_visits"
+            element={
+              <RequireAuth user={user} allowedRoles={["patient"]}>
+                <UserVisitsPage />
               </RequireAuth>
             }
           />

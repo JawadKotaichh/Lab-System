@@ -272,6 +272,7 @@ export interface visitFilters {
   name?: string;
   insurance_company_name?: string;
   date?: string;
+  patient_id?: string;
 }
 
 export type patientInfo = {
