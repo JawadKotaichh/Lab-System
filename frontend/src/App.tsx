@@ -456,7 +456,10 @@ const App: React.FC = () => {
             path="*"
             element={
               user ? (
-                <Navigate to="/visits" replace />
+                <Navigate
+                  to={user.role === "admin" ? "/visits" : "/my_visits"}
+                  replace
+                />
               ) : (
                 <Navigate to="/login" replace />
               )
