@@ -60,7 +60,7 @@ function RequireAuth({
     // if user tries to access a page not allowed for their role
     return (
       <UnauthorizedPage
-        homePath={user.role === "admin" ? "/visits" : "/login"}
+        homePath={user.role === "admin" ? "/visits" : "/my_visits"}
       />
     );
   }
