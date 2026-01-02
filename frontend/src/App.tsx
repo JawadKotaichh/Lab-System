@@ -95,7 +95,7 @@ function LoginRoute({
             if (res.role == "admin") {
               navigate("/visits", { replace: true });
             } else {
-              navigate("/visits", { replace: true });
+              navigate("/my_visits", { replace: true });
             }
             return;
           }
