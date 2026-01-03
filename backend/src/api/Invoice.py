@@ -337,6 +337,7 @@ async def rebuild_invoice(visit_id: str):
         discount_percentage=db_invoice.discount_percentage,
         invoice_number=db_invoice.invoice_number,
     )
+
     db_invoice.list_of_lab_panels = listOfPanels
     db_invoice.list_of_tests = listOfTests
     await db_invoice.replace()
@@ -345,6 +346,8 @@ async def rebuild_invoice(visit_id: str):
         invoice_data=current_invoice_data,
         currency=db_insurance_company.currency,
     )
+    print(f"currency: {output.currency}")
+    print(f"patient: {currentPatient}")
     return output
 
 
