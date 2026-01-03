@@ -222,10 +222,12 @@ const EditVisitPage: React.FC = () => {
       );
       setPendingResults({});
       await refreshResults();
+      alert("Saved successfully!");
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
         setError(err.message);
+        alert(`Error: ${err.message}`);
       }
     }
   };
