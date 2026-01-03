@@ -127,7 +127,6 @@ export type InvoiceWrapperProps = {
 };
 export type InvoiceData = {
   invoice_number: number;
-  currency: string;
   visit_id: string;
   discount_percentage: number;
   list_of_lab_panels: labPanel[];
