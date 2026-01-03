@@ -2,6 +2,9 @@ from datetime import datetime, time
 from fastapi import APIRouter, HTTPException, status
 from ..models import Patient as DBPatient
 from ..models import insurance_company as DBInsurance_company
+from ..models import Visit as DBVisit
+from ..models import Invoice as DBInvoice
+from ..models import lab_test_result as DBLab_test_result
 from ..schemas.schema_Patient import Patient, update_patient_model
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -206,10 +209,21 @@ async def update_patient(patient_id: str, update_data: update_patient_model):
 async def delete_patient(patient_id: str):
     if not PydanticObjectId.is_valid(patient_id):
         raise HTTPException(400, "Invalid patient ID")
+
+    pid = PydanticObjectId(patient_id)
+
     patient_to_be_deleted = await DBPatient.find_one(
         DBPatient.id == PydanticObjectId(patient_id)
     )
     if patient_to_be_deleted is None:
         raise HTTPException(404, f"Patient {patient_id} not found")
+    visit_docs = await DBVisit.find(DBVisit.patient_id == pid).to_list()
+    visit_ids = [v.id for v in visit_docs]
+    if visit_ids:
+        await DBLab_test_result.find({"visit_id": {"$in": visit_ids}}).delete()
+        await DBInvoice.find({"visit_id": {"$in": visit_ids}}).delete()
+        await DBVisit.find({"patient_id": pid}).delete()
+
     await patient_to_be_deleted.delete()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
