@@ -13,6 +13,8 @@ const TestsTableInvoice = ({
 }: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
 
+  console.log(`currency :${currency}`);
+
   const formatPrice = (currency: string, value?: number) =>
     ` ${
       currency === "USD"
