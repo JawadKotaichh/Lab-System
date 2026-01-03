@@ -39,7 +39,7 @@ export default function InvoiceContainer() {
           0
         );
         setDiscountPercentage(data.invoice_data.discount_percentage);
-        setCurrency(data.invoice_data.currency);
+        setCurrency(data.currency);
         setTotalPrice(testsTotal + panelsTotal);
         setListOfPanels(data.invoice_data.list_of_lab_panels);
         setPatientInsuranceCompanyRate(
