@@ -346,8 +346,6 @@ async def rebuild_invoice(visit_id: str):
         invoice_data=current_invoice_data,
         currency=db_insurance_company.currency,
     )
-    print(f"currency: {output.currency}")
-    print(f"patient: {currentPatient}")
     return output
 
 
