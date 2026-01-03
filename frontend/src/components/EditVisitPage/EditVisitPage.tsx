@@ -221,8 +221,8 @@ const EditVisitPage: React.FC = () => {
           .filter((request) => request !== null)
       );
       setPendingResults({});
-      await refreshResults();
       alert("Saved successfully!");
+      await refreshResults();
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
