@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import { type patientInfo, type updateInvoiceData } from "../types.js";
 import { useDebounce } from "../react-table/Debounce";
 import {
@@ -7,6 +6,7 @@ import {
   getInsuranceCompanyRate,
   updateInvoice,
 } from "../utils.js";
+
 interface PricesParams {
   updatedInvoiceData: updateInvoiceData;
   setUpdatedInvoiceData: React.Dispatch<
@@ -17,6 +17,7 @@ interface PricesParams {
   setError: React.Dispatch<React.SetStateAction<string>>;
   patientData: patientInfo;
 }
+
 const Prices: React.FC<PricesParams> = ({
   updatedInvoiceData,
   setError,
@@ -26,9 +27,9 @@ const Prices: React.FC<PricesParams> = ({
   currency,
 }) => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
-
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
     useState<number>(0);
+
   const [draftDiscount, setDraftDiscount] = useState<number>(
     updatedInvoiceData.discount_percentage ?? 0
   );
@@ -47,31 +48,51 @@ const Prices: React.FC<PricesParams> = ({
 
   const roundTo = (value: number, decimals: number) =>
     Number(value.toFixed(decimals));
+
+  const gross = totalPrice * patientInsuranceCompanyRate;
+
+  const safeDiscount = Math.min(100, Math.max(0, draftDiscount));
+  const discountAmount = gross * (safeDiscount / 100);
+  const netTotal = gross - discountAmount;
+
+  const safePaid = Math.max(0, draftTotalPaid);
+  const remaining = netTotal - safePaid;
+
+  const formatMoney = (value: number) => {
+    if (currency === "USD") return `${roundTo(value, 2)} $`;
+    return `${Math.round(value).toLocaleString("en-US")} LBP`;
+  };
+
   useEffect(() => {
-    const load = async () => {
+    const tests = updatedInvoiceData.list_of_tests ?? [];
+    const panels = updatedInvoiceData.list_of_lab_panels ?? [];
+
+    const testsTotal = tests.reduce(
+      (sum, t) => sum + (Number(t?.price) || 0),
+      0
+    );
+    const panelsTotal = panels.reduce(
+      (sum, p) => sum + (Number(p?.lab_panel_price) || 0),
+      0
+    );
+
+    setTotalPrice(testsTotal + panelsTotal);
+  }, [updatedInvoiceData.list_of_tests, updatedInvoiceData.list_of_lab_panels]);
+
+  useEffect(() => {
+    const loadRate = async () => {
       setError("");
       try {
-        const tests = updatedInvoiceData.list_of_tests ?? [];
-        const panels = updatedInvoiceData.list_of_lab_panels ?? [];
-
-        const testsTotal = tests.reduce(
-          (sum, t) => sum + (Number(t?.price) || 0),
-          0
-        );
-        const panelsTotal = panels.reduce(
-          (sum, p) => sum + (Number(p?.lab_panel_price) || 0),
-          0
-        );
-        setTotalPrice(testsTotal + panelsTotal);
-
         const rate = await getInsuranceCompanyRate(patientData.patient_id);
         setPatientInsuranceCompanyRate(rate);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
+        setError(
+          err instanceof Error ? err.message : "Failed to load insurance rate"
+        );
       }
     };
-    load();
-  }, [updatedInvoiceData, patientData.patient_id, setError]);
+    loadRate();
+  }, [patientData.patient_id, setError]);
 
   useEffect(() => {
     const synced = updatedInvoiceData.discount_percentage ?? 0;
@@ -80,45 +101,58 @@ const Prices: React.FC<PricesParams> = ({
   }, [updatedInvoiceData.discount_percentage]);
 
   useEffect(() => {
-    const applyDiscountUpdate = async () => {
-      if (debouncedDiscount === prevSyncedDiscount.current) return;
-      try {
-        const discount = debouncedDiscount;
-        await updateInvoice(visit_id, { discount_percentage: discount });
-        const fetched_invoice = await fetchInvoice(visit_id);
-        setUpdatedInvoiceData(fetched_invoice.invoice_data);
-        prevSyncedDiscount.current =
-          fetched_invoice.invoice_data.discount_percentage ?? 0;
-      } catch (err: unknown) {
-        console.error(err);
-        if (err instanceof Error) setError(err.message);
-      }
-    };
-    applyDiscountUpdate();
-  }, [debouncedDiscount, visit_id, setError, setUpdatedInvoiceData]);
+    const synced = updatedInvoiceData.total_paid ?? 0;
+    prevSyncedTotalPaid.current = synced;
+    setDraftTotalPaid(synced);
+  }, [updatedInvoiceData.total_paid]);
 
   useEffect(() => {
-    const applyTotalPaidUpdate = async () => {
-      if (debouncedTotalPaid === prevSyncedTotalPaid.current) return;
+    const sync = async () => {
+      const payload: Partial<updateInvoiceData> = {};
+
+      const safeDebouncedDiscount = Math.min(
+        100,
+        Math.max(0, debouncedDiscount)
+      );
+      const safeDebouncedPaid = Math.max(0, debouncedTotalPaid);
+
+      if (safeDebouncedDiscount !== prevSyncedDiscount.current) {
+        payload.discount_percentage = safeDebouncedDiscount;
+      }
+      if (safeDebouncedPaid !== prevSyncedTotalPaid.current) {
+        payload.total_paid = safeDebouncedPaid;
+      }
+
+      if (Object.keys(payload).length === 0) return;
+
       try {
-        const total_paidd = debouncedTotalPaid;
-        await updateInvoice(visit_id, { total_paid: total_paidd });
-        const fetched_invoice = await fetchInvoice(visit_id);
-        setUpdatedInvoiceData(fetched_invoice.invoice_data);
-        prevSyncedTotalPaid.current =
-          fetched_invoice.invoice_data.total_paid ?? 0;
+        await updateInvoice(visit_id, payload);
+        const fetched = await fetchInvoice(visit_id);
+        setUpdatedInvoiceData(fetched.invoice_data);
+
+        prevSyncedDiscount.current =
+          fetched.invoice_data.discount_percentage ?? 0;
+        prevSyncedTotalPaid.current = fetched.invoice_data.total_paid ?? 0;
       } catch (err: unknown) {
         console.error(err);
         if (err instanceof Error) setError(err.message);
       }
     };
-    applyTotalPaidUpdate();
-  }, [debouncedTotalPaid, visit_id, setError, setUpdatedInvoiceData]);
+
+    sync();
+  }, [
+    debouncedDiscount,
+    debouncedTotalPaid,
+    visit_id,
+    setError,
+    setUpdatedInvoiceData,
+  ]);
 
   const handleDiscountInputChange = (value: string) => {
     const parsed = Number(value);
     setDraftDiscount(Number.isNaN(parsed) ? 0 : parsed);
   };
+
   const handleTotalPaidChange = (value: string) => {
     const parsed = Number(value);
     setDraftTotalPaid(Number.isNaN(parsed) ? 0 : parsed);
@@ -137,26 +171,19 @@ const Prices: React.FC<PricesParams> = ({
       </thead>
       <tbody>
         <tr>
-          <td className="border rounded-b-sm  px-4 py-2 font-bold">
-            {currency === "USD"
-              ? `${roundTo(totalPrice * patientInsuranceCompanyRate, 2)} $`
-              : `${(totalPrice * patientInsuranceCompanyRate).toLocaleString(
-                  "en-US"
-                )} LBP`}
+          <td className="border rounded-b-sm px-4 py-2 font-bold">
+            {formatMoney(gross)}
           </td>
-          <td className="border rounded-b-sm  px-4 py-2 font-bold">
+
+          <td className="border rounded-b-sm px-4 py-2 font-bold">
             <label>
               <span>
                 <input
                   value={draftDiscount}
                   type="number"
                   onChange={(e) => handleDiscountInputChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  className="w-13 text-right"
+                  onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                  className="w-16 text-right"
                   min={0}
                   max={100}
                 />
@@ -164,66 +191,33 @@ const Prices: React.FC<PricesParams> = ({
               <span className="ml-1 select-none">%</span>
             </label>
           </td>
-          <td className="border rounded-b-sm  px-4 py-2 font-bold">
-            {currency === "USD"
-              ? `${roundTo(
-                  totalPrice * patientInsuranceCompanyRate -
-                    totalPrice *
-                      patientInsuranceCompanyRate *
-                      (updatedInvoiceData.discount_percentage! / 100),
-                  2
-                )} $`
-              : `${(
-                  totalPrice * patientInsuranceCompanyRate -
-                  totalPrice *
-                    patientInsuranceCompanyRate *
-                    (updatedInvoiceData.discount_percentage! / 100)
-                ).toLocaleString("en-US")} LBP`}
+
+          <td className="border rounded-b-sm px-4 py-2 font-bold">
+            {formatMoney(netTotal)}
           </td>
-          <td className="border rounded-b-sm  px-4 py-2 font-bold">
+
+          <td className="border rounded-b-sm px-4 py-2 font-bold">
             <label>
               <span>
                 <input
                   value={draftTotalPaid}
                   type="number"
                   onChange={(e) => handleTotalPaidChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  className="w-13 text-right"
+                  onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                  className="w-24 text-right"
                   min={0}
-                  max={
-                    totalPrice * patientInsuranceCompanyRate -
-                    totalPrice *
-                      patientInsuranceCompanyRate *
-                      (updatedInvoiceData.discount_percentage! / 100)
-                  }
+                  max={netTotal}
+                  step={currency === "USD" ? 0.01 : 1}
                 />
               </span>
-              <span className="ml-1 select-none">
+              <span className="ml-2 select-none">
                 {currency === "USD" ? "$" : "LBP"}
               </span>
             </label>
           </td>
-          <td className="border rounded-b-sm  px-4 py-2 font-bold">
-            {currency === "USD"
-              ? `${roundTo(
-                  totalPrice * patientInsuranceCompanyRate -
-                    totalPrice *
-                      patientInsuranceCompanyRate *
-                      (updatedInvoiceData.discount_percentage! / 100) -
-                    updatedInvoiceData.total_paid!,
-                  2
-                )} $`
-              : `${(
-                  totalPrice * patientInsuranceCompanyRate -
-                  totalPrice *
-                    patientInsuranceCompanyRate *
-                    (updatedInvoiceData.discount_percentage! / 100) -
-                  updatedInvoiceData.total_paid!
-                ).toLocaleString("en-US")} LBP`}
+
+          <td className="border rounded-b-sm px-4 py-2 font-bold">
+            {formatMoney(remaining)}
           </td>
         </tr>
       </tbody>
