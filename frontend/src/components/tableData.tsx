@@ -820,7 +820,7 @@ export function getVisitsColumns(
           withFilter={false}
           column={column}
           placeholder="Search price..."
-          label="Price & Insurance"
+          label="Net total"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
         />
@@ -828,6 +828,59 @@ export function getVisitsColumns(
       sortingFn: (rowA, rowB, columnId) => {
         const a = parseFloat(rowA.getValue(columnId) as string) || 0;
         const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+        return a - b;
+      },
+    },
+    {
+      accessorKey: "total_paid",
+      cell: ({ row }) => {
+        const currency = row.original.currency ?? "$";
+        if (currency === "USD")
+          return `${row.original.total_paid.toFixed(2)} $`;
+        else return `${row.original.total_paid.toLocaleString("en-US")} LBP`;
+      },
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          placeholder="Search total paid..."
+          label="Paid"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+        const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+        return a - b;
+      },
+    },
+    {
+      id: "remaining",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          placeholder="Search remaining..."
+          label="Remaining"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      accessorFn: (row) =>
+        (row.total_price_with_insurance ?? 0) - (row.total_paid ?? 0),
+      cell: ({ row }) => {
+        const currency = row.original.currency ?? "USD";
+        const net = row.original.total_price_with_insurance ?? 0;
+        const paid = row.original.total_paid ?? 0;
+        const remaining = net - paid;
+
+        if (currency === "USD") return `${remaining.toFixed(2)} $`;
+        return `${remaining.toLocaleString("en-US")} LBP`;
+      },
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = rowA.getValue<number>(columnId) ?? 0;
+        const b = rowB.getValue<number>(columnId) ?? 0;
         return a - b;
       },
     },
