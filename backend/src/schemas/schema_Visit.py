@@ -43,6 +43,7 @@ class VisitData(BaseModel):
     total_price_with_insurance: float
     insurance_company_name: str
     currency: str
+    total_paid: int
 
 
 class visitInvoice(BaseModel):
