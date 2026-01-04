@@ -20,12 +20,12 @@ const TestsTableInvoice = ({
       currency === "USD"
         ? `${(
             patient_insurance_company_rate *
-            discount_percentage *
+            (discount_percentage / 100) *
             (value ?? 0)
           ).toFixed(2)} $`
         : `${(
             patient_insurance_company_rate *
-            discount_percentage *
+            (discount_percentage / 100) *
             (value ?? 0)
           ).toLocaleString("en-US")} LBP`
     }`;

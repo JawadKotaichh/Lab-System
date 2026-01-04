@@ -70,7 +70,10 @@ export default function InvoiceContainer() {
         setInvoiceNumber(data.invoice_data.invoice_number);
         setLoading(false);
       })
-      .catch((err) => setError(err.message || "Failed to load"));
+      .catch((err) => {
+        setError(err.message || "Failed to load");
+        setLoading(false);
+      });
     version.current += 1;
   }, [discountPercentage, visit_id]);
 
