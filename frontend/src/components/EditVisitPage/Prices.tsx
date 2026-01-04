@@ -26,6 +26,7 @@ const Prices: React.FC<PricesParams> = ({
   currency,
 }) => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
+
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
     useState<number>(0);
   const [draftDiscount, setDraftDiscount] = useState<number>(
@@ -35,6 +36,15 @@ const Prices: React.FC<PricesParams> = ({
     updatedInvoiceData.discount_percentage ?? 0
   );
   const debouncedDiscount = useDebounce(draftDiscount, 1500);
+
+  const [draftTotalPaid, setDraftTotalPaid] = useState<number>(
+    updatedInvoiceData.total_paid ?? 0
+  );
+  const prevSyncedTotalPaid = useRef<number>(
+    updatedInvoiceData.total_paid ?? 0
+  );
+  const debouncedTotalPaid = useDebounce(draftTotalPaid, 1500);
+
   const roundTo = (value: number, decimals: number) =>
     Number(value.toFixed(decimals));
   useEffect(() => {
@@ -87,9 +97,31 @@ const Prices: React.FC<PricesParams> = ({
     applyDiscountUpdate();
   }, [debouncedDiscount, visit_id, setError, setUpdatedInvoiceData]);
 
+  useEffect(() => {
+    const applyTotalPaidUpdate = async () => {
+      if (debouncedTotalPaid === prevSyncedTotalPaid.current) return;
+      try {
+        const total_paidd = debouncedTotalPaid;
+        await updateInvoice(visit_id, { total_paid: total_paidd });
+        const fetched_invoice = await fetchInvoice(visit_id);
+        setUpdatedInvoiceData(fetched_invoice.invoice_data);
+        prevSyncedTotalPaid.current =
+          fetched_invoice.invoice_data.total_paid ?? 0;
+      } catch (err: unknown) {
+        console.error(err);
+        if (err instanceof Error) setError(err.message);
+      }
+    };
+    applyTotalPaidUpdate();
+  }, [debouncedTotalPaid, visit_id, setError, setUpdatedInvoiceData]);
+
   const handleDiscountInputChange = (value: string) => {
     const parsed = Number(value);
     setDraftDiscount(Number.isNaN(parsed) ? 0 : parsed);
+  };
+  const handleTotalPaidChange = (value: string) => {
+    const parsed = Number(value);
+    setDraftTotalPaid(Number.isNaN(parsed) ? 0 : parsed);
   };
 
   return (
@@ -99,6 +131,8 @@ const Prices: React.FC<PricesParams> = ({
           <th className="h-8 px-0 py-2">Total Price</th>
           <th className="h-8 px-0 py-2">Discount</th>
           <th className="h-8 px-0 py-2">Net Total</th>
+          <th className="h-8 px-0 py-2">Paid</th>
+          <th className="h-8 px-0 py-2">Remaining</th>
         </tr>
       </thead>
       <tbody>
@@ -123,6 +157,8 @@ const Prices: React.FC<PricesParams> = ({
                     }
                   }}
                   className="w-13 text-right"
+                  min={0}
+                  max={100}
                 />
               </span>
               <span className="ml-1 select-none">%</span>
@@ -142,6 +178,51 @@ const Prices: React.FC<PricesParams> = ({
                   totalPrice *
                     patientInsuranceCompanyRate *
                     (updatedInvoiceData.discount_percentage! / 100)
+                ).toLocaleString("en-US")} LBP`}
+          </td>
+          <td className="border rounded-b-sm  px-4 py-2 font-bold">
+            <label>
+              <span>
+                <input
+                  value={draftTotalPaid}
+                  type="number"
+                  onChange={(e) => handleTotalPaidChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="w-13 text-right"
+                  min={0}
+                  max={
+                    totalPrice * patientInsuranceCompanyRate -
+                    totalPrice *
+                      patientInsuranceCompanyRate *
+                      (updatedInvoiceData.discount_percentage! / 100)
+                  }
+                />
+              </span>
+              <span className="ml-1 select-none">
+                {currency === "USD" ? "$" : "LBP"}
+              </span>
+            </label>
+          </td>
+          <td className="border rounded-b-sm  px-4 py-2 font-bold">
+            {currency === "USD"
+              ? `${roundTo(
+                  totalPrice * patientInsuranceCompanyRate -
+                    totalPrice *
+                      patientInsuranceCompanyRate *
+                      (updatedInvoiceData.discount_percentage! / 100) -
+                    updatedInvoiceData.total_paid!,
+                  2
+                )} $`
+              : `${(
+                  totalPrice * patientInsuranceCompanyRate -
+                  totalPrice *
+                    patientInsuranceCompanyRate *
+                    (updatedInvoiceData.discount_percentage! / 100) -
+                  updatedInvoiceData.total_paid!
                 ).toLocaleString("en-US")} LBP`}
           </td>
         </tr>

@@ -126,6 +126,7 @@ export type InvoiceWrapperProps = {
   showSignature: boolean;
 };
 export type InvoiceData = {
+  total_paid: number;
   invoice_number: number;
   visit_id: string;
   discount_percentage: number;
@@ -147,6 +148,7 @@ export type updateInvoiceData = {
   currency?: string;
   discount_percentage?: number;
   patient_insurance_company_rate?: number;
+  total_paid?: number;
 };
 export type visitResultData = {
   list_of_standalone_test_results: patientTestResult[];
