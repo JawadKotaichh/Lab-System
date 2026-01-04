@@ -874,9 +874,16 @@ export function getVisitsColumns(
         const net = row.original.total_price_with_insurance ?? 0;
         const paid = row.original.total_paid ?? 0;
         const remaining = net - paid;
+        const value =
+          currency === "USD"
+            ? `${remaining.toFixed(2)} $`
+            : `${remaining.toLocaleString("en-US")} LBP`;
 
-        if (currency === "USD") return `${remaining.toFixed(2)} $`;
-        return `${remaining.toLocaleString("en-US")} LBP`;
+        return (
+          <span className={remaining !== 0 ? "text-red-600" : undefined}>
+            {value}
+          </span>
+        );
       },
       sortingFn: (rowA, rowB, columnId) => {
         const a = rowA.getValue<number>(columnId) ?? 0;

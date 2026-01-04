@@ -17,6 +17,8 @@ interface PricesParams {
   setError: React.Dispatch<React.SetStateAction<string>>;
   patientData: patientInfo;
 }
+const clamp = (n: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, n));
 
 const Prices: React.FC<PricesParams> = ({
   updatedInvoiceData,
@@ -150,12 +152,15 @@ const Prices: React.FC<PricesParams> = ({
 
   const handleDiscountInputChange = (value: string) => {
     const parsed = Number(value);
-    setDraftDiscount(Number.isNaN(parsed) ? 0 : parsed);
-  };
+    if (Number.isNaN(parsed)) return setDraftDiscount(0);
 
+    setDraftDiscount(clamp(parsed, 0, 100));
+  };
   const handleTotalPaidChange = (value: string) => {
     const parsed = Number(value);
-    setDraftTotalPaid(Number.isNaN(parsed) ? 0 : parsed);
+    if (Number.isNaN(parsed)) return setDraftDiscount(0);
+
+    setDraftTotalPaid(clamp(parsed, 0, netTotal));
   };
 
   return (
