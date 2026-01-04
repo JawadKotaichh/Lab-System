@@ -426,7 +426,7 @@ const App: React.FC = () => {
           <Route
             path="/invoice/:visit_id"
             element={
-              <RequireAuth user={user} allowedRoles={["admin"]}>
+              <RequireAuth user={user} allowedRoles={["admin", "patient"]}>
                 <InvoiceContainer />
               </RequireAuth>
             }
@@ -434,7 +434,7 @@ const App: React.FC = () => {
           <Route
             path="/result/:visit_id"
             element={
-              <RequireAuth user={user} allowedRoles={["admin"]}>
+              <RequireAuth user={user} allowedRoles={["admin", "patient"]}>
                 <ResultContainer />
               </RequireAuth>
             }
