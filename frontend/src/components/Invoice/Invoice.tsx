@@ -7,10 +7,15 @@ import {
   View,
   Text,
   PDFViewer,
+  BlobProvider,
 } from "@react-pdf/renderer";
 import { styles } from "./InvoiceStyle";
 import TestsTableInvoice from "./TestsTableInvoice";
 import type { InvoiceWrapperProps } from "../types";
+
+const isMobile =
+  typeof navigator !== "undefined" &&
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
   invoice_number,
@@ -108,6 +113,23 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
   </Document>
 );
 export default function Invoice(props: InvoiceWrapperProps) {
+  if (isMobile) {
+    return (
+      <div style={{ padding: 16 }}>
+        <BlobProvider document={<InvoicePdf {...props} />}>
+          {({ url, loading, error }) => {
+            if (loading) return <div>Generating PDF…</div>;
+            if (error || !url) return <div>PDF failed to generate.</div>;
+            return (
+              <a href={url} target="_blank" rel="noreferrer">
+                Open Invoice PDF
+              </a>
+            );
+          }}
+        </BlobProvider>
+      </div>
+    );
+  }
   return (
     <PDFViewer width="100%" height="100%">
       <InvoicePdf key={props.patient.patient_id} {...props} />
