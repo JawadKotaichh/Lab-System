@@ -27,11 +27,11 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.headerFixed} fixed>
-        {/* <Image
+        <Image
           src={`${baseURLL}/branding/lab_header`}
           style={styles.lab_header}
           fixed
-        /> */}
+        />
         <View style={styles.invoiceNumber}>
           <Text>Invoice Number: {invoice_number}</Text>
         </View>
@@ -89,20 +89,20 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         currency={currency}
       />
       <View style={[{ textAlign: "right" }]}>
-        {/* {showSignature && (
+        {showSignature && (
           <Image
             src={`${baseURLL}/branding/lab_signature`}
             style={styles.lab_signature}
           />
-        )} */}
+        )}
         <Text>Signature</Text>
         <Text style={[{ top: 20 }]}>2009/37</Text>
       </View>
       <View style={styles.footer} fixed wrap={false}>
-        {/* <Image
+        <Image
           src={`${baseURLL}/branding/lab_address`}
           style={styles.footerImage}
-        /> */}
+        />
       </View>
     </Page>
   </Document>
