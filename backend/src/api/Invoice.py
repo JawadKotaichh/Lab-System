@@ -126,6 +126,7 @@ async def get_monthly_summary_invoice(
             patient_insurance_company_rate=patient_insurance_company_rate,
             visit_id=str(db_visit.id),
             invoice_number=invoice.invoice_number,
+            total_paid=invoice.total_paid,
         )
         current_invoice_data = invoiceData(
             patient=currentPatient,
@@ -182,6 +183,8 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         existing_invoice.list_of_lab_panels = update_data.list_of_lab_panels
     if update_data.insurance_company_id is not None:
         existing_invoice.insurance_company_id = update_data.insurance_company_id
+    if update_data.total_paid is not None:
+        existing_invoice.total_paid = update_data.total_paid
     await existing_invoice.replace()
 
     return existing_invoice
@@ -336,6 +339,7 @@ async def rebuild_invoice(visit_id: str):
         patient_insurance_company_rate=patient_insurance_company_rate,
         discount_percentage=db_invoice.discount_percentage,
         invoice_number=db_invoice.invoice_number,
+        total_paid=db_invoice.total_paid,
     )
 
     db_invoice.list_of_lab_panels = listOfPanels
@@ -447,6 +451,7 @@ async def get_invoice(visit_id: str):
         patient_insurance_company_rate=patient_insurance_company_rate,
         insurance_company_id=str(db_patient.insurance_company_id),
         invoice_number=db_invoice.invoice_number,
+        total_paid=db_invoice.total_paid,
     )
     output_invoice_data = invoiceData(
         patient=currentPatient,
@@ -518,6 +523,7 @@ async def get_invoices_with_page_size(
             insurance_company_id=str(db_patient.insurance_company_id),
             patient_insurance_company_rate=patient_insurance_company_rate,
             invoice_number=invoice.invoice_number,
+            total_paid=invoice.total_paid,
         )
         allInvoices.append(currentInvoice)
 
