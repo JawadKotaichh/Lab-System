@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import type {
   labPanel,
+  labPanelFilter,
   patientPanelResult,
   patientTestResult,
   updateInvoiceData,
@@ -25,6 +26,15 @@ import { labTestResultApiURL } from "../data";
 import type { PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "../renderNormalValue";
 import LoadingPage from "../LoadingPage/LoadingPage";
+
+function useDebounced<T>(value: T, delay = 500) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return v;
+}
 
 interface ErrorResponse {
   detail: string;
@@ -71,6 +81,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   const [totalNumberOfLabPanels, setTotalNumberOfLabPanels] =
     useState<number>(0);
   const [searchInput, setSearchInput] = useState<string>("");
+  const debouncedSearch = useDebounced(searchInput, 500);
 
   const handleAddLabPanel = async (visit_id: string, lab_panel_id: string) => {
     setLoading(true);
@@ -97,7 +108,6 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       setShowPanelsTable(false);
       markExistingLabTestIdsDirty();
       void refreshResults();
-      // window.location.reload();
     } catch (err: unknown) {
       console.error("🛑 handleAddLabPanel error:", err);
       let message = "Failed to add lab panel";
@@ -121,16 +131,47 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   };
 
   useEffect(() => {
-    setLoading(true);
-    fetchLabPanelsPaginated(currentPage, pageSize)
-      .then((panelData) => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    let canceled = false;
+
+    const loadPanels = async () => {
+      try {
+        setLoading(true);
+        let filters: labPanelFilter | undefined = undefined;
+        const trimmedSearch = debouncedSearch.trim();
+        if (trimmedSearch) {
+          filters = { panel_name: trimmedSearch };
+        }
+
+        const panelData = await fetchLabPanelsPaginated(
+          currentPage,
+          pageSize,
+          filters
+        );
+
+        if (canceled) return;
+
         setAvailableLabPanels(panelData.lab_panels);
         setTotalPages(panelData.total_pages);
         setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
-      })
-      .catch((err) => setError(err.message || err.toString()))
-      .finally(() => setLoading(false));
-  }, [currentPage, pageSize]);
+      } catch (err) {
+        if (!canceled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
+      } finally {
+        if (!canceled) setLoading(false);
+      }
+    };
+
+    loadPanels();
+
+    return () => {
+      canceled = true;
+    };
+  }, [currentPage, pageSize, debouncedSearch]);
 
   if (loading) return <LoadingPage title="Loading lab panels ..." />;
   return (
