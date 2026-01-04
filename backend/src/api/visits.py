@@ -329,6 +329,7 @@ async def get_visits_with_page_size(
                 total_tests_results=total_tests_results,
                 insurance_company_name=insurance_company.insurance_company_name,
                 currency=insurance_company.currency,
+                total_paid=db_invoice.total_paid,
             )
         )
 
@@ -464,6 +465,12 @@ async def get_visit(visit_id: PydanticObjectId):
         raise HTTPException(
             404, f"Insurance Company of patient {db_patient.id} not found"
         )
+    db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
+    if not db_invoice:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Invoice with visit id: {db_visit.id} not found",
+        )
     total_price_with_insurance = total_price * insurance_company.rate
     insurance_company_name = insurance_company.insurance_company_name
     visit_data = VisitData(
@@ -478,6 +485,7 @@ async def get_visit(visit_id: PydanticObjectId):
         total_tests_results=total_tests_results,
         insurance_company_name=insurance_company_name,
         currency=insurance_company.currency,
+        total_paid=db_invoice.total_paid,
     )
     return visit_data
 
