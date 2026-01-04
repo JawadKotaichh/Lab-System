@@ -365,6 +365,7 @@ export type visitData = {
   total_price: number;
   total_price_with_insurance: number;
   insurance_company_name: string;
+  total_paid: number;
 };
 export type paginatedlabTest = {
   total_pages: number;
