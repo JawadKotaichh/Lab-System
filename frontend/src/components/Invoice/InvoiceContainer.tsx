@@ -52,12 +52,12 @@ export default function InvoiceContainer() {
     version.current += 1;
   }, [discountPercentage, visit_id]);
 
-  console.log("patient: ", patient);
-  console.log("visisDate: ", visitDate);
-  console.log("totalPrice: ", totalPrice);
-  console.log("===================TESTING CURRENCY=====================");
-  console.log(currency);
-  console.log("===================TESTING CURRENCY=====================");
+  // console.log("patient: ", patient);
+  // console.log("visisDate: ", visitDate);
+  // console.log("totalPrice: ", totalPrice);
+  // console.log("===================TESTING CURRENCY=====================");
+  // console.log(currency);
+  // console.log("===================TESTING CURRENCY=====================");
 
   if (loading) return <LoadingPage title="Loading invoice ..." />;
   if (error) return <div>Error: {error}</div>;
