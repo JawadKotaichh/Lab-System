@@ -18,10 +18,16 @@ const TestsTableInvoice = ({
   const formatPrice = (currency: string, value?: number) =>
     ` ${
       currency === "USD"
-        ? `${(patient_insurance_company_rate * (value ?? 0)).toFixed(2)} $`
-        : `${(patient_insurance_company_rate * (value ?? 0)).toLocaleString(
-            "en-US"
-          )} LBP`
+        ? `${(
+            patient_insurance_company_rate *
+            discount_percentage *
+            (value ?? 0)
+          ).toFixed(2)} $`
+        : `${(
+            patient_insurance_company_rate *
+            discount_percentage *
+            (value ?? 0)
+          ).toLocaleString("en-US")} LBP`
     }`;
 
   const getPrice = (test: labTest) => formatPrice(currency, test.price);
