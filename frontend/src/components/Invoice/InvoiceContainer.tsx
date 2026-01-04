@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { type labPanel, type labTest, type patientInfo } from "../types";
+import {
+  AuthUser,
+  type labPanel,
+  type labTest,
+  type patientInfo,
+} from "../types";
 import { fetchInvoice } from "../utils";
 import Invoice from "./Invoice";
 import ShowWithSignature from "../ShowWithSignature";
@@ -23,6 +28,23 @@ export default function InvoiceContainer() {
   const [currency, setCurrency] = useState<string>("");
   const [showSignature, setShowSignature] = useState<boolean>(true);
   const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
+  const [user] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem("auth_user");
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored) as AuthUser;
+    } catch {
+      return null;
+    }
+  });
+  const isPatient = user?.role === "patient";
+
+  useEffect(() => {
+    if (isPatient) {
+      setShowSignature(true);
+      setShowSignatureOption(false);
+    }
+  }, [isPatient]);
   useEffect(() => {
     fetchInvoice(visit_id!)
       .then((data) => {
@@ -52,19 +74,18 @@ export default function InvoiceContainer() {
     version.current += 1;
   }, [discountPercentage, visit_id]);
 
-  console.log("patient: ", patient);
-  console.log("visisDate: ", visitDate);
-  console.log("totalPrice: ", totalPrice);
-  console.log("===================TESTING CURRENCY=====================");
-  console.log(currency);
-  console.log("===================TESTING CURRENCY=====================");
+  // console.log("patient: ", patient);
+  // console.log("visisDate: ", visitDate);
+  // console.log("totalPrice: ", totalPrice);
+  // console.log("===================TESTING CURRENCY=====================");
+  // console.log(currency);
+  // console.log("===================TESTING CURRENCY=====================");
 
   if (loading) return <LoadingPage title="Loading invoice ..." />;
   if (error) return <div>Error: {error}</div>;
-
   return (
     <div style={{ width: "100%", height: "800px" }}>
-      {showSignatureOption && (
+      {!isPatient && showSignatureOption && (
         <ShowWithSignature
           setShowSignature={setShowSignature}
           setShowSignatureOption={setShowSignatureOption}

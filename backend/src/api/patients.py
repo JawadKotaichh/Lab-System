@@ -4,6 +4,7 @@ from ..models import Patient as DBPatient
 from ..models import insurance_company as DBInsurance_company
 from ..models import Visit as DBVisit
 from ..models import Invoice as DBInvoice
+from ..models import User as DBUser
 from ..models import lab_test_result as DBLab_test_result
 from ..schemas.schema_Patient import Patient, update_patient_model
 from fastapi.responses import Response
@@ -211,12 +212,17 @@ async def delete_patient(patient_id: str):
         raise HTTPException(400, "Invalid patient ID")
 
     pid = PydanticObjectId(patient_id)
-
+    user_to_be_deleted = await DBUser.find_one(
+        DBUser.user_id == PydanticObjectId(patient_id)
+    )
     patient_to_be_deleted = await DBPatient.find_one(
         DBPatient.id == PydanticObjectId(patient_id)
     )
     if patient_to_be_deleted is None:
         raise HTTPException(404, f"Patient {patient_id} not found")
+    if user_to_be_deleted is not None:
+        await user_to_be_deleted.delete()
+
     visit_docs = await DBVisit.find(DBVisit.patient_id == pid).to_list()
     visit_ids = [v.id for v in visit_docs]
     if visit_ids:
