@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import type {
+  AuthUser,
   patientInfo,
   patientPanelResult,
   patientTestResult,
@@ -27,7 +28,22 @@ export default function ResultContainer() {
   const version = useRef(0);
   const [showSignature, setShowSignature] = useState<boolean>(true);
   const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
-
+  const [user] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem("auth_user");
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored) as AuthUser;
+    } catch {
+      return null;
+    }
+  });
+  const isPatient = user?.role === "patient";
+  useEffect(() => {
+    if (isPatient) {
+      setShowSignature(true);
+      setShowSignatureOption(false);
+    }
+  }, [isPatient]);
   useEffect(() => {
     fetchResultList(visit_id!)
       .then((data) => {
@@ -50,7 +66,7 @@ export default function ResultContainer() {
 
   return (
     <div style={{ width: "100%", height: "800px" }}>
-      {showSignatureOption && (
+      {!isPatient && showSignatureOption && (
         <ShowWithSignature
           setShowSignature={setShowSignature}
           setShowSignatureOption={setShowSignatureOption}
