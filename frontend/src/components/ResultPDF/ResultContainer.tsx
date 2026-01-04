@@ -54,7 +54,10 @@ export default function ResultContainer() {
         setReportDate(new Date(data.report_date));
         setLoading(false);
       })
-      .catch((err) => setError(err.message || "Failed to load"));
+      .catch((err) => {
+        setError(err.message || "Failed to load");
+        setLoading(false);
+      });
     version.current += 1;
   }, [visit_id]);
 
