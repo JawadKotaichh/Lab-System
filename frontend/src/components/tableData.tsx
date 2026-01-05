@@ -873,7 +873,7 @@ export function getVisitsColumns(
         const currency = row.original.currency ?? "USD";
         const net = row.original.total_price_with_insurance ?? 0;
         const paid = row.original.total_paid ?? 0;
-        const remaining = net - paid;
+        const remaining = Math.max(0, net - paid);
         const value =
           currency === "USD"
             ? `${remaining.toFixed(2)} $`
