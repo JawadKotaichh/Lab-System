@@ -36,6 +36,7 @@ app.include_router(authentication_router)
 origins = [
     "http://20.174.9.177:5173",
     "https://mango-field-0a3015403.3.azurestaticapps.net",
+    "https://www.alsahamed.com",
     "http://20.174.9.177:8080",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
