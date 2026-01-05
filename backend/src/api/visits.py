@@ -321,7 +321,6 @@ async def get_visits_with_page_size(
                 total_price=total_price,
                 report_date=db_visit.report_date,
                 total_price_with_insurance=total_price_with_insurance
-                - total_price_with_insurance
                 + db_invoice.adjustment_minor,
                 patient=patient,
                 visit_id=str(visit.id),
