@@ -21,7 +21,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
   visit_date,
   patient_insurance_company_rate,
   showSignature,
-  discount_percentage,
+  adjustment_minor,
   currency,
 }) => (
   <Document>
@@ -78,7 +78,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
       </View>
       <TestsTableInvoice
         invoice_number={invoice_number}
-        discount_percentage={discount_percentage}
+        adjustment_minor={adjustment_minor}
         showSignature={showSignature}
         list_of_lab_panels={list_of_lab_panels}
         list_of_tests={list_of_tests}

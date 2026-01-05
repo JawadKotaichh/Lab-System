@@ -54,7 +54,7 @@ const EditVisitPage: React.FC = () => {
     pageSize: 50,
   });
   const [updatedInvoiceData, setUpdatedInvoiceData] =
-    useState<updateInvoiceData>({ discount_percentage: 0 });
+    useState<updateInvoiceData>({ adjustment_minor: 0 });
   const [reportDate, setReportDate] = useState<Date>(new Date());
   const [visitDate, setVisitDate] = useState<Date>(new Date());
   const [addError, setAddError] = useState<string>("");

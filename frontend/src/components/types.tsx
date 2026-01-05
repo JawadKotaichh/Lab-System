@@ -121,7 +121,7 @@ export type InvoiceWrapperProps = {
   patient: patientInfo;
   visit_date: Date;
   total_price: number;
-  discount_percentage: number;
+  adjustment_minor: number;
   patient_insurance_company_rate: number;
   showSignature: boolean;
 };
@@ -129,7 +129,7 @@ export type InvoiceData = {
   total_paid: number;
   invoice_number: number;
   visit_id: string;
-  discount_percentage: number;
+  adjustment_minor: number;
   list_of_lab_panels: labPanel[];
   list_of_tests: labTest[];
   visit_date: Date;
@@ -146,7 +146,7 @@ export type updateInvoiceData = {
   visit_id?: string;
   visit_date?: Date;
   currency?: string;
-  discount_percentage?: number;
+  adjustment_minor?: number;
   patient_insurance_company_rate?: number;
   total_paid?: number;
 };

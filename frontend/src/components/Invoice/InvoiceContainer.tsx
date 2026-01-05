@@ -24,7 +24,7 @@ export default function InvoiceContainer() {
   const [error, setError] = useState<string>("");
   const version = useRef(0);
   const [listOfPanels, setListOfPanels] = useState<labPanel[]>([]);
-  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+  const [adjustmentAmount, setAdjustmentAmount] = useState<number>(0);
   const [currency, setCurrency] = useState<string>("");
   const [showSignature, setShowSignature] = useState<boolean>(true);
   const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
@@ -60,7 +60,7 @@ export default function InvoiceContainer() {
           (acc, panel) => acc + (panel.lab_panel_price ?? 0),
           0
         );
-        setDiscountPercentage(data.invoice_data.discount_percentage);
+        setAdjustmentAmount(data.invoice_data.adjustment_minor);
         setCurrency(data.currency);
         setTotalPrice(testsTotal + panelsTotal);
         setListOfPanels(data.invoice_data.list_of_lab_panels);
@@ -75,7 +75,7 @@ export default function InvoiceContainer() {
         setLoading(false);
       });
     version.current += 1;
-  }, [discountPercentage, visit_id]);
+  }, [adjustmentAmount, visit_id]);
 
   // console.log("patient: ", patient);
   // console.log("visisDate: ", visitDate);
@@ -97,7 +97,7 @@ export default function InvoiceContainer() {
       {!showSignatureOption && (
         <Invoice
           invoice_number={invoiceNumber}
-          discount_percentage={discountPercentage}
+          adjustment_minor={adjustmentAmount}
           showSignature={showSignature}
           list_of_lab_panels={listOfPanels}
           patient_insurance_company_rate={patientInsuranceCompanyRate}
