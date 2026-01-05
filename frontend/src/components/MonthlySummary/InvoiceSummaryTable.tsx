@@ -12,7 +12,6 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
       sum +
       getTotalPrice(
         d.patient_insurance_company_rate,
-        d.discount_percentage,
         d.list_of_tests,
         d.list_of_lab_panels
       )
@@ -37,7 +36,6 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
           const cuurent_patient = currentInvoice.patient;
           const rowTotal = getTotalPrice(
             current_invoice_data.patient_insurance_company_rate,
-            current_invoice_data.discount_percentage,
             current_invoice_data.list_of_tests,
             current_invoice_data.list_of_lab_panels
           );

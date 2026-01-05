@@ -32,13 +32,13 @@ const Prices: React.FC<PricesParams> = ({
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
     useState<number>(0);
 
-  const [draftDiscount, setDraftDiscount] = useState<number>(
-    updatedInvoiceData.discount_percentage ?? 0
+  const [draftAdjustment, setDraftAdjustment] = useState<number>(
+    updatedInvoiceData.adjustment_minor ?? 0
   );
-  const prevSyncedDiscount = useRef<number>(
-    updatedInvoiceData.discount_percentage ?? 0
+  const prevSyncedAdjustment = useRef<number>(
+    updatedInvoiceData.adjustment_minor ?? 0
   );
-  const debouncedDiscount = useDebounce(draftDiscount, 1500);
+  const debouncedAdjustment = useDebounce(draftAdjustment, 1500);
 
   const [draftTotalPaid, setDraftTotalPaid] = useState<number>(
     updatedInvoiceData.total_paid ?? 0
@@ -53,9 +53,7 @@ const Prices: React.FC<PricesParams> = ({
 
   const gross = totalPrice * patientInsuranceCompanyRate;
 
-  const safeDiscount = Math.min(100, Math.max(0, draftDiscount));
-  const discountAmount = gross * (safeDiscount / 100);
-  const netTotal = gross - discountAmount;
+  const netTotal = gross + draftAdjustment;
 
   const safePaid = Math.max(0, draftTotalPaid);
   const remaining = netTotal - safePaid;
@@ -97,10 +95,10 @@ const Prices: React.FC<PricesParams> = ({
   }, [patientData.patient_id, setError]);
 
   useEffect(() => {
-    const synced = updatedInvoiceData.discount_percentage ?? 0;
-    prevSyncedDiscount.current = synced;
-    setDraftDiscount(synced);
-  }, [updatedInvoiceData.discount_percentage]);
+    const synced = updatedInvoiceData.adjustment_minor ?? 0;
+    prevSyncedAdjustment.current = synced;
+    setDraftAdjustment(synced);
+  }, [updatedInvoiceData.adjustment_minor]);
 
   useEffect(() => {
     const synced = updatedInvoiceData.total_paid ?? 0;
@@ -112,14 +110,14 @@ const Prices: React.FC<PricesParams> = ({
     const sync = async () => {
       const payload: Partial<updateInvoiceData> = {};
 
-      const safeDebouncedDiscount = Math.min(
+      const safeDebouncedAdjustement = Math.min(
         100,
-        Math.max(0, debouncedDiscount)
+        Math.max(0, debouncedAdjustment)
       );
       const safeDebouncedPaid = Math.max(0, debouncedTotalPaid);
 
-      if (safeDebouncedDiscount !== prevSyncedDiscount.current) {
-        payload.discount_percentage = safeDebouncedDiscount;
+      if (safeDebouncedAdjustement !== prevSyncedAdjustment.current) {
+        payload.adjustment_minor = safeDebouncedAdjustement;
       }
       if (safeDebouncedPaid !== prevSyncedTotalPaid.current) {
         payload.total_paid = safeDebouncedPaid;
@@ -132,8 +130,8 @@ const Prices: React.FC<PricesParams> = ({
         const fetched = await fetchInvoice(visit_id);
         setUpdatedInvoiceData(fetched.invoice_data);
 
-        prevSyncedDiscount.current =
-          fetched.invoice_data.discount_percentage ?? 0;
+        prevSyncedAdjustment.current =
+          fetched.invoice_data.adjustment_minor ?? 0;
         prevSyncedTotalPaid.current = fetched.invoice_data.total_paid ?? 0;
       } catch (err: unknown) {
         console.error(err);
@@ -143,22 +141,22 @@ const Prices: React.FC<PricesParams> = ({
 
     sync();
   }, [
-    debouncedDiscount,
+    debouncedAdjustment,
     debouncedTotalPaid,
     visit_id,
     setError,
     setUpdatedInvoiceData,
   ]);
 
-  const handleDiscountInputChange = (value: string) => {
+  const handleAdjustmentInputChange = (value: string) => {
     const parsed = Number(value);
-    if (Number.isNaN(parsed)) return setDraftDiscount(0);
+    if (Number.isNaN(parsed)) return setDraftAdjustment(0);
 
-    setDraftDiscount(clamp(parsed, 0, 100));
+    setDraftAdjustment(clamp(parsed, 0, 100));
   };
   const handleTotalPaidChange = (value: string) => {
     const parsed = Number(value);
-    if (Number.isNaN(parsed)) return setDraftDiscount(0);
+    if (Number.isNaN(parsed)) return setDraftTotalPaid(0);
 
     setDraftTotalPaid(clamp(parsed, 0, netTotal));
   };
@@ -168,7 +166,7 @@ const Prices: React.FC<PricesParams> = ({
       <thead className="bg-gray-300 border-b border-black top-0 z-10">
         <tr>
           <th className="h-8 px-0 py-2">Total Price</th>
-          <th className="h-8 px-0 py-2">Discount</th>
+          <th className="h-8 px-0 py-2">Adjustment</th>
           <th className="h-8 px-0 py-2">Net Total</th>
           <th className="h-8 px-0 py-2">Paid</th>
           <th className="h-8 px-0 py-2">Remaining</th>
@@ -184,16 +182,18 @@ const Prices: React.FC<PricesParams> = ({
             <label>
               <span>
                 <input
-                  value={draftDiscount}
+                  value={draftAdjustment}
                   type="number"
-                  onChange={(e) => handleDiscountInputChange(e.target.value)}
+                  onChange={(e) => handleAdjustmentInputChange(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                   className="w-16 text-right"
                   min={0}
                   max={100}
                 />
               </span>
-              <span className="ml-1 select-none">%</span>
+              <span className="ml-1 select-none">
+                {currency === "USD" ? "$" : "LBP"}
+              </span>
             </label>
           </td>
 

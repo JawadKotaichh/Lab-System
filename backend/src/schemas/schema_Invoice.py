@@ -13,7 +13,7 @@ class Invoice(BaseModel):
     visit_id: str = Field(...)
     visit_date: datetime = Field(...)
     patient_insurance_company_rate: float = Field(...)
-    discount_percentage: float = Field(...)
+    adjustment_minor: float = Field(default=0.0)
     insurance_company_id: str = Field(...)
     total_paid: int = Field(...)
 
@@ -36,6 +36,6 @@ class update_invoice(BaseModel):
     visit_id: Optional[str] = None
     visit_date: Optional[datetime] = None
     patient_insurance_company_rate: Optional[float] = None
-    discount_percentage: Optional[float] = None
+    adjustment_minor: Optional[float] = None
     insurance_company_id: Optional[str] = None
     total_paid: Optional[int] = None

@@ -153,9 +153,6 @@ class Invoice(Document):
     list_of_lab_panels: List[LabPanelResponse] = Field(...)
     visit_id: PydanticObjectId = Field(...)
     visit_date: datetime = Field(...)
-    discount_percentage: float = Field(...)
+    adjustment_minor: float = Field(default=0.0)
     insurance_company_id: PydanticObjectId = Field(...)
     total_paid: int = Field(default=0)
-
-    # total_price_with_insurance: float = Field(...)
-    # total_without_insurance: float = Field(...)
