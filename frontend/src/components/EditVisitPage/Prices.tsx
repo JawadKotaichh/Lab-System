@@ -54,6 +54,10 @@ const Prices: React.FC<PricesParams> = ({
   const gross = totalPrice * patientInsuranceCompanyRate;
 
   const netTotal = gross + draftAdjustment;
+  console.log("netTotal: ", netTotal);
+  console.log("gross: ", gross);
+  console.log("patientInsuranceCompanyRate: ", patientInsuranceCompanyRate);
+  console.log("totalPrice: ", totalPrice);
 
   const safePaid = Math.max(0, draftTotalPaid);
   const remaining = netTotal - safePaid;
@@ -187,8 +191,6 @@ const Prices: React.FC<PricesParams> = ({
                   onChange={(e) => handleAdjustmentInputChange(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                   className="w-16 text-right"
-                  min={0}
-                  max={100}
                 />
               </span>
               <span className="ml-1 select-none">
