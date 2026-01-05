@@ -60,7 +60,7 @@ const Prices: React.FC<PricesParams> = ({
   console.log("totalPrice: ", totalPrice);
 
   const safePaid = Math.max(0, draftTotalPaid);
-  const remaining = netTotal - safePaid;
+  const remaining = Math.max(0, netTotal - safePaid);
 
   const formatMoney = (value: number) => {
     if (currency === "USD") return `${roundTo(value, 2)} $`;
