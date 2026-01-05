@@ -8,7 +8,6 @@ const TestsTableInvoice = ({
   total_price,
   patient_insurance_company_rate,
   list_of_lab_panels,
-  discount_percentage,
   currency,
 }: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
@@ -17,10 +16,7 @@ const TestsTableInvoice = ({
 
   const formatPrice = (currency: string, value: number = 0) => {
     const rate = patient_insurance_company_rate ?? 1;
-    const discount = discount_percentage ?? 0;
-
-    const base = value * rate;
-    const final = base - (base * discount) / 100;
+    const final = value * rate;
     return currency === "USD"
       ? `${final.toFixed(2)} $`
       : `${final.toLocaleString("en-US")} LBP`;
@@ -130,19 +126,11 @@ const TestsTableInvoice = ({
               ]}
             >
               {currency === "USD"
-                ? `${(
-                    total_price * patient_insurance_company_rate -
-                    (total_price *
-                      patient_insurance_company_rate *
-                      discount_percentage) /
-                      100
-                  ).toFixed(2)} $`
+                ? `${(total_price * patient_insurance_company_rate).toFixed(
+                    2
+                  )} $`
                 : `${(
-                    total_price * patient_insurance_company_rate -
-                    (total_price *
-                      patient_insurance_company_rate *
-                      discount_percentage) /
-                      100
+                    total_price * patient_insurance_company_rate
                   ).toLocaleString("en-US")} LBP`}
             </Text>
           </View>
@@ -151,11 +139,7 @@ const TestsTableInvoice = ({
       <View style={[{ textAlign: "center" }, styles.AmountBox]} wrap={false}>
         <Text>
           {amountToWords(
-            total_price * patient_insurance_company_rate -
-              (total_price *
-                patient_insurance_company_rate *
-                discount_percentage) /
-                100,
+            total_price * patient_insurance_company_rate,
             currency
           )}
         </Text>
