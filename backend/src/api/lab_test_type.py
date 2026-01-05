@@ -87,10 +87,14 @@ async def get_Lab_test_type_with_page_size(
         db_category = await DBlab_test_category.find_one(
             DBlab_test_category.id == test.lab_test_category_id
         )
+        print(f"lab test id: {test.id}")
+        print(f"lab test: {test.name}")
+        print(f"lab test category id: {test.lab_test_category_id}")
+
         if db_category is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Lab Test Type {test.lab_test_category_id} not found",
+                detail=f"Lab Test category {test.lab_test_category_id} not found",
             )
 
         lab_test = Lab_test_type(
