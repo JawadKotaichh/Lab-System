@@ -187,8 +187,7 @@ const EditVisitPage: React.FC = () => {
     };
 
     loadPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visit_id]);
+  }, [refreshResults, visit_id]);
 
   const handleSaveAll = async () => {
     if (!Object.keys(pendingResults).length) {
