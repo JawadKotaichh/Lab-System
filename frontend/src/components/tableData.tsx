@@ -1124,11 +1124,6 @@ export function getVisitsColumnsUser(
                   onClick: () => navigate(`/result/${visit_id}`),
                   className: "text-blue-600",
                 },
-                {
-                  label: "View Invoice",
-                  onClick: () => navigate(`/invoice/${visit_id}`),
-                  className: "text-blue-600",
-                },
               ]}
             />
           </div>
