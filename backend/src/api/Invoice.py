@@ -118,7 +118,7 @@ async def get_monthly_summary_invoice(
             )
             list_of_test_types.append(lab_test)
         current_invoice = Invoice(
-            discount_percentage=invoice.discount_percentage,
+            adjustment_minor=invoice.adjustment_minor,
             insurance_company_id=str(invoice.insurance_company_id),
             list_of_tests=list_of_test_types,
             list_of_lab_panels=invoice.list_of_lab_panels,
@@ -151,8 +151,8 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
 
-    if update_data.discount_percentage is not None:
-        existing_invoice.discount_percentage = update_data.discount_percentage
+    if update_data.adjustment_minor is not None:
+        existing_invoice.adjustment_minor = update_data.adjustment_minor
     if update_data.visit_date is not None:
         existing_invoice.visit_date = update_data.visit_date
     if update_data.list_of_tests is not None:
@@ -337,7 +337,7 @@ async def rebuild_invoice(visit_id: str):
         visit_id=visit_id,
         visit_date=visit_date,
         patient_insurance_company_rate=patient_insurance_company_rate,
-        discount_percentage=db_invoice.discount_percentage,
+        adjustment_minor=db_invoice.adjustment_minor,
         invoice_number=db_invoice.invoice_number,
         total_paid=db_invoice.total_paid,
     )
@@ -372,7 +372,7 @@ async def create_invoice(visit_id: str, patient: Patient):
         list_of_tests=[],
         list_of_lab_panels=[],
         visit_date=db_visit.visit_date,
-        discount_percentage=0.0,
+        adjustment_minor=0.0,
         insurance_company_id=patient.insurance_company_id,
         invoice_number=await get_next_sequence("invoice_number"),
     )
@@ -443,7 +443,7 @@ async def get_invoice(visit_id: str):
         )
         list_of_lab_test.append(lab_test)
     currentInvoice = Invoice(
-        discount_percentage=db_invoice.discount_percentage,
+        adjustment_minor=db_invoice.adjustment_minor,
         visit_id=str(db_invoice.visit_id),
         list_of_tests=list_of_lab_test,
         list_of_lab_panels=db_invoice.list_of_lab_panels,
@@ -515,7 +515,7 @@ async def get_invoices_with_page_size(
             )
         patient_insurance_company_rate = db_insurance_company.rate
         currentInvoice = Invoice(
-            discount_percentage=invoice.discount_percentage,
+            adjustment_minor=invoice.adjustment_minor,
             list_of_lab_panels=invoice.list_of_lab_panels,
             list_of_tests=invoice.list_of_tests,
             visit_id=invoice.visit_id,

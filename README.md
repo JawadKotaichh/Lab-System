@@ -49,7 +49,6 @@ A comprehensive laboratory management system for managing patients, visits, lab 
 3. The system automatically calculates:
    - Individual test prices
    - Panel prices
-   - Insurance discounts
    - Total amounts
 4. Export as PDF
 
