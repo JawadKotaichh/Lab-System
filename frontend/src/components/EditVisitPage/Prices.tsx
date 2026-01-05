@@ -150,7 +150,7 @@ const Prices: React.FC<PricesParams> = ({
     const parsed = Number(value);
     if (Number.isNaN(parsed)) return setDraftAdjustment(0);
 
-    setDraftAdjustment(clamp(parsed, 0, 100));
+    setDraftAdjustment(parsed);
   };
   const handleTotalPaidChange = (value: string) => {
     const parsed = Number(value);
