@@ -90,6 +90,7 @@ const VisitsTable: React.FC = () => {
           pagination.pageSize,
           filters
         );
+        console.log("visit Data: ", res.visitsData);
         setData(res.visitsData);
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfVisits);
