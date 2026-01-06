@@ -198,6 +198,30 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
                 status_code=400,
                 detail=f"No financial_transacion found for visit with id: {visit_id}!",
             )
+    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+    if db_patient is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Patient with visit id: {db_visit.id} not found",
+        )
+
+    db_insurance_company = await DBInsurance_company.find_one(
+        DBInsurance_company.id == db_patient.insurance_company_id
+    )
+    if db_insurance_company is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Insurance company with id: {db_patient.insurance_company_id} not found",
+        )
+    total_price = 0
+    for test in existing_invoice.list_of_tests:
+        total_price += test.price
+    for panel in existing_invoice.list_of_lab_panels:
+        total_price += panel.lab_panel_price
+    total_price *= db_insurance_company.rate
+    if existing_invoice.total_paid >= total_price:
+        db_visit.posted = True
+        await db_visit.replace()
     await existing_invoice.replace()
 
     return existing_invoice
