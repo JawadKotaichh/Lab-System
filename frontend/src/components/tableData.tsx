@@ -17,6 +17,7 @@ import type {
   description_only,
   updateInvoiceData,
   visitData,
+  financialTransaction,
   // user,
 } from "./types";
 import {
@@ -969,6 +970,146 @@ export function getVisitsColumns(
         );
       },
     },
+  ];
+}
+
+export function getFinancialTransactionColumns(
+  navigate: NavigateFunction,
+  showFilters: Record<string, boolean>,
+  toggleFilter: (id: string) => void
+  // setError: React.Dispatch<React.SetStateAction<string>>
+): ColumnDef<financialTransaction>[] {
+  return [
+    {
+      accessorKey: "date",
+      cell: ({ getValue }) => {
+        const iso = getValue<string>() ?? "";
+        return iso.split("T")[0];
+      },
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          inputType="date"
+          column={column}
+          placeholder="Search financial transaction date…"
+          label="Date"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "category",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          column={column}
+          placeholder="Search category..."
+          label="Category"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
+      accessorKey: "amount",
+      cell: ({ row }) => {
+        const currency = row.original.currency ?? "$";
+        if (currency === "USD") return `${row.original.amount.toFixed(2)} $`;
+        else return `${row.original.amount.toLocaleString("en-US")} LBP`;
+      },
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={false}
+          column={column}
+          placeholder="Search amount..."
+          label="Amount"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+        const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+        return a - b;
+      },
+    },
+    {
+      accessorKey: "description",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          column={column}
+          placeholder="Search description..."
+          label="Description"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    // {
+    //   id: "actions",
+    //   enableSorting: false,
+    //   header: () => <div className="text-xl mt-4 text-center">Actions</div>,
+    //   cell: ({ row }) => {
+    //     const { visit_id, patient, insurance_company_name, posted } =
+    //       row.original;
+    //     return (
+    //       <div className="flex justify-center gap-4">
+    //         <MeatballsMenu
+    //           items={[
+    //             {
+    //               label: "Edit",
+    //               onClick: () =>
+    //                 navigate(`${visitEditPageURL}${visit_id}`, {
+    //                   state: {
+    //                     patientData: {
+    //                       ...patient,
+    //                       insurance_company_name: insurance_company_name,
+    //                     },
+    //                   },
+    //                 }),
+    //             },
+    //             {
+    //               label: "Preview Result",
+    //               onClick: () => navigate(`/result/${visit_id}`),
+    //               className: "text-blue-600",
+    //             },
+    //             {
+    //               label: "View Invoice",
+    //               onClick: () => navigate(`/invoice/${visit_id}`),
+    //               className: "text-blue-600",
+    //             },
+    //             {
+    //               label: "Delete",
+    //               onClick: () =>
+    //                 handleDeleteVisit({
+    //                   elementID: visit_id,
+    //                   setError,
+    //                 }),
+    //               className: "text-red-600",
+    //             },
+    //           ]}
+    //         />
+    //       </div>
+    //     );
+    //   },
+    // },
   ];
 }
 

@@ -2,11 +2,11 @@ import { useNavigate } from "react-router-dom";
 // import DateRangePicker from './DataRangePicker';
 import React, { useEffect, useState } from "react";
 // import api from '../../../api';
-import { fetchVisitsPaginated } from "../utils";
-import { type visitData } from "../types";
+import { fetchFinancialTransactionsPaginated } from "../utils";
+import { financialTransaction } from "../types";
 import Pagination from "../Pagination";
 import { pageListTitle, tableHead, tableItem } from "../../style";
-import { getVisitsColumns } from "../tableData";
+import { getFinancialTransactionColumns } from "../tableData";
 import {
   getCoreRowModel,
   getPaginationRowModel,
@@ -19,8 +19,8 @@ import {
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
 
-const VisitsTable: React.FC = () => {
-  const [data, setData] = useState<visitData[]>([]);
+const FinancialTransactionsTable: React.FC = () => {
+  const [data, setData] = useState<financialTransaction[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
@@ -47,15 +47,15 @@ const VisitsTable: React.FC = () => {
   const handleSetPageSize = (size: number) => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
-  const visitsCols = getVisitsColumns(
+  const financialTransactionCols = getFinancialTransactionColumns(
     navigate,
     showFilters,
-    toggleFilter,
-    setError
+    toggleFilter
+    // setError
   );
   const table = useReactTable({
     data,
-    columns: visitsCols,
+    columns: financialTransactionCols,
     pageCount: totalPages,
     state: { pagination, columnFilters, sorting },
     manualPagination: true,
@@ -85,15 +85,18 @@ const VisitsTable: React.FC = () => {
           },
           {}
         );
-        const res = await fetchVisitsPaginated(
+        const res = await fetchFinancialTransactionsPaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
           filters
         );
-        console.log("visit Data: ", res.visitsData);
-        setData(res.visitsData);
+        console.log(
+          "Financial transactions Data: ",
+          res.financial_transactions
+        );
+        setData(res.financial_transactions);
         setTotalPages(res.total_pages);
-        setTotalNumberOfPaginatedItems(res.TotalNumberOfVisits);
+        setTotalNumberOfPaginatedItems(res.TotalNumberOfFinancialTransactions);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -107,8 +110,9 @@ const VisitsTable: React.FC = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handleRefresh = () => setRefreshKey((prev) => prev + 1);
-    window.addEventListener("visit-deleted", handleRefresh);
-    return () => window.removeEventListener("visit-deleted", handleRefresh);
+    window.addEventListener("financialTransaction-deleted", handleRefresh);
+    return () =>
+      window.removeEventListener("financialTransaction-deleted", handleRefresh);
   }, []);
 
   useEffect(() => {
@@ -117,11 +121,11 @@ const VisitsTable: React.FC = () => {
     );
   }, [columnFilters]);
 
-  if (loading) return <LoadingPage title="Loading visits ..." />;
+  if (loading) return <LoadingPage title="Loading financial transactions..." />;
 
   return (
     <div className="p-8 bg-white">
-      <h1 className={pageListTitle}>Visits</h1>
+      <h1 className={pageListTitle}>Financial Transactions</h1>
       {error && <div className="text-red-600">{error}</div>}
 
       <GenericTable
@@ -129,7 +133,7 @@ const VisitsTable: React.FC = () => {
         loading={loading}
         tableHeadStyle={tableHead}
         cellStyle={tableItem}
-        noDataMessage="No visits found"
+        noDataMessage="No financial transactions found"
       />
       <Pagination
         TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
@@ -142,4 +146,5 @@ const VisitsTable: React.FC = () => {
     </div>
   );
 };
-export default VisitsTable;
+
+export default FinancialTransactionsTable;
