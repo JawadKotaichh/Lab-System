@@ -81,6 +81,22 @@ export function getInsuranceCompanyColumns(
   return [
     {
       accessorKey: "insurance_company_name",
+      cell: ({ row }) => {
+        const insuranceCompanyId = row.original.insurance_company_id;
+        const insuranceCompanyName = row.original.insurance_company_name;
+        return (
+          <button
+            type="button"
+            onClick={() =>
+              navigate(`${InsuranceEditPageURL}${insuranceCompanyId}`)
+            }
+            className="text-blue-600 hover:underline cursor-pointer"
+            title="Edit insurance company"
+          >
+            {insuranceCompanyName}
+          </button>
+        );
+      },
       header: ({ column }) => (
         <ColumnFilter
           withFilter={true}
@@ -91,6 +107,7 @@ export function getInsuranceCompanyColumns(
           toggleShowFilter={() => toggleFilter(column.id)}
         />
       ),
+
       sortingFn: (rowA, rowB, columnId) => {
         const a = (rowA.getValue(columnId) as string).toLowerCase();
         const b = (rowB.getValue(columnId) as string).toLowerCase();
@@ -144,13 +161,6 @@ export function getInsuranceCompanyColumns(
             <MeatballsMenu
               items={[
                 {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(
-                      `${InsuranceEditPageURL}${company.insurance_company_id}`
-                    ),
-                },
-                {
                   label: "Delete",
                   onClick: () =>
                     handleDeleteInsuranceCompany({
@@ -185,7 +195,7 @@ export function getPatientsColumns(
             type="button"
             onClick={() => navigate(`/patients/edit-patient/${patientId}`)}
             className="text-blue-600 hover:underline cursor-pointer"
-            title="Edit Patient"
+            title="Edit patient"
           >
             {patient_name}
           </button>
@@ -436,6 +446,20 @@ export function getLabTestColumns(
           toggleShowFilter={() => toggleFilter(column.id)}
         />
       ),
+      cell: ({ row }) => {
+        const labTestId = row.original.lab_test_id;
+        const labTestName = row.original.name;
+        return (
+          <button
+            type="button"
+            onClick={() => navigate(`${labTestEditPageURL}${labTestId}`)}
+            className="text-blue-600 hover:underline cursor-pointer"
+            title="Edit lab test"
+          >
+            {labTestName}
+          </button>
+        );
+      },
       sortingFn: (rowA, rowB, columnId) => {
         const a = (rowA.getValue(columnId) as string).toLowerCase();
         const b = (rowB.getValue(columnId) as string).toLowerCase();
@@ -627,21 +651,15 @@ export function getLabTestColumns(
               }),
           });
         } else {
-          items.push(
-            {
-              label: "Edit",
-              onClick: () => navigate(`${labTestEditPageURL}${lab_test_id}`),
-            },
-            {
-              label: "Delete",
-              className: "text-red-600",
-              onClick: () =>
-                handleDeleteLabTest({
-                  elementID: lab_test_id,
-                  setError,
-                }),
-            }
-          );
+          items.push({
+            label: "Delete",
+            className: "text-red-600",
+            onClick: () =>
+              handleDeleteLabTest({
+                elementID: lab_test_id,
+                setError,
+              }),
+          });
         }
         if (items.length == 1) {
           return (
@@ -687,6 +705,22 @@ export function getLabTestCategoryColumns(
           toggleShowFilter={() => toggleFilter(column.id)}
         />
       ),
+      cell: ({ row }) => {
+        const labTestCategoryId = row.original.lab_test_category_id;
+        const labTestCategoryName = row.original.lab_test_category_name;
+        return (
+          <button
+            type="button"
+            onClick={() =>
+              navigate(`${labTestCategoryEditPageURL}${labTestCategoryId}`)
+            }
+            className="text-blue-600 hover:underline cursor-pointer"
+            title="Edit lab test category"
+          >
+            {labTestCategoryName}
+          </button>
+        );
+      },
       sortingFn: (rowA, rowB, columnId) => {
         const a = (rowA.getValue(columnId) as string).toLowerCase();
         const b = (rowB.getValue(columnId) as string).toLowerCase();
@@ -704,13 +738,6 @@ export function getLabTestCategoryColumns(
           <div className="flex justify-center">
             <MeatballsMenu
               items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(
-                      `${labTestCategoryEditPageURL}${lab_test_category_id}`
-                    ),
-                },
                 {
                   label: "Delete",
                   onClick: () =>
