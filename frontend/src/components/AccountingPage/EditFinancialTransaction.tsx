@@ -161,7 +161,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
-            {i.typeOfInput === "Selection" ? (
+            {/* {i.typeOfInput === "Selection" ? (
               <select
                 className={inputFormAttributeListItemInput}
                 value={isAddingCategory ? "__new__" : data.category || ""}
@@ -212,6 +212,100 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
                   </>
                 )}
               </select>
+            ) : (
+              <input
+                className={inputFormAttributeListItemInput}
+                type={i.typeOfInput}
+                value={
+                  data[i.attributeName as keyof financialTransaction] || ""
+                }
+                placeholder={i.placeHolder}
+                onChange={(e) =>
+                  handleInputChange({
+                    attributeName: i.attributeName,
+                    value: e.target.value,
+                  })
+                }
+              />
+            )}
+             */}
+            {i.typeOfInput === "Selection" ? (
+              i.attributeName === "Category" ? (
+                <>
+                  <select
+                    className={inputFormAttributeListItemInput}
+                    value={isAddingCategory ? "__new__" : data.category || ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "__new__") {
+                        setIsAddingCategory(true);
+                        setData((prev) => ({ ...prev, category: "" }));
+                      } else {
+                        setIsAddingCategory(false);
+                        setNewCategory("");
+                        setData((prev) => ({ ...prev, category: v }));
+                      }
+                    }}
+                  >
+                    <option value="" disabled>
+                      — Select category —
+                    </option>
+
+                    {allTransactionsCategories.map((tc) => (
+                      <option key={tc.id} value={tc.category}>
+                        {tc.category}
+                      </option>
+                    ))}
+
+                    <option value="__new__">+ Add new category…</option>
+                  </select>
+
+                  {isAddingCategory && (
+                    <input
+                      className={inputFormAttributeListItemInput}
+                      type="text"
+                      placeholder="Type new category…"
+                      value={newCategory}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setNewCategory(v);
+                        setData((prev) => ({ ...prev, category: v }));
+                      }}
+                    />
+                  )}
+                </>
+              ) : (
+                <select
+                  className={inputFormAttributeListItemInput}
+                  value={String(
+                    data[i.attributeName as keyof financialTransaction] ?? ""
+                  )}
+                  onChange={(e) =>
+                    handleInputChange({
+                      attributeName: i.attributeName,
+                      value: e.target.value,
+                    })
+                  }
+                >
+                  {i.attributeName === "currency" ? (
+                    <>
+                      <option value="" disabled>
+                        — Select currency —
+                      </option>
+                      <option value="USD">USD</option>
+                      <option value="LBP">LBP</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="" disabled>
+                        — Select type —
+                      </option>
+                      <option value="Income">Income</option>
+                      <option value="Expense">Expense</option>
+                    </>
+                  )}
+                </select>
+              )
             ) : (
               <input
                 className={inputFormAttributeListItemInput}
