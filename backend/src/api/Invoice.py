@@ -219,6 +219,7 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     for panel in existing_invoice.list_of_lab_panels:
         total_price += panel.lab_panel_price
     total_price *= db_insurance_company.rate
+    total_price += existing_invoice.adjustment_minor
     if existing_invoice.total_paid >= total_price:
         db_visit.posted = True
         await db_visit.replace()
