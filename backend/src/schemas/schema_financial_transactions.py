@@ -19,5 +19,5 @@ class update_financial_transaction(BaseModel):
     amount: Optional[float] = None
     currency: Optional[float] = None
     description: Optional[float] = None
-    category: Optional[float] = None
+    category: Optional[str] = None
     visit_id: Optional[str] = None
