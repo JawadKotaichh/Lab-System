@@ -70,7 +70,7 @@ export default function PlusButtonMenu({
         <MenuItems
           className={[
             menuPos,
-            "w-52 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black/5 p-1 focus:outline-none",
+            "z-50 w-52 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black/5 p-1 focus:outline-none",
           ].join(" ")}
         >
           {actions.map((a) => (

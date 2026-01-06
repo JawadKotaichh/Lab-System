@@ -1004,6 +1004,24 @@ export function getFinancialTransactionColumns(
       },
     },
     {
+      accessorKey: "type",
+      header: ({ column }) => (
+        <ColumnFilter
+          withFilter={true}
+          column={column}
+          placeholder="Search type..."
+          label="Type"
+          showFilter={!!showFilters[column.id]}
+          toggleShowFilter={() => toggleFilter(column.id)}
+        />
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) as string).toLowerCase();
+        const b = (rowB.getValue(columnId) as string).toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
+    {
       accessorKey: "category",
       header: ({ column }) => (
         <ColumnFilter

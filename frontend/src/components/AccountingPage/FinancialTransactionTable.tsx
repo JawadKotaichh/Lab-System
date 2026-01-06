@@ -73,12 +73,12 @@ const FinancialTransactionsTable: React.FC = () => {
     {
       label: "Add Income",
       onClick: () => {
-        navigate("/financial-transactions/income");
+        navigate("/financial-transactions/create-transaction/income");
       },
     },
     {
       label: "Add Expense",
-      onClick: () => navigate("/financial-transactions/expense"),
+      onClick: () => navigate("/financial-transactions/create-transaction/expense"),
       className: "text-red-600",
     },
   ];
@@ -137,7 +137,7 @@ const FinancialTransactionsTable: React.FC = () => {
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between">
         <h1 className={pageListTitle}>Financial Transactions</h1>
-        <PlusButtonMenu variant="toolbar" actions={plusActions} label="Add" />
+        <PlusButtonMenu variant="toolbar" actions={plusActions} />
       </div>
 
       {error && <div className="text-red-600">{error}</div>}
