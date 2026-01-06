@@ -78,7 +78,8 @@ const FinancialTransactionsTable: React.FC = () => {
     },
     {
       label: "Add Expense",
-      onClick: () => navigate("/financial-transactions/create-transaction/expense"),
+      onClick: () =>
+        navigate("/financial-transactions/create-transaction/expense"),
       className: "text-red-600",
     },
   ];

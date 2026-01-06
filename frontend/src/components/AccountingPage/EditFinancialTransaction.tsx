@@ -35,7 +35,11 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
     kind?: string;
     transaction_id?: string;
   }>();
-  const initialType: TYPEE = isTYPEE(kind) ? kind : "income";
+  const initialType = isTYPEE(kind)
+    ? kind === "income"
+      ? "Income"
+      : "Expense"
+    : "";
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -78,6 +82,13 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
         });
     }
   }, [transaction_id]);
+  useEffect(() => {
+    if (!transaction_id && initialType) {
+      setData((prev) =>
+        prev.type ? prev : { ...prev, type: initialType }
+      );
+    }
+  }, [initialType, transaction_id]);
 
   const handleInputChange = ({
     attributeName,
@@ -96,7 +107,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
       data.date == "" ||
       data.category == "" ||
       data.currency == "" ||
-      data.type == initialType ||
+      data.type.trim() == "" ||
       data.amount == 0
     ) {
       setState("Please insert all the required fields!");
