@@ -177,6 +177,20 @@ export function getPatientsColumns(
   return [
     {
       accessorKey: "name",
+      cell: ({ row }) => {
+        const patientId = row.original.patient_id;
+        const patient_name = row.original.name;
+        return (
+          <button
+            type="button"
+            onClick={() => navigate(`/patients/edit-patient/${patientId}`)}
+            className="text-blue-600 hover:underline cursor-pointer"
+            title="Edit Patient"
+          >
+            {patient_name}
+          </button>
+        );
+      },
       header: ({ column }) => (
         <ColumnFilter
           withFilter={true}
@@ -301,11 +315,6 @@ export function getPatientsColumns(
           <div className="flex justify-center">
             <MeatballsMenu
               items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(`/patients/edit-patient/${patient_id}`),
-                },
                 {
                   label: "Delete",
                   onClick: () =>
