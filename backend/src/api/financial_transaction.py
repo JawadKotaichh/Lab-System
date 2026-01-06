@@ -6,7 +6,7 @@ from ..schemas.schema_financial_transactions import (
     update_financial_transaction,
 )
 from fastapi.responses import Response
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 from math import ceil
 from fastapi import Query
 from beanie import PydanticObjectId
@@ -140,23 +140,48 @@ async def create_financial_transaction(data: financial_transaction):
     return new_financial_transaction
 
 
+# @router.get("/all", response_model=List[Dict[str, Any]])
+# async def getAllFinancialTransactions() -> List[Dict[str, Any]]:
+#     cursor = DBfinancial_transaction.find()
+#     all_financial_transactions: List[Dict[str, Any]] = []
+#     async for element in cursor:
+#         all_financial_transactions.append(
+#             {
+#                 "id": str(element.id),
+#                 "type": element.type,
+#                 "date": element.date,
+#                 "amount": element.amount,
+#                 "currency": element.currency,
+#                 "description": element.description,
+#                 "category": element.category,
+#             }
+#         )
+#     return all_financial_transactions
+
+
 @router.get("/all", response_model=List[Dict[str, Any]])
-async def getAllFinancialTransactions() -> List[Dict[str, Any]]:
-    cursor = DBfinancial_transaction.find()
-    all_financial_transactions: List[Dict[str, Any]] = []
+async def get_unique_category_financial_transactions() -> List[Dict[str, Any]]:
+    pipeline: Sequence[Mapping[str, Any]] = [
+        {"$sort": {"date": -1}},
+        {"$group": {"_id": "$category", "doc": {"$first": "$$ROOT"}}},
+        {"$replaceRoot": {"newRoot": "$doc"}},
+    ]
+
+    cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
+
+    results: List[Dict[str, Any]] = []
     async for element in cursor:
-        all_financial_transactions.append(
+        results.append(
             {
-                "id": str(element.id),
-                "type": element.type,
-                "date": element.date,
-                "amount": element.amount,
-                "currency": element.currency,
-                "description": element.description,
-                "category": element.category,
+                "type": element.get("type"),
+                "date": element.get("date"),
+                "amount": element.get("amount"),
+                "currency": element.get("currency"),
+                "description": element.get("description"),
+                "category": element.get("category"),
             }
         )
-    return all_financial_transactions
+    return results
 
 
 @router.get("/{financial_transaction_id}", response_model=financial_transaction)
