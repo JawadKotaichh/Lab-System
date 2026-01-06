@@ -167,9 +167,60 @@ export const listOfAttributesInvoice = [
   },
 ];
 
+// Financial transactions
+const FinancialTransactionsApiURL = "/financial_transaction/";
+const FinancialTransactionsMainPageURL = "/financial-transactions";
+const listOfAttributesFinancialTransaction = [
+  {
+    subItem: "Type",
+    attributeName: "type",
+    typeOfInput: "Selection",
+    icon: "User",
+    placeHolder: "Enter transaction type",
+  },
+  {
+    subItem: "Date",
+    attributeName: "date",
+    typeOfInput: "date",
+    icon: "Calendar",
+    placeHolder: "Enter date of the transaction",
+  },
+  {
+    subItem: "Currency",
+    attributeName: "currency",
+    typeOfInput: "Selection",
+    icon: "DollarSign",
+    placeHolder: "Enter transaction currency",
+  },
+  {
+    subItem: "Category",
+    attributeName: "category",
+    typeOfInput: "Selection",
+    icon: "building",
+    placeHolder: "Enter transaction category",
+  },
+  {
+    subItem: "Amount",
+    attributeName: "amount",
+    typeOfInput: "number",
+    icon: "DollarSign",
+    placeHolder: "Enter transaction amount",
+  },
+   {
+    subItem: "Description",
+    attributeName: "description",
+    typeOfInput: "string",
+    icon: "building",
+    placeHolder: "Enter description",
+  },
+];
 
 
 
+
+export{FinancialTransactionsMainPageURL};
+export{FinancialTransactionsApiURL};
+export{listOfAttributesFinancialTransaction};
 export{labTestCategoryMainPageURL};
 export{labTestCategoryEditPageURL};
 export{labTestCategoryCreatePageURL};
