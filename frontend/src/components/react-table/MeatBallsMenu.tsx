@@ -29,8 +29,8 @@ const MENU_VERTICAL_OFFSET_PX = 8;
 
 type PlacementSyncProps = {
   open: boolean;
-  buttonRef: RefObject<HTMLButtonElement>;
-  menuRef: RefObject<HTMLDivElement>;
+  buttonRef: RefObject<HTMLButtonElement | null>;
+  menuRef: RefObject<HTMLDivElement | null>;
   setOpenUp: Dispatch<SetStateAction<boolean>>;
 };
 
