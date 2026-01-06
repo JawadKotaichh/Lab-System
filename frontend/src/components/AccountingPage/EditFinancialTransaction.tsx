@@ -230,7 +230,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
             )}
              */}
             {i.typeOfInput === "Selection" ? (
-              i.attributeName === "Category" ? (
+              i.attributeName === "category" ? (
                 <>
                   <select
                     className={inputFormAttributeListItemInput}
