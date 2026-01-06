@@ -7,6 +7,7 @@ interface GenericTableProps<TData> {
   tableStyle?: string;
   tableHeadStyle?: string;
   cellStyle?: string;
+  renderFooterRow?: (table: Table<TData>) => React.ReactNode;
 }
 
 const GenericTable = <TData,>({
@@ -16,6 +17,7 @@ const GenericTable = <TData,>({
   tableStyle = "overflow-y-auto overflow-visible relative border rounded-b-sm w-full table-auto bg-white shadow text-center",
   tableHeadStyle,
   cellStyle = "px-4 py-2",
+  renderFooterRow,
 }: GenericTableProps<TData>) => (
   <div className="w-full ">
     <table className={tableStyle}>
@@ -52,6 +54,7 @@ const GenericTable = <TData,>({
           </tr>
         )}
       </tbody>
+      {renderFooterRow ? <tfoot>{renderFooterRow(table)}</tfoot> : null}
     </table>
   </div>
 );
