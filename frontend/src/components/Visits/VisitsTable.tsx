@@ -142,23 +142,4 @@ const VisitsTable: React.FC = () => {
     </div>
   );
 };
-
-// {
-//   /* <div className="absolute top-5 left-1/2 transform -translate-x-1/2 text-center bg-white p-4 rounded-xl shadow-md">             */
-// }
-// {
-//   /* <DateRangePicker startDate={startDate} endDate={endDate} setEndDate={setEndDate} setStartDate={setStartDate}/>
-//                     <button
-//                         onClick={handleSubmit}
-//                         className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-//                         >
-//                             Submit
-//                     </button>
-//                     <p className="mt-4 text-gray-700">{status}</p> */
-// }
-
-// {
-//   /* </div> */
-// }
-
 export default VisitsTable;
