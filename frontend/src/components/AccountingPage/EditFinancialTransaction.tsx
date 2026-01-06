@@ -13,7 +13,14 @@ import {
   stateStyle,
 } from "../../style";
 import type { PageTitle, financialTransaction } from "../types";
-import { Building, Calendar, DollarSign, Phone, User } from "lucide-react";
+import {
+  BadgeDollarSign,
+  CalendarDays,
+  Coins,
+  FileText,
+  Tag,
+  TrendingUp,
+} from "lucide-react";
 import {
   fetchAllFinancialTransactions,
   fetchFinancialTransaction,
@@ -132,16 +139,18 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {
-      case "dollarsign":
-        return <DollarSign className={iconStyle} />;
-      case "user":
-        return <User className={iconStyle} />;
-      case "calendar":
-        return <Calendar className={iconStyle} />;
-      case "phone":
-        return <Phone className={iconStyle} />;
-      case "building":
-        return <Building className={iconStyle} />;
+      case "type":
+        return <TrendingUp className={iconStyle} />;
+      case "date":
+        return <CalendarDays className={iconStyle} />;
+      case "currency":
+        return <Coins className={iconStyle} />;
+      case "category":
+        return <Tag className={iconStyle} />;
+      case "amount":
+        return <BadgeDollarSign className={iconStyle} />;
+      case "description":
+        return <FileText className={iconStyle} />;
       default:
         return null;
     }
@@ -161,74 +170,6 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
-            {/* {i.typeOfInput === "Selection" ? (
-              <select
-                className={inputFormAttributeListItemInput}
-                value={isAddingCategory ? "__new__" : data.category || ""}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === "__new__") {
-                    setIsAddingCategory(true);
-                    setData((prev) => ({ ...prev, category: "" }));
-                  } else {
-                    setIsAddingCategory(false);
-                    setNewCategory("");
-                    setData((prev) => ({ ...prev, category: v }));
-                  }
-                }}
-              >
-                {i.subItem === "Category" ? (
-                  <>
-                    <option value="" disabled>
-                      — Select category —
-                    </option>
-                    {allTransactionsCategories.map((tc) => (
-                      <option key={tc.id} value={tc.category}>
-                        {tc.category}
-                      </option>
-                    ))}
-                    <option value="__new__">+ Add new category…</option>
-                    {isAddingCategory && (
-                      <input
-                        className={inputFormAttributeListItemInput}
-                        type="text"
-                        placeholder="Type new category…"
-                        value={newCategory}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          setNewCategory(v);
-                          setData((prev) => ({ ...prev, category: v }));
-                        }}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <option value="" disabled>
-                      — Select type —
-                    </option>
-                    <option value="Income">Income</option>
-                    <option value="Expense">Expense</option>
-                  </>
-                )}
-              </select>
-            ) : (
-              <input
-                className={inputFormAttributeListItemInput}
-                type={i.typeOfInput}
-                value={
-                  data[i.attributeName as keyof financialTransaction] || ""
-                }
-                placeholder={i.placeHolder}
-                onChange={(e) =>
-                  handleInputChange({
-                    attributeName: i.attributeName,
-                    value: e.target.value,
-                  })
-                }
-              />
-            )}
-             */}
             {i.typeOfInput === "Selection" ? (
               i.attributeName === "category" ? (
                 <>
@@ -306,13 +247,32 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
                   )}
                 </select>
               )
+            ) : i.attributeName === "description" ? (
+              <textarea
+                className={
+                  inputFormAttributeListItemInput + " min-h-[120px] resize-y"
+                }
+                value={String(data.description ?? "")}
+                placeholder={i.placeHolder}
+                onChange={(e) =>
+                  handleInputChange({
+                    attributeName: "description",
+                    value: e.target.value,
+                  })
+                }
+                onInput={(e) => {
+                  const el = e.currentTarget;
+                  el.style.height = "auto";
+                  el.style.height = `${el.scrollHeight}px`;
+                }}
+              />
             ) : (
               <input
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
-                value={
-                  data[i.attributeName as keyof financialTransaction] || ""
-                }
+                value={String(
+                  data[i.attributeName as keyof financialTransaction] ?? ""
+                )}
                 placeholder={i.placeHolder}
                 onChange={(e) =>
                   handleInputChange({
