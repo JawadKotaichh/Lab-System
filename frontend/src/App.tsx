@@ -145,7 +145,7 @@ const navItemsAdmin: NavItem[] = [
   { to: "/visits", label: "Visits", end: true },
   { to: "/patients", label: "Patients" },
   { to: "/monthly-summary", label: "Month Summary" },
-  { to: "/accounting", label: "Accounting" },
+  { to: "/financial_transactions", label: "Financial Transactions" },
 ];
 const navItemsUser: NavItem[] = [
   { to: "/my_visits", label: "My Visits", end: true },
@@ -290,7 +290,7 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/accounting"
+            path="/financial_transactions"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
                 <FinancialTransactionTable />
