@@ -137,7 +137,7 @@ const FinancialTransactionsTable: React.FC = () => {
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between">
         <h1 className={pageListTitle}>Financial Transactions</h1>
-        <PlusButtonMenu variant="toolbar" actions={plusActions} label="Add" />
+        <PlusButtonMenu variant="toolbar" actions={plusActions} />
       </div>
 
       {error && <div className="text-red-600">{error}</div>}
