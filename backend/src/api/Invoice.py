@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import Invoice as DBInvoice
+from ..models import Financial_transaction as DBFinancial_transaction
 from ..schemas.schema_Invoice import (
     Invoice,
     invoiceData,
@@ -185,6 +186,17 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         existing_invoice.insurance_company_id = update_data.insurance_company_id
     if update_data.total_paid is not None:
         existing_invoice.total_paid = update_data.total_paid
+
+        existing_financial_transacion = await DBFinancial_transaction.find_one(
+            DBFinancial_transaction.visit_id == PydanticObjectId(visit_id)
+        )
+        if existing_financial_transacion is not None:
+            existing_financial_transacion.amount = update_data.total_paid
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No financial_transacion found for visit with id: {visit_id}!",
+            )
     await existing_invoice.replace()
 
     return existing_invoice
@@ -379,6 +391,29 @@ async def create_invoice(visit_id: str, patient: Patient):
     new_invoice = await db_invoice.insert()
     if not new_invoice:
         raise HTTPException(status_code=404, detail="Invoice was not created")
+    db_insurance_company = await DBInsurance_company.find_one(
+        DBInsurance_company.id == PydanticObjectId(patient.insurance_company_id)
+    )
+    if not db_insurance_company:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insurance Company of ID: {patient.insurance_company_id} not found!",
+        )
+
+    db_financial_transacion = DBFinancial_transaction(
+        type="Income",
+        currency=db_insurance_company.currency,
+        date=db_visit.visit_date,
+        amount=0.0,
+        description=f"Paid by: {patient.name}",
+        category="Visit",
+        visit_id=PydanticObjectId(visit_id),
+    )
+    new_financial_transaction = await db_financial_transacion.insert()
+    if not new_financial_transaction:
+        raise HTTPException(
+            status_code=404, detail="Financial Transation was not created"
+        )
     return new_invoice
 
 
