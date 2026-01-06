@@ -69,8 +69,8 @@ const EditPatientPage = ({ title }: PageTitle) => {
           })
         )
         .catch((err) => {
-          console.error("Failed to fetch insurance company data:", err);
-          setState("Failed to load insurance company data");
+          console.error("Failed to fetch patient data:", err);
+          setState("Failed to load patient data");
         });
     }
   }, [patient_id]);

@@ -3,6 +3,7 @@ import type {
   CreateLabTestParams,
   CreatePatientAccountProps,
   fetchedInvoiceData,
+  financialTransaction,
   financialTransactionsFilters,
   insuranceCompanyParams,
   InsuranceFilters,
@@ -335,8 +336,23 @@ const fetchFinancialTransactionsPaginated = async (
   const response = await api.get(url, { params: filters });
   return response.data;
 };
+const fetchFinancialTransaction = async (
+  transaction_id: string
+): Promise<financialTransaction> => {
+  const response = await api.get(`/financial_transaction/${transaction_id}`);
+  return response.data;
+};
+const fetchAllFinancialTransactions = async (): Promise<
+  financialTransaction[]
+> => {
+  const url = "/financial_transaction/all";
+  const response = await api.get(url);
+  return response.data;
+};
 
+export { fetchFinancialTransaction };
 export { fetchFinancialTransactionsPaginated };
+export { fetchAllFinancialTransactions };
 export { apiFetch };
 export { loginUser };
 export { refreshSession };

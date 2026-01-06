@@ -39,6 +39,7 @@ import { AuthUser, Role } from "./components/types";
 import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
 import UserVisitsPage from "./components/UserVisitsPage/UserVisitsPage";
 import FinancialTransactionTable from "./components/AccountingPage/FinancialTransactionTable";
+import EditFinancialTransaction from "./components/AccountingPage/EditFinancialTransaction";
 type NavItem = {
   to: string;
   label: string;
@@ -61,7 +62,7 @@ function RequireAuth({
     // if user tries to access a page not allowed for their role
     return (
       <UnauthorizedPage
-        homePath={user.role === "admin" ? "/visits" : "/my_visits"}
+        homePath={user.role === "admin" ? "/visits" : "/my-visits"}
       />
     );
   }
@@ -96,7 +97,7 @@ function LoginRoute({
             if (res.role == "admin") {
               navigate("/visits", { replace: true });
             } else {
-              navigate("/my_visits", { replace: true });
+              navigate("/my-visits", { replace: true });
             }
             return;
           }
@@ -145,10 +146,10 @@ const navItemsAdmin: NavItem[] = [
   { to: "/visits", label: "Visits", end: true },
   { to: "/patients", label: "Patients" },
   { to: "/monthly-summary", label: "Month Summary" },
-  { to: "/financial_transactions", label: "Financial Transactions" },
+  { to: "/financial-transactions", label: "Financial Transactions" },
 ];
 const navItemsUser: NavItem[] = [
-  { to: "/my_visits", label: "My Visits", end: true },
+  { to: "/my-visits", label: "My Visits", end: true },
 ];
 
 const App: React.FC = () => {
@@ -269,7 +270,7 @@ const App: React.FC = () => {
             element={
               user ? (
                 <Navigate
-                  to={user.role === "admin" ? "/visits" : "/my_visits"}
+                  to={user.role === "admin" ? "/visits" : "/my-visits"}
                   replace
                 />
               ) : (
@@ -290,7 +291,7 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/financial_transactions"
+            path="/financial-transactions"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
                 <FinancialTransactionTable />
@@ -298,7 +299,23 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/my_visits"
+            path="/financial-transactions/edit-patient/:transaction-id"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <EditFinancialTransaction title={"Edit Transaction"} />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/financial-transactions/create-transaction/:kind"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <EditFinancialTransaction title={"Create Transaction"} />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/my-visits"
             element={
               <RequireAuth user={user} allowedRoles={["patient"]}>
                 <UserVisitsPage />
@@ -470,7 +487,7 @@ const App: React.FC = () => {
             element={
               user ? (
                 <Navigate
-                  to={user.role === "admin" ? "/visits" : "/my_visits"}
+                  to={user.role === "admin" ? "/visits" : "/my-visits"}
                   replace
                 />
               ) : (
