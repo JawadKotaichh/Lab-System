@@ -192,6 +192,7 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         )
         if existing_financial_transacion is not None:
             existing_financial_transacion.amount = update_data.total_paid
+            await existing_financial_transacion.replace()
         else:
             raise HTTPException(
                 status_code=400,

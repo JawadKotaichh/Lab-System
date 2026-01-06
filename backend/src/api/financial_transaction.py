@@ -113,15 +113,25 @@ async def get_financial_transaction_with_page_size(
     summary="Create a new financial_transaction",
 )
 async def create_financial_transaction(data: financial_transaction):
-    db_financial_transaction = DBfinancial_transaction(
-        type=data.type,
-        currency=data.currency,
-        date=data.date,
-        amount=data.amount,
-        description=data.description,
-        category=data.category,
-        visit_id=PydanticObjectId(data.visit_id),
-    )
+    if data.visit_id is not None:
+        db_financial_transaction = DBfinancial_transaction(
+            type=data.type,
+            currency=data.currency,
+            date=data.date,
+            amount=data.amount,
+            description=data.description,
+            category=data.category,
+            visit_id=PydanticObjectId(data.visit_id),
+        )
+    else:
+        db_financial_transaction = DBfinancial_transaction(
+            type=data.type,
+            currency=data.currency,
+            date=data.date,
+            amount=data.amount,
+            description=data.description,
+            category=data.category,
+        )
     new_financial_transaction = await db_financial_transaction.insert()
     if not new_financial_transaction:
         raise HTTPException(
@@ -142,15 +152,25 @@ async def get_financial_transaction(financial_transaction_id: str):
         raise HTTPException(
             404, f"financial_transaction {financial_transaction_id} not found"
         )
-    output = financial_transaction(
-        type=existing_financial_transaction.type,
-        currency=existing_financial_transaction.currency,
-        date=existing_financial_transaction.date,
-        amount=existing_financial_transaction.amount,
-        description=existing_financial_transaction.description,
-        category=existing_financial_transaction.category,
-        visit_id=existing_financial_transaction.visit_id,
-    )
+    if existing_financial_transaction.visit_id is not None:
+        output = financial_transaction(
+            type=existing_financial_transaction.type,
+            currency=existing_financial_transaction.currency,
+            date=existing_financial_transaction.date,
+            amount=existing_financial_transaction.amount,
+            description=existing_financial_transaction.description,
+            category=existing_financial_transaction.category,
+            visit_id=str(existing_financial_transaction.visit_id),
+        )
+    else:
+        output = financial_transaction(
+            type=existing_financial_transaction.type,
+            currency=existing_financial_transaction.currency,
+            date=existing_financial_transaction.date,
+            amount=existing_financial_transaction.amount,
+            description=existing_financial_transaction.description,
+            category=existing_financial_transaction.category,
+        )
 
     return output
 
@@ -180,6 +200,9 @@ async def update_the_financial_transaction(
         existing_financial_transaction.description = update_data.description
     if update_data.category is not None:
         existing_financial_transaction.category = update_data.category
+    if update_data.date is not None:
+        existing_financial_transaction.date = update_data.date
+
     await existing_financial_transaction.replace()
 
     return existing_financial_transaction
