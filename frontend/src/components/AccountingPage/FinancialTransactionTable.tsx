@@ -18,6 +18,7 @@ import {
 } from "@tanstack/react-table";
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
+import PlusButtonMenu from "../PlusButtonMenu";
 
 const FinancialTransactionsTable: React.FC = () => {
   const [data, setData] = useState<financialTransaction[]>([]);
@@ -68,10 +69,19 @@ const FinancialTransactionsTable: React.FC = () => {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-  // const [visibleVisits] = useState<[]>([]);
-  // const today = new Date().toISOString().split("T")[0];
-  // const [startDate, setStartDate] = useState<string>(today);
-  // const [endDate, setEndDate] = useState<string>(today);
+  const plusActions = [
+    {
+      label: "Add Income",
+      onClick: () => {
+        navigate("/financial-transactions/income");
+      },
+    },
+    {
+      label: "Add Expense",
+      onClick: () => navigate("/financial-transactions/expense"),
+      className: "text-red-600",
+    },
+  ];
 
   useEffect(() => {
     const loadPage = async () => {
@@ -125,9 +135,12 @@ const FinancialTransactionsTable: React.FC = () => {
 
   return (
     <div className="p-8 bg-white">
-      <h1 className={pageListTitle}>Financial Transactions</h1>
-      {error && <div className="text-red-600">{error}</div>}
+      <div className="flex items-center justify-between">
+        <h1 className={pageListTitle}>Financial Transactions</h1>
+        <PlusButtonMenu variant="toolbar" actions={plusActions} label="Add" />
+      </div>
 
+      {error && <div className="text-red-600">{error}</div>}
       <GenericTable
         table={table}
         loading={loading}

@@ -1069,7 +1069,7 @@ export function getFinancialTransactionColumns(
           withFilter={true}
           column={column}
           placeholder="Search currency..."
-          label="Currecy"
+          label="Currency"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
         />
