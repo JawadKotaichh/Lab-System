@@ -51,7 +51,7 @@ async def get_financial_transaction_with_page_size(
     if start_date:
         try:
             parsed = datetime.strptime(start_date, "%Y-%m-%d").date()
-            start_dt = datetime.combine(parsed, time.min)  # 00:00:00
+            start_dt = datetime.combine(parsed, time.min)
         except ValueError:
             raise HTTPException(
                 status_code=400, detail="Invalid start_date. Use YYYY-MM-DD"
@@ -60,7 +60,7 @@ async def get_financial_transaction_with_page_size(
     if end_date:
         try:
             parsed = datetime.strptime(end_date, "%Y-%m-%d").date()
-            end_dt = datetime.combine(parsed, time.max)  # 23:59:59.999999
+            end_dt = datetime.combine(parsed, time.max)
         except ValueError:
             raise HTTPException(
                 status_code=400, detail="Invalid end_date. Use YYYY-MM-DD"
@@ -78,7 +78,7 @@ async def get_financial_transaction_with_page_size(
             "$gte": datetime.combine(end_dt.date(), time.min),
             "$lte": end_dt,
         }
-
+    mongo_filter["amount"] = {"$gt": 0}
     total_number_of_financial_transactions = await DBfinancial_transaction.find(
         mongo_filter
     ).count()
