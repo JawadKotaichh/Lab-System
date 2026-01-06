@@ -1066,7 +1066,7 @@ export function getFinancialTransactionColumns(
       accessorKey: "description",
       header: ({ column }) => (
         <ColumnFilter
-          withFilter={true}
+          withFilter={false}
           column={column}
           placeholder="Search description..."
           label="Description"
