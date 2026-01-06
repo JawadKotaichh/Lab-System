@@ -3,6 +3,7 @@ import type {
   CreateLabTestParams,
   CreatePatientAccountProps,
   fetchedInvoiceData,
+  financialTransactionsFilters,
   insuranceCompanyParams,
   InsuranceFilters,
   lab_test_category_filters,
@@ -12,6 +13,7 @@ import type {
   labTestFilters,
   LoginResponse,
   monthlySummaryInvoicesParams,
+  paginatedFinancialTransactionsData,
   paginatedlabPanel,
   paginatedlabTest,
   paginatedMixedVisitResults,
@@ -322,6 +324,19 @@ async function apiFetch(input: RequestInfo, init: RequestInit = {}) {
   return fetch(input, { ...init, credentials: "include" });
 }
 
+// Financial Transactions
+
+const fetchFinancialTransactionsPaginated = async (
+  page_number: number,
+  page_size: number,
+  filters: financialTransactionsFilters = {}
+): Promise<paginatedFinancialTransactionsData> => {
+  const url = `/financial_transaction/page/${page_size}/${page_number}`;
+  const response = await api.get(url, { params: filters });
+  return response.data;
+};
+
+export { fetchFinancialTransactionsPaginated };
 export { apiFetch };
 export { loginUser };
 export { refreshSession };
