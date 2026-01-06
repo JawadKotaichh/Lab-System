@@ -8,6 +8,7 @@ from ..schemas.schema_users import (
     # login_data,
     update_user,
 )
+from ..models import Patient as DBPatient
 from fastapi.responses import Response
 from typing import Any, Dict, List
 from math import ceil
@@ -99,6 +100,41 @@ async def create_user(data: User):
         user_id=PydanticObjectId(data.user_id),
         username=data.username,
         password_hashed=hashed_password,
+    )
+    new_user = await db_user.insert()
+    if not new_user:
+        raise HTTPException(status_code=500, detail="User was not created")
+    return new_user
+
+
+@router.post(
+    "/reset_password/{user_id}",
+    response_model=DBUser,
+    summary="reset_password",
+)
+async def reset_password(user_id: str):
+    if not PydanticObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail=f"Invalid user ID: {user_id}")
+    pid = PydanticObjectId(user_id)
+
+    db_patient = await DBPatient.find_one(DBPatient.id == pid)
+    if not db_patient:
+        raise HTTPException(
+            status_code=400, detail=f"Patient with id: {user_id} was not found"
+        )
+    existing = await DBUser.find_one(DBUser.user_id == pid)
+    dob_password = db_patient.DOB.strftime("%d%m%Y")
+
+    if existing:
+        existing.username = db_patient.phone_number
+        existing.password_hashed = hash_password(dob_password)
+        await existing.replace()
+        return existing
+
+    db_user = DBUser(
+        user_id=PydanticObjectId(user_id),
+        username=db_patient.phone_number,
+        password_hashed=hash_password(dob_password),
     )
     new_user = await db_user.insert()
     if not new_user:

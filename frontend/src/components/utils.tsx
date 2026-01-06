@@ -225,6 +225,11 @@ export const createVisit = (patientId: string) => {
     report_date: new Date().toISOString(),
   });
 };
+export const resetPassword = (patientId: string) => {
+  return api.post(`/users/reset_password/${patientId}`, {
+    user_id: patientId,
+  });
+};
 
 const fetchAllLabTestTypeCategories = async (): Promise<
   labTestCategoryParams[]
