@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from pydantic import Field
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from beanie import Document, PydanticObjectId
 
@@ -156,3 +156,13 @@ class Invoice(Document):
     adjustment_minor: float = Field(default=0.0)
     insurance_company_id: PydanticObjectId = Field(...)
     total_paid: int = Field(default=0)
+
+
+class Financial_transaction(Document):
+    type: str = Field(...)
+    date: datetime = Field(...)
+    amount: float = Field(...)
+    currency: str = Field(...)
+    description: str = Field(default="")
+    category: str = Field(...)
+    visit_id: Optional[PydanticObjectId] = Field(default=None)
