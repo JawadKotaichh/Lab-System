@@ -17,6 +17,7 @@ from .models import (
     Admin,
     User,
     Session,
+    Financial_transaction,
 )
 
 # ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
@@ -42,5 +43,6 @@ async def init_db():
             Admin,
             User,
             Session,
+            Financial_transaction,
         ],
     )
