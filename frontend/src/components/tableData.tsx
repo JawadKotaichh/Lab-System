@@ -36,6 +36,7 @@ import {
   handleDeleteVisit,
   handleNewAccount,
   handleNewVisit,
+  handleResetPassword,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 
@@ -346,8 +347,9 @@ export function getPatientsColumns(
                   className: "text-blue-600",
                 },
                 {
-                  label: "New Account",
-                  onClick: () => handleNewAccount(patient, navigate, setError),
+                  label: "Reset Password",
+                  onClick: () =>
+                    handleResetPassword(patient, navigate, setError),
                   className: "text-green-600",
                 },
               ]}

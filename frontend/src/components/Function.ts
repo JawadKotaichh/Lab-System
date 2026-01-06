@@ -2,7 +2,7 @@ import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
 import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
-import { create_invoice, createVisit, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice } from "./utils";
+import { create_invoice, createVisit, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice, resetPassword } from "./utils";
 import type {  labPanelsWithIdsList, labTest, patientInfo, patientPanelResult, patientTestResult, updateInvoiceData } from "./types";
 import type { PaginationState } from "@tanstack/react-table";
 
@@ -126,6 +126,16 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
         },
       });
     } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+  const handleResetPassword = async(patient:patientInfo,navigate:NavigateFunction,setError:Dispatch<SetStateAction<string>>)=>{
+    try{ 
+      await resetPassword(patient.patient_id);
+    }catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
         setError(err.message);
@@ -287,6 +297,7 @@ export const handleAdd = async ({lab_test_id,lab_test,data,setAddError,setShowAd
 };
 
 export{handleNewAccount};
+export{handleResetPassword};
 export{handleNewVisit};
 export{handleDeleteLabTest};
 export{handleCreateLabTest};

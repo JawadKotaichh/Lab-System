@@ -15,8 +15,18 @@ from typing import Any, Dict, List
 from fastapi import Query
 from enum import Enum
 from beanie import PydanticObjectId
+from passlib.context import CryptContext
 
 router = APIRouter(prefix="/patients", tags=["patients"])
+pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
+
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    return pwd_context.verify(password, password_hash)
 
 
 class GenderEnum(str, Enum):
@@ -147,6 +157,18 @@ async def create_patient(data: Patient):
     new_patient = await db_patient.insert()
     if not new_patient:
         raise HTTPException(status_code=404, detail="Patient was not created")
+    dob_password = new_patient.DOB.strftime("%d%m%Y")
+    db_user = DBUser(
+        user_id=new_patient.id,
+        username=new_patient.phone_number,
+        password_hashed=hash_password(dob_password),
+    )
+    new_user = await db_user.insert()
+    if not new_user:
+        raise HTTPException(
+            status_code=404,
+            detail=f"User was not created for patient {new_patient.id}",
+        )
 
     return new_patient
 
