@@ -837,19 +837,22 @@ export function getVisitsColumns(
     },
     {
       accessorKey: "total_price_with_insurance",
-      cell: ({ row, getValue }) => {
-        const iso = getValue<string>() ?? "";
-        const dateOnly = iso.split("T")[0];
+      cell: ({ row }) => {
         const visitId = row.original.visit_id;
-
+        const currency = row.original.currency ?? "USD";
+        const raw = row.original.total_price_with_insurance ?? 0;
+        const value =
+          currency === "USD"
+            ? `${raw.toFixed(2)} $`
+            : `${raw.toLocaleString("en-US")} LBP`;
         return (
           <button
             type="button"
             onClick={() => navigate(`/invoice/${visitId}`)}
             className="text-blue-600 hover:underline"
-            title="Open result PDF"
+            title="Open invoice PDF"
           >
-            {dateOnly}
+            {value}
           </button>
         );
       },
