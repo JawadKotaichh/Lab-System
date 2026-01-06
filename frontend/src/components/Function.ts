@@ -135,6 +135,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
   const handleResetPassword = async(patient:patientInfo,navigate:NavigateFunction,setError:Dispatch<SetStateAction<string>>)=>{
     try{ 
       await resetPassword(patient.patient_id);
+      alert("Password has been reset successfully!")
     }catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
