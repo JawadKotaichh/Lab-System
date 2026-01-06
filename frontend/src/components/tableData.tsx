@@ -727,11 +727,46 @@ export function getVisitsColumns(
   setError: React.Dispatch<React.SetStateAction<string>>
 ): ColumnDef<visitData>[] {
   return [
+    // {
+    //   accessorKey: "visit_date",
+    //   cell: ({ getValue }) => {
+    //     const iso = getValue<string>() ?? "";
+    //     return iso.split("T")[0];
+    //   },
+    //   header: ({ column }) => (
+    //     <ColumnFilter
+    //       withFilter={true}
+    //       inputType="date"
+    //       column={column}
+    //       placeholder="Search visit date…"
+    //       label="Date"
+    //       showFilter={!!showFilters[column.id]}
+    //       toggleShowFilter={() => toggleFilter(column.id)}
+    //     />
+    //   ),
+    //   sortingFn: (rowA, rowB, columnId) => {
+    //     const a = (rowA.getValue(columnId) as string).toLowerCase();
+    //     const b = (rowB.getValue(columnId) as string).toLowerCase();
+    //     return a.localeCompare(b);
+    //   },
+    // },
     {
       accessorKey: "visit_date",
-      cell: ({ getValue }) => {
+      cell: ({ row, getValue }) => {
         const iso = getValue<string>() ?? "";
-        return iso.split("T")[0];
+        const dateOnly = iso.split("T")[0];
+        const visitId = row.original.visit_id;
+
+        return (
+          <button
+            type="button"
+            onClick={() => navigate(`/result/${visitId}`)}
+            className="text-blue-600 hover:underline"
+            title="Open result PDF"
+          >
+            {dateOnly}
+          </button>
+        );
       },
       header: ({ column }) => (
         <ColumnFilter
@@ -744,11 +779,6 @@ export function getVisitsColumns(
           toggleShowFilter={() => toggleFilter(column.id)}
         />
       ),
-      sortingFn: (rowA, rowB, columnId) => {
-        const a = (rowA.getValue(columnId) as string).toLowerCase();
-        const b = (rowB.getValue(columnId) as string).toLowerCase();
-        return a.localeCompare(b);
-      },
     },
     {
       accessorKey: "patient.name",
@@ -807,14 +837,21 @@ export function getVisitsColumns(
     },
     {
       accessorKey: "total_price_with_insurance",
-      cell: ({ row }) => {
-        const currency = row.original.currency ?? "$";
-        if (currency === "USD")
-          return `${row.original.total_price_with_insurance.toFixed(2)} $`;
-        else
-          return `${row.original.total_price_with_insurance.toLocaleString(
-            "en-US"
-          )} LBP`;
+      cell: ({ row, getValue }) => {
+        const iso = getValue<string>() ?? "";
+        const dateOnly = iso.split("T")[0];
+        const visitId = row.original.visit_id;
+
+        return (
+          <button
+            type="button"
+            onClick={() => navigate(`/invoice/${visitId}`)}
+            className="text-blue-600 hover:underline"
+            title="Open result PDF"
+          >
+            {dateOnly}
+          </button>
+        );
       },
       header: ({ column }) => (
         <ColumnFilter
@@ -832,6 +869,33 @@ export function getVisitsColumns(
         return a - b;
       },
     },
+    // {
+    //   accessorKey: "total_price_with_insurance",
+    //   cell: ({ row }) => {
+    //     const currency = row.original.currency ?? "$";
+    //     if (currency === "USD")
+    //       return `${row.original.total_price_with_insurance.toFixed(2)} $`;
+    //     else
+    //       return `${row.original.total_price_with_insurance.toLocaleString(
+    //         "en-US"
+    //       )} LBP`;
+    //   },
+    //   header: ({ column }) => (
+    //     <ColumnFilter
+    //       withFilter={false}
+    //       column={column}
+    //       placeholder="Search price..."
+    //       label="Net total"
+    //       showFilter={!!showFilters[column.id]}
+    //       toggleShowFilter={() => toggleFilter(column.id)}
+    //     />
+    //   ),
+    //   sortingFn: (rowA, rowB, columnId) => {
+    //     const a = parseFloat(rowA.getValue(columnId) as string) || 0;
+    //     const b = parseFloat(rowB.getValue(columnId) as string) || 0;
+    //     return a - b;
+    //   },
+    // },
     {
       accessorKey: "total_paid",
       cell: ({ row }) => {
