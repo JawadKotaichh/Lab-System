@@ -275,7 +275,13 @@ export interface visitFilters {
   date?: string;
   patient_id?: string;
 }
-
+export interface financialTransactionsFilters {
+  type?: string;
+  category?: string;
+  currency?: string;
+  start_date?: string;
+  end_date?: string;
+}
 export type patientInfo = {
   patient_id: string;
   name: string;
@@ -352,6 +358,11 @@ export type paginatedVisitData = {
   visitsData: visitData[];
   total_pages: number;
   TotalNumberOfVisits: number;
+};
+export type paginatedFinancialTransactionsData = {
+  financial_transactions: financialTransaction[];
+  total_pages: number;
+  TotalNumberOfFinancialTransactions: number;
 };
 export type visitData = {
   posted: boolean;
@@ -447,4 +458,15 @@ export type CreatePatientAccountProps = {
   user_id: string;
   username: string;
   password: string;
+};
+
+// financial transactions
+export type financialTransaction = {
+  type: string;
+  date: Date;
+  amount: number;
+  currency: string;
+  description: string;
+  category: string;
+  visit_id?: string;
 };
