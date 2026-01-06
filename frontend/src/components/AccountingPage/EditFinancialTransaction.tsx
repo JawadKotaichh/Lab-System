@@ -84,9 +84,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
   }, [transaction_id]);
   useEffect(() => {
     if (!transaction_id && initialType) {
-      setData((prev) =>
-        prev.type ? prev : { ...prev, type: initialType }
-      );
+      setData((prev) => (prev.type ? prev : { ...prev, type: initialType }));
     }
   }, [initialType, transaction_id]);
 
@@ -179,7 +177,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
                   }
                 }}
               >
-                {i.subItem === "category" ? (
+                {i.subItem === "Category" ? (
                   <>
                     <option value="" disabled>
                       — Select category —
