@@ -78,7 +78,7 @@ async def get_financial_transaction_with_page_size(
             "$gte": datetime.combine(end_dt.date(), time.min),
             "$lte": end_dt,
         }
-
+    mongo_filter["amount"] = {"$gt": 0}
     total_number_of_financial_transactions = await DBfinancial_transaction.find(
         mongo_filter
     ).count()
