@@ -963,16 +963,6 @@ export function getVisitsColumns(
                     }),
                 },
                 {
-                  label: "Preview Result",
-                  onClick: () => navigate(`/result/${visit_id}`),
-                  className: "text-blue-600",
-                },
-                {
-                  label: "View Invoice",
-                  onClick: () => navigate(`/invoice/${visit_id}`),
-                  className: "text-blue-600",
-                },
-                {
                   label: "Delete",
                   onClick: () =>
                     handleDeleteVisit({

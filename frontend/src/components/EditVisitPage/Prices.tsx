@@ -115,7 +115,9 @@ const Prices: React.FC<PricesParams> = ({
       const payload: Partial<updateInvoiceData> = {};
 
       const safeDebouncedPaid = Math.max(0, debouncedTotalPaid);
-      payload.adjustment_minor = debouncedAdjustment;
+      if (debouncedAdjustment !== prevSyncedAdjustment.current) {
+        payload.adjustment_minor = debouncedAdjustment;
+      }
 
       if (safeDebouncedPaid !== prevSyncedTotalPaid.current) {
         payload.total_paid = safeDebouncedPaid;
