@@ -166,3 +166,6 @@ class Financial_transaction(Document):
     description: str = Field(default="")
     category: str = Field(...)
     visit_id: Optional[PydanticObjectId] = Field(default=None)
+
+    class Settings:
+        name = "financial_transactions"
