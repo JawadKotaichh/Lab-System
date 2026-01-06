@@ -36,6 +36,7 @@ import {
   handleDeleteVisit,
   handleNewAccount,
   handleNewVisit,
+  handleResetPassword,
 } from "./Function";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 
@@ -346,8 +347,9 @@ export function getPatientsColumns(
                   className: "text-blue-600",
                 },
                 {
-                  label: "New Account",
-                  onClick: () => handleNewAccount(patient, navigate, setError),
+                  label: "Reset Password",
+                  onClick: () =>
+                    handleResetPassword(patient, navigate, setError),
                   className: "text-green-600",
                 },
               ]}
@@ -714,7 +716,7 @@ export function getLabTestCategoryColumns(
             onClick={() =>
               navigate(`${labTestCategoryEditPageURL}${labTestCategoryId}`)
             }
-            className="text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-800 hover:underline cursor-pointer"
             title="Edit lab test category"
           >
             {labTestCategoryName}
@@ -774,7 +776,7 @@ export function getVisitsColumns(
           <button
             type="button"
             onClick={() => navigate(`/result/${visitId}`)}
-            className="text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-800 hover:underline cursor-pointer"
             title="Open result PDF"
           >
             {dateOnly}
@@ -862,7 +864,7 @@ export function getVisitsColumns(
           <button
             type="button"
             onClick={() => navigate(`/invoice/${visitId}`)}
-            className="text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-800 hover:underline cursor-pointer"
             title="Open invoice PDF"
           >
             {value}
@@ -1167,12 +1169,12 @@ export function getFinancialTransactionColumns(
     //             {
     //               label: "Preview Result",
     //               onClick: () => navigate(`/result/${visit_id}`),
-    //               className: "text-blue-600",
+    //               className: "text-blue-800",
     //             },
     //             {
     //               label: "View Invoice",
     //               onClick: () => navigate(`/invoice/${visit_id}`),
-    //               className: "text-blue-600",
+    //               className: "text-blue-800",
     //             },
     //             {
     //               label: "Delete",
@@ -1342,7 +1344,7 @@ export function getVisitsColumnsUser(
                 {
                   label: "Preview Result",
                   onClick: () => navigate(`/result/${visit_id}`),
-                  className: "text-blue-600",
+                  className: "text-blue-800",
                 },
               ]}
             />

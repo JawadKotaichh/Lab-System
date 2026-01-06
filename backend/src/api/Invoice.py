@@ -213,7 +213,7 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
             status_code=404,
             detail=f"Insurance company with id: {db_patient.insurance_company_id} not found",
         )
-    total_price = 0
+    total_price = 0.0
     for test in existing_invoice.list_of_tests:
         total_price += test.price
     for panel in existing_invoice.list_of_lab_panels:
