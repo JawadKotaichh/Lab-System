@@ -12,46 +12,50 @@ import {
   inputFormTitle,
   stateStyle,
 } from "../../style";
-import type { patientInfo, insuranceCompanyParams, PageTitle } from "../types";
+import type { PageTitle, financialTransaction } from "../types";
 import { Building, Calendar, DollarSign, Phone, User } from "lucide-react";
-import { fetchAllInsuranceCompanies, fetchPatient } from "../utils";
 import {
-  listOfAttributesPatient,
-  PatientsApiURL,
-  PatientsMainPageURL,
+  fetchAllFinancialTransactions,
+  fetchFinancialTransaction,
+} from "../utils";
+import {
+  FinancialTransactionsApiURL,
+  FinancialTransactionsMainPageURL,
+  listOfAttributesFinancialTransaction,
 } from "../data";
 import LoadingPage from "../LoadingPage/LoadingPage";
+
+type TYPEE = "income" | "expense";
+const isTYPEE = (v?: string): v is TYPEE => v === "income" || v === "expense";
 
 const EditFinancialTransaction = ({ title }: PageTitle) => {
   const [state, setState] = useState<string>("");
   const navigate = useNavigate();
-  const { patient_id } = useParams();
+  const { kind, transaction_id } = useParams<{
+    kind?: string;
+    transaction_id?: string;
+  }>();
+  const initialType: TYPEE = isTYPEE(kind) ? kind : "income";
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
-  const toTitleCase = (value: string) =>
-    value
-      .toLowerCase()
-      .split(" ")
-      .filter(Boolean)
-      .map((word) => word[0].toUpperCase() + word.slice(1))
-      .join(" ");
-  const [data, setData] = useState<patientInfo>({
-    patient_id: `${patient_id}`,
-    name: "",
-    DOB: "",
-    gender: "",
-    phone_number: "",
-    insurance_company_id: "",
-    insurance_company_name: "",
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+  const [data, setData] = useState<financialTransaction>({
+    type: "",
+    date: "",
+    amount: 0,
+    description: "",
+    category: "",
+    currency: "USD",
   });
-  const [allInsuranceCompanies, setAllInsuranceCompanies] = useState<
-    insuranceCompanyParams[]
+  const [allTransactionsCategories, setAllTransactionsCategories] = useState<
+    financialTransaction[]
   >([]);
   useEffect(() => {
     setLoading(true);
-    fetchAllInsuranceCompanies()
+    fetchAllFinancialTransactions()
       .then((data) => {
-        setAllInsuranceCompanies(data);
+        setAllTransactionsCategories(data);
         setLoading(false);
       })
       .catch((err) => {
@@ -60,20 +64,20 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
       });
   }, []);
   useEffect(() => {
-    if (patient_id) {
-      fetchPatient(patient_id)
+    if (transaction_id) {
+      fetchFinancialTransaction(transaction_id)
         .then((d) =>
           setData({
             ...d,
-            DOB: d.DOB ? d.DOB.split("T")[0] : "",
+            date: d.date ? d.date.split("T")[0] : "",
           })
         )
         .catch((err) => {
-          console.error("Failed to fetch insurance company data:", err);
-          setState("Failed to load insurance company data");
+          console.error("Failed to fetch financial transaction data:", err);
+          setState("Failed to load financial transaction data");
         });
     }
-  }, [patient_id]);
+  }, [transaction_id]);
 
   const handleInputChange = ({
     attributeName,
@@ -89,24 +93,28 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
   };
   const handleSave = async () => {
     if (
-      data.DOB == "" ||
-      data.name == "" ||
-      data.gender == "" ||
-      data.phone_number == "" ||
-      data.insurance_company_id == ""
+      data.date == "" ||
+      data.category == "" ||
+      data.currency == "" ||
+      data.type == initialType ||
+      data.amount == 0
     ) {
       setState("Please insert all the required fields!");
       return;
     }
+    const payload = {
+      ...data,
+      category: isAddingCategory ? newCategory.trim() : data.category,
+    };
     try {
-      if (patient_id) {
-        await api.put(PatientsApiURL + patient_id, data);
+      if (transaction_id) {
+        await api.put(FinancialTransactionsApiURL + transaction_id, payload);
       } else {
-        await api.post(PatientsApiURL, data);
+        await api.post(FinancialTransactionsApiURL, payload);
       }
-      window.dispatchEvent(new Event("patients:changed"));
+      window.dispatchEvent(new Event("transactions:changed"));
 
-      navigate(PatientsMainPageURL);
+      navigate(FinancialTransactionsMainPageURL);
     } catch (err) {
       if (err instanceof Error) {
         console.log(err.message);
@@ -130,14 +138,15 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
     }
   };
 
-  if (loading) return <LoadingPage title="Loading insurance companies ..." />;
+  if (loading)
+    return <LoadingPage title="Loading financial transactions ..." />;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
       <div className={inputFormAttributeList}>
-        {listOfAttributesPatient.map((i) => (
+        {listOfAttributesFinancialTransaction.map((i) => (
           <div className={inputFormAttributeListItem}>
             <label className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
@@ -146,35 +155,51 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
             {i.typeOfInput === "Selection" ? (
               <select
                 className={inputFormAttributeListItemInput}
-                value={data[i.attributeName as keyof patientInfo]}
-                onChange={(e) =>
-                  handleInputChange({
-                    attributeName: i.attributeName,
-                    value: e.target.value,
-                  })
-                }
+                value={isAddingCategory ? "__new__" : data.category || ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "__new__") {
+                    setIsAddingCategory(true);
+                    setData((prev) => ({ ...prev, category: "" }));
+                  } else {
+                    setIsAddingCategory(false);
+                    setNewCategory("");
+                    setData((prev) => ({ ...prev, category: v }));
+                  }
+                }}
               >
-                {i.subItem === "Gender" ? (
+                {i.subItem === "category" ? (
                   <>
                     <option value="" disabled>
-                      — Select gender —
+                      — Select category —
                     </option>
-                    <option value="Female">Female</option>
-                    <option value="Male">Male</option>
+                    {allTransactionsCategories.map((tc) => (
+                      <option key={tc.id} value={tc.category}>
+                        {tc.category}
+                      </option>
+                    ))}
+                    <option value="__new__">+ Add new category…</option>
+                    {isAddingCategory && (
+                      <input
+                        className={inputFormAttributeListItemInput}
+                        type="text"
+                        placeholder="Type new category…"
+                        value={newCategory}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setNewCategory(v);
+                          setData((prev) => ({ ...prev, category: v }));
+                        }}
+                      />
+                    )}
                   </>
                 ) : (
                   <>
                     <option value="" disabled>
-                      — Select insurance company —
+                      — Select type —
                     </option>
-                    {allInsuranceCompanies.map((ic) => (
-                      <option
-                        key={ic.insurance_company_id}
-                        value={ic.insurance_company_id}
-                      >
-                        {ic.insurance_company_name}
-                      </option>
-                    ))}
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
                   </>
                 )}
               </select>
@@ -182,7 +207,9 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
               <input
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
-                value={data[i.attributeName as keyof patientInfo] || ""}
+                value={
+                  data[i.attributeName as keyof financialTransaction] || ""
+                }
                 placeholder={i.placeHolder}
                 onChange={(e) =>
                   handleInputChange({
@@ -190,14 +217,6 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
                     value: e.target.value,
                   })
                 }
-                onBlur={() => {
-                  if (i.attributeName === "name") {
-                    setData((prev) => ({
-                      ...prev,
-                      name: toTitleCase(prev.name),
-                    }));
-                  }
-                }}
               />
             )}
           </div>

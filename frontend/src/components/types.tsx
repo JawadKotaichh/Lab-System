@@ -462,8 +462,9 @@ export type CreatePatientAccountProps = {
 
 // financial transactions
 export type financialTransaction = {
+  id?: string;
   type: string;
-  date: Date;
+  date: string;
   amount: number;
   currency: string;
   description: string;

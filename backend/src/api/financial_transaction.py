@@ -140,6 +140,25 @@ async def create_financial_transaction(data: financial_transaction):
     return new_financial_transaction
 
 
+@router.get("/all", response_model=List[Dict[str, Any]])
+async def getAllFinancialTransactions() -> List[Dict[str, Any]]:
+    cursor = DBfinancial_transaction.find()
+    all_financial_transactions: List[Dict[str, Any]] = []
+    async for element in cursor:
+        all_financial_transactions.append(
+            {
+                "id": str(element.id),
+                "type": element.type,
+                "date": element.date,
+                "amount": element.amount,
+                "currency": element.currency,
+                "description": element.description,
+                "category": element.category,
+            }
+        )
+    return all_financial_transactions
+
+
 @router.get("/{financial_transaction_id}", response_model=financial_transaction)
 async def get_financial_transaction(financial_transaction_id: str):
     if not PydanticObjectId.is_valid(financial_transaction_id):
