@@ -3,6 +3,7 @@ from datetime import date, datetime, time
 from typing import Optional
 from ..models import Visit as DBVisit
 from ..models import Patient as DBPatient
+from ..models import Financial_transaction as DBFinancial_transaction
 from ..models import lab_test_result as DBLab_test_result
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..models import lab_test_category as DBLab_test_category
@@ -523,6 +524,9 @@ async def delete_visit(visit_id: PydanticObjectId):
         DBLab_test_result.visit_id == PydanticObjectId(visit_id)
     ).delete()
     await DBInvoice.find(DBInvoice.visit_id == PydanticObjectId(visit_id)).delete()
+    await DBFinancial_transaction.find(
+        DBFinancial_transaction.visit_id == PydanticObjectId(visit_id)
+    ).delete()
     visit_to_be_deleted = await DBVisit.get(PydanticObjectId(visit_id))
     if not visit_to_be_deleted:
         raise HTTPException(
