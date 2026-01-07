@@ -38,6 +38,7 @@ import {
   handleNewVisit,
   handleResetPassword,
 } from "./Function";
+import { Trash2 } from "lucide-react";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 
 export interface LabTestColumnOptions {
@@ -811,6 +812,28 @@ export function getVisitsColumns(
           toggleShowFilter={() => toggleFilter(column.id)}
         />
       ),
+      cell: ({ row }) => {
+        const { visit_id, patient, insurance_company_name } = row.original;
+        return (
+          <button
+            type="button"
+            onClick={() =>
+              navigate(`${visitEditPageURL}${visit_id}`, {
+                state: {
+                  patientData: {
+                    ...patient,
+                    insurance_company_name: insurance_company_name,
+                  },
+                },
+              })
+            }
+            className="font-semibold hover:underline cursor-pointer"
+            title="Edit Visit"
+          >
+            {patient.name}
+          </button>
+        );
+      },
       sortingFn: (rowA, rowB, columnId) => {
         const a = (rowA.getValue(columnId) as string).toLowerCase();
         const b = (rowB.getValue(columnId) as string).toLowerCase();
@@ -981,8 +1004,7 @@ export function getVisitsColumns(
       enableSorting: false,
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
-        const { visit_id, patient, insurance_company_name, posted } =
-          row.original;
+        const { visit_id, posted } = row.original;
         return (
           <div className="flex justify-center gap-4">
             <PostResultCheckbox
@@ -990,31 +1012,19 @@ export function getVisitsColumns(
               initialPosted={posted}
               setError={setError}
             />
-            <MeatballsMenu
-              items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(`${visitEditPageURL}${visit_id}`, {
-                      state: {
-                        patientData: {
-                          ...patient,
-                          insurance_company_name: insurance_company_name,
-                        },
-                      },
-                    }),
-                },
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeleteVisit({
-                      elementID: visit_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
-              ]}
-            />
+            <button
+              type="button"
+              onClick={() =>
+                handleDeleteVisit({
+                  elementID: visit_id,
+                  setError,
+                })
+              }
+              className="p-2 rounded-full hover:bg-red-50 text-red-600"
+              title="Delete"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
           </div>
         );
       },
