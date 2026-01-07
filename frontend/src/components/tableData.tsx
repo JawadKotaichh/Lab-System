@@ -1,7 +1,7 @@
 import React from "react";
 import { tableHandleButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
-import { RotateCw } from "lucide-react";
+import { ClipboardPlus, RotateCw } from "lucide-react";
 import type {
   insuranceCompanyParams,
   labPanelsWithIdsList,
@@ -335,17 +335,46 @@ export function getPatientsColumns(
             >
               <RotateCw className="h-5 w-5 text-gray-800" />
             </button>
-            <MeatballsMenu
+
+            <button
+              type="button"
+              onClick={() =>
+                handleDeletePatient({
+                  elementID: patient_id,
+                  setError,
+                })
+              }
+              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+              title="Delete patient"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                handleNewVisit(
+                  insurance_company_name,
+                  patient,
+                  navigate,
+                  setError
+                )
+              }
+              className="p-2 rounded-full hover:bg-blue-800 text-blue-600 cursor-pointer"
+              title="New Visit"
+            >
+              <ClipboardPlus className="h-5 w-5" />
+            </button>
+            {/* <MeatballsMenu
               items={[
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeletePatient({
-                      elementID: patient_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
+                // {
+                //   label: "Delete",
+                //   onClick: () =>
+                //     handleDeletePatient({
+                //       elementID: patient_id,
+                //       setError,
+                //     }),
+                //   className: "text-red-600",
+                // },
                 {
                   label: "New Visit",
                   onClick: () =>
@@ -358,7 +387,7 @@ export function getPatientsColumns(
                   className: "text-blue-600",
                 },
               ]}
-            />
+            /> */}
           </div>
         );
       },
@@ -812,28 +841,6 @@ export function getVisitsColumns(
           toggleShowFilter={() => toggleFilter(column.id)}
         />
       ),
-      cell: ({ row }) => {
-        const { visit_id, patient, insurance_company_name } = row.original;
-        return (
-          <button
-            type="button"
-            onClick={() =>
-              navigate(`${visitEditPageURL}${visit_id}`, {
-                state: {
-                  patientData: {
-                    ...patient,
-                    insurance_company_name: insurance_company_name,
-                  },
-                },
-              })
-            }
-            className="font-semibold hover:underline cursor-pointer"
-            title="Edit Visit"
-          >
-            {patient.name}
-          </button>
-        );
-      },
       sortingFn: (rowA, rowB, columnId) => {
         const a = (rowA.getValue(columnId) as string).toLowerCase();
         const b = (rowB.getValue(columnId) as string).toLowerCase();
@@ -976,8 +983,34 @@ export function getVisitsColumns(
     },
     {
       accessorKey: "completed_tests_results",
-      cell: ({ row }) =>
-        `${row.original.completed_tests_results} / ${row.original.total_tests_results}`,
+      cell: ({ row }) => {
+        const {
+          completed_tests_results,
+          visit_id,
+          patient,
+          insurance_company_name,
+          total_tests_results,
+        } = row.original;
+        return (
+          <button
+            type="button"
+            onClick={() =>
+              navigate(`${visitEditPageURL}${visit_id}`, {
+                state: {
+                  patientData: {
+                    ...patient,
+                    insurance_company_name: insurance_company_name,
+                  },
+                },
+              })
+            }
+            className="font-semibold hover:underline cursor-pointer"
+            title="Edit Visit"
+          >
+            {completed_tests_results} / {total_tests_results}
+          </button>
+        );
+      },
       sortingFn: (rowA, rowB) => {
         const a =
           rowA.original.completed_tests_results /
@@ -1020,14 +1053,61 @@ export function getVisitsColumns(
                   setError,
                 })
               }
-              className="p-2 rounded-full hover:bg-red-50 text-red-600"
-              title="Delete"
+              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+              title="Delete visit"
             >
               <Trash2 className="h-5 w-5" />
             </button>
           </div>
         );
       },
+      // {
+      //   id: "actions",
+      //   enableSorting: false,
+      //   header: () => <div className="text-xl mt-4 text-center">Actions</div>,
+      //   cell: ({ row }) => {
+      //     const { visit_id, patient, insurance_company_name, posted } =
+      //       row.original;
+      //     return (
+      //       <div className="flex justify-center gap-4">
+      //         <MeatballsMenu
+      //           items={[
+      //             {
+      //               label: "Edit",
+      //               onClick: () =>
+      //                 navigate(`${visitEditPageURL}${visit_id}`, {
+      //                   state: {
+      //                     patientData: {
+      //                       ...patient,
+      //                       insurance_company_name: insurance_company_name,
+      //                     },
+      //                   },
+      //                 }),
+      //             },
+      //             {
+      //               label: "Preview Result",
+      //               onClick: () => navigate(`/result/${visit_id}`),
+      //               className: "text-blue-800",
+      //             },
+      //             {
+      //               label: "View Invoice",
+      //               onClick: () => navigate(`/invoice/${visit_id}`),
+      //               className: "text-blue-800",
+      //             },
+      //             {
+      //               label: "Delete",
+      //               onClick: () =>
+      //                 handleDeleteVisit({
+      //                   elementID: visit_id,
+      //                   setError,
+      //                 }),
+      //               className: "text-red-600",
+      //             },
+      //           ]}
+      //         />
+      //       </div>
+      //     );
+      //   },
     },
   ];
 }
