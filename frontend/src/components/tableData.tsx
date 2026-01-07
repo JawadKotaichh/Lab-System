@@ -811,6 +811,28 @@ export function getVisitsColumns(
           toggleShowFilter={() => toggleFilter(column.id)}
         />
       ),
+      cell: ({ row }) => {
+        const { visit_id, patient, insurance_company_name } = row.original;
+        return (
+          <button
+            type="button"
+            onClick={() =>
+              navigate(`${visitEditPageURL}${visit_id}`, {
+                state: {
+                  patientData: {
+                    ...patient,
+                    insurance_company_name: insurance_company_name,
+                  },
+                },
+              })
+            }
+            className="font-semibold hover:underline cursor-pointer"
+            title="Edit Visit"
+          >
+            {patient.name}
+          </button>
+        );
+      },
       sortingFn: (rowA, rowB, columnId) => {
         const a = (rowA.getValue(columnId) as string).toLowerCase();
         const b = (rowB.getValue(columnId) as string).toLowerCase();
@@ -981,8 +1003,7 @@ export function getVisitsColumns(
       enableSorting: false,
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
-        const { visit_id, patient, insurance_company_name, posted } =
-          row.original;
+        const { visit_id, posted } = row.original;
         return (
           <div className="flex justify-center gap-4">
             <PostResultCheckbox
@@ -992,18 +1013,18 @@ export function getVisitsColumns(
             />
             <MeatballsMenu
               items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(`${visitEditPageURL}${visit_id}`, {
-                      state: {
-                        patientData: {
-                          ...patient,
-                          insurance_company_name: insurance_company_name,
-                        },
-                      },
-                    }),
-                },
+                // {
+                //   label: "Edit",
+                //   onClick: () =>
+                //     navigate(`${visitEditPageURL}${visit_id}`, {
+                //       state: {
+                //         patientData: {
+                //           ...patient,
+                //           insurance_company_name: insurance_company_name,
+                //         },
+                //       },
+                //     }),
+                // },
                 {
                   label: "Delete",
                   onClick: () =>
