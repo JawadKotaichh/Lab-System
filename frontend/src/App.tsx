@@ -114,17 +114,17 @@ function LoginRoute({
   );
 }
 
-function CreatePatientAccountRoute() {
+function EditPatientAccountRoute() {
   const { patient_id } = useParams<{ patient_id: string }>();
   const navigate = useNavigate();
   if (!patient_id) {
     alert("Missing patient_id. Please try again.");
-    return <Navigate to="/patients" replace />;
+    return <Navigate to="/my-visits" replace />;
   }
   return (
     <LoginPage
-      title="Create patient account"
-      buttonText="Create account"
+      title="Profile"
+      buttonText="Update"
       onSubmit={async ({ username, password }) => {
         if (!username.trim() || !password.trim()) {
           alert("Please fill username and password");
@@ -133,9 +133,9 @@ function CreatePatientAccountRoute() {
         try {
           await createPatientAccount(patient_id, username, password);
           alert("Patient account created ✅");
-          navigate("/patients", { replace: true });
+          navigate("/my-visits", { replace: true });
         } catch {
-          alert("Failed to create patient account.");
+          alert("Failed to update patient account.");
         }
       }}
     />
@@ -146,10 +146,11 @@ const navItemsAdmin: NavItem[] = [
   { to: "/visits", label: "Visits", end: true },
   { to: "/patients", label: "Patients" },
   { to: "/monthly-summary", label: "Month Summary" },
-  { to: "/financial-transactions", label: "Financial Transactions" },
+  { to: "/financial-transactions", label: "Financial Transactions", end: true },
 ];
 const navItemsUser: NavItem[] = [
   { to: "/my-visits", label: "My Visits", end: true },
+  { to: "/my-profile", label: "My profile", end: true },
 ];
 
 const App: React.FC = () => {
@@ -283,10 +284,10 @@ const App: React.FC = () => {
             element={<LoginRoute onLoginSuccess={handleLoginSuccess} />}
           />
           <Route
-            path="/login/:patient_id"
+            path="/my-profile"
             element={
-              <RequireAuth user={user} allowedRoles={["admin"]}>
-                <CreatePatientAccountRoute />
+              <RequireAuth user={user} allowedRoles={["patient"]}>
+                <EditPatientAccountRoute />
               </RequireAuth>
             }
           />

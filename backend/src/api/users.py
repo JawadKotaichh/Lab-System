@@ -152,6 +152,7 @@ async def get_user(user_id: str):
         raise HTTPException(404, f"user {user_id} not found")
 
     output: Dict[str, Any] = {}
+    output["user_id"] = PydanticObjectId(user_id)
     output["username"] = user.username
     return output
 
