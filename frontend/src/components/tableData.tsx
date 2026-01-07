@@ -1,5 +1,5 @@
 import React from "react";
-import { tableHandleButton } from "../style";
+// import { tableHandleButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
 import { ClipboardPlus, RotateCw } from "lucide-react";
 import type {
@@ -169,7 +169,7 @@ export function getInsuranceCompanyColumns(
                 })
               }
               className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-              title="Delete lab test category"
+              title="Delete insurance company"
             >
               <Trash2 className="h-5 w-5" />
             </button>
@@ -344,11 +344,27 @@ export function getPatientsColumns(
               title="Reset password"
               aria-label="Reset password"
               className="h-9 w-9 rounded-full grid place-items-center border border-gray-300
-             hover:bg-blue-600 hover:text-white active:scale-95 transition cursor-pointer"
+             bg-white text-blue-600
+             hover:bg-blue-600 hover:text-white
+             active:scale-95 transition cursor-pointer"
             >
-              <RotateCw className="h-5 w-5 text-gray-800" />
+              <RotateCw className="h-5 w-5 text-current" />
             </button>
-
+            <button
+              type="button"
+              onClick={() =>
+                handleNewVisit(
+                  insurance_company_name,
+                  patient,
+                  navigate,
+                  setError
+                )
+              }
+              className="p-2 rounded-full hover:bg-blue-600 hover:text-white text-blue-600 cursor-pointer"
+              title="New Visit"
+            >
+              <ClipboardPlus className="h-5 w-5" />
+            </button>
             <button
               type="button"
               onClick={() =>
@@ -361,21 +377,6 @@ export function getPatientsColumns(
               title="Delete patient"
             >
               <Trash2 className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                handleNewVisit(
-                  insurance_company_name,
-                  patient,
-                  navigate,
-                  setError
-                )
-              }
-              className="p-2 rounded-full hover:bg-blue-800 hover:text-white text-blue-600 cursor-pointer"
-              title="New Visit"
-            >
-              <ClipboardPlus className="h-5 w-5" />
             </button>
             {/* <MeatballsMenu
               items={[
@@ -713,19 +714,14 @@ export function getLabTestColumns(
         if (items.length == 1) {
           return (
             <div className="flex justify-center">
-              {items.map((item) => (
+              {/* {items.map((item) => (
                 <button
                   className={tableHandleButton}
                   onClick={() => item.onClick()}
                 >
                   {item.label}
                 </button>
-              ))}
-            </div>
-          );
-        } else {
-          return (
-            <div className="flex justify-center gap-4">
+              ))} */}
               <button
                 type="button"
                 onClick={() =>
@@ -739,6 +735,11 @@ export function getLabTestColumns(
               >
                 <Trash2 className="h-5 w-5" />
               </button>
+            </div>
+          );
+        } else {
+          return (
+            <div className="flex justify-center gap-4">
               <MeatballsMenu items={items} />
             </div>
           );
