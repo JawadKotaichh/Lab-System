@@ -7,7 +7,6 @@ import {
   useMatch,
   Navigate,
   useNavigate,
-  useParams,
 } from "react-router-dom";
 import "./App.css";
 import MaintenanceMenu from "./components/MaintenanceMenu";
@@ -114,8 +113,8 @@ function LoginRoute({
   );
 }
 
-function EditPatientAccountRoute() {
-  const { patient_id } = useParams<{ patient_id: string }>();
+function EditPatientAccountRoute({ user }: { user: AuthUser }) {
+  const patient_id = user.user_id;
   const navigate = useNavigate();
   if (!patient_id) {
     alert("Missing patient_id. Please try again.");
@@ -287,7 +286,7 @@ const App: React.FC = () => {
             path="/my-profile"
             element={
               <RequireAuth user={user} allowedRoles={["patient"]}>
-                <EditPatientAccountRoute />
+                <EditPatientAccountRoute user={user!} />
               </RequireAuth>
             }
           />
