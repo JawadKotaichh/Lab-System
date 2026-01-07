@@ -147,7 +147,7 @@ const PatientTable = () => {
             shadow-sm
             hover:bg-blue-700
             active:scale-95 transition
-            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
+            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer
           "
         >
           <UserPlus className="h-4 w-4" />
