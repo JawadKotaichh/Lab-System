@@ -7,12 +7,14 @@ import {
   type SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
+import { UserPlus } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import type { patientInfo } from "../types";
 import { fetchPatientsPaginated } from "../utils";
 import {
   pageListTitle,
-  tableCreateButton,
+  // tableCreateButton,
   tableHead,
   tableItem,
 } from "../../style";
@@ -129,10 +131,26 @@ const PatientTable = () => {
     <div className="p-8 bg-white">
       <div className="grid grid-cols-2">
         <h1 className={pageListTitle}>Patients List</h1>
-        <button
+        {/* <button
           className={`${tableCreateButton} ml-auto text-xl`}
           onClick={() => navigate(`/patients/create-patient`)}
         >
+          Create Patient
+        </button> */}
+        <button
+          type="button"
+          onClick={() => navigate(`/patients/create-patient`)}
+          className="
+            h-10 inline-flex items-center gap-2
+            rounded-lg bg-blue-600 px-4
+            text-sm font-medium text-white
+            shadow-sm
+            hover:bg-blue-700
+            active:scale-95 transition
+            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
+          "
+        >
+          <UserPlus className="h-4 w-4" />
           Create Patient
         </button>
       </div>
