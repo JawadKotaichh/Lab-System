@@ -155,7 +155,7 @@ class Invoice(Document):
     visit_date: datetime = Field(...)
     adjustment_minor: float = Field(default=0.0)
     insurance_company_id: PydanticObjectId = Field(...)
-    total_paid: int = Field(default=0)
+    total_paid: float = Field(default=0.0)
 
 
 class Financial_transaction(Document):
