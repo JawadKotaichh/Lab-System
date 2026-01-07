@@ -12,7 +12,7 @@ import type { insuranceCompanyParams } from "../types";
 import { fetchInsuranceCompaniesPaginated } from "../utils";
 import {
   pageListTitle,
-  tableCreateButton,
+  // tableCreateButton,
   tableHead,
   tableItem,
 } from "../../style";
@@ -126,12 +126,12 @@ const InsuranceCompanyTable = () => {
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between gap-4 mb-4">
         <h1 className={pageListTitle}>Insurance Company List</h1>
-        <button
+        {/* <button
           className={`${tableCreateButton} ml-auto text-xl`}
           onClick={() => navigate(InsuranceCreatePageURL)}
         >
           Create Insurance Company
-        </button>
+        </button> */}
         <button
           type="button"
           onClick={() => navigate(InsuranceCreatePageURL)}
@@ -142,7 +142,7 @@ const InsuranceCompanyTable = () => {
             shadow-sm
             hover:bg-blue-700
             active:scale-95 transition
-            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
+            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer
           "
         >
           <Building2 className="h-4 w-4" />
