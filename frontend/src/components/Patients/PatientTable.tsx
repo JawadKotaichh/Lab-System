@@ -129,7 +129,7 @@ const PatientTable = () => {
 
   return (
     <div className="p-8 bg-white">
-      <div className="grid grid-cols-2">
+      <div className="flex items-center justify-between gap-4 mb-4">
         <h1 className={pageListTitle}>Patients List</h1>
         {/* <button
           className={`${tableCreateButton} ml-auto text-xl`}
@@ -142,7 +142,7 @@ const PatientTable = () => {
           onClick={() => navigate(`/patients/create-patient`)}
           className="
             h-10 inline-flex items-center gap-2
-            rounded-lg bg-blue-600 px-4
+            w-fit shrink-0 rounded-lg bg-blue-600 px-4
             text-sm font-medium text-white
             shadow-sm
             hover:bg-blue-700

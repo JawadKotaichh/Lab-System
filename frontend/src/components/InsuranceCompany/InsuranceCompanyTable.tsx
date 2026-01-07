@@ -22,6 +22,7 @@ import Pagination from "../Pagination";
 import { getInsuranceCompanyColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
+import { Building2 } from "lucide-react";
 
 const InsuranceCompanyTable = () => {
   const [data, setData] = useState<insuranceCompanyParams[]>([]);
@@ -123,13 +124,29 @@ const InsuranceCompanyTable = () => {
   if (loading) return <LoadingPage title="Loading insurance companies ..." />;
   return (
     <div className="p-8 bg-white">
-      <div className="grid grid-cols-2">
+      <div className="flex items-center justify-between gap-4 mb-4">
         <h1 className={pageListTitle}>Insurance Company List</h1>
         <button
           className={`${tableCreateButton} ml-auto text-xl`}
           onClick={() => navigate(InsuranceCreatePageURL)}
         >
           Create Insurance Company
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate(InsuranceCreatePageURL)}
+          className="
+            h-10 inline-flex items-center gap-2
+            w-fit shrink-0 rounded-lg bg-blue-600 px-4
+            text-sm font-medium text-white
+            shadow-sm
+            hover:bg-blue-700
+            active:scale-95 transition
+            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
+          "
+        >
+          <Building2 className="h-4 w-4" />
+          Create insurance company
         </button>
       </div>
       {error && <div className="text-red-600">{error}</div>}

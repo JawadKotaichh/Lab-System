@@ -3,7 +3,7 @@ import type { labPanel, labPanelFilter } from "../types";
 import { fetchLabPanelsPaginated } from "../utils";
 import {
   pageListTitle,
-  tableCreateButton,
+  // tableCreateButton,
   tableDeleteButton,
   tableHandleButton,
   tableItem,
@@ -20,6 +20,7 @@ import Pagination from "../Pagination";
 import SearchLabPanel from "./SearchLabPanel";
 import renderNormalValue from "../renderNormalValue";
 import LoadingPage from "../LoadingPage/LoadingPage";
+import { Layers } from "lucide-react";
 
 function useDebounced<T>(value: T, delay = 500) {
   const [v, setV] = useState(value);
@@ -125,12 +126,28 @@ const LabPanelsList = () => {
         <p> No lab panels found!</p>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <button
+          <div className="flex items-center justify-between gap-4 mb-4">
+            {/* <button
               className={`${tableCreateButton} ml-auto text-xl`}
               onClick={handleCreateLabPanel}
             >
               Create Lab Panel
+            </button> */}
+            <button
+              type="button"
+              onClick={() => handleCreateLabPanel}
+              className="
+            h-10 inline-flex items-center gap-2
+            w-fit shrink-0 rounded-lg bg-blue-600 px-4
+            text-sm font-medium text-white
+            shadow-sm
+            hover:bg-blue-700
+            active:scale-95 transition
+            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
+          "
+            >
+              <Layers className="h-4 w-4" />
+              Create lab panel
             </button>
           </div>
 

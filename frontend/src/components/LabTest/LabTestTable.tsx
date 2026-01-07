@@ -125,14 +125,14 @@ const LabTestTable = () => {
 
   return (
     <div className="p-8 bg-white">
-      <div className="grid grid-cols-2">
+      <div className="flex items-center justify-between gap-4 mb-4">
         <h1 className={pageListTitle}>Lab Test List</h1>
         <button
           type="button"
           onClick={() => handleCreateLabTest(navigate)}
           className="
             h-10 inline-flex items-center gap-2
-            rounded-lg bg-blue-600 px-4
+            w-fit shrink-0 rounded-lg bg-blue-600 px-4
             text-sm font-medium text-white
             shadow-sm
             hover:bg-blue-700
@@ -143,6 +143,7 @@ const LabTestTable = () => {
           <FlaskConical className="h-4 w-4" />
           Create Lab Test
         </button>
+
         {/* <button
           className={`${tableCreateButton} ml-auto text-xl`}
           onClick={() => handleCreateLabTest(navigate)}
