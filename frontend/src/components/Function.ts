@@ -1,6 +1,6 @@
 import { type NavigateFunction } from "react-router-dom";
 import api from "../api";
-import { InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
+import { FinancialTransactionsApiURL, InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
 import { create_invoice, createVisit, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice, resetPassword } from "./utils";
 import type {  labPanelsWithIdsList, labTest, patientInfo, patientPanelResult, patientTestResult, updateInvoiceData } from "./types";
@@ -68,6 +68,19 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
     try {
       await api.delete(`${visitsApiURL}${elementID}`);
       dispatchDeleteEvent("visit-deleted");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+  const handleDeleteTransaction = async ({elementID,setError}:deleteElement) => {
+    if (!window.confirm("Are you sure you want to delete this transaction?")) {
+      return;
+    }
+    try {
+      await api.delete(`${FinancialTransactionsApiURL}${elementID}`);
+      dispatchDeleteEvent("transaction-deleted");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -296,7 +309,7 @@ export const handleAdd = async ({lab_test_id,lab_test,data,setAddError,setShowAd
     setShowAddForLabPanels(false);
   }
 };
-
+export{handleDeleteTransaction};
 export{handleNewAccount};
 export{handleResetPassword};
 export{handleNewVisit};
