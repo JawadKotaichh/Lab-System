@@ -1,7 +1,7 @@
 import React from "react";
 import { tableHandleButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
-import { RotateCcw } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import type {
   insuranceCompanyParams,
   labPanelsWithIdsList,
@@ -35,7 +35,6 @@ import {
   handleDeleteLabTestCategory,
   handleDeletePatient,
   handleDeleteVisit,
-  handleNewAccount,
   handleNewVisit,
   handleResetPassword,
 } from "./Function";
@@ -331,9 +330,9 @@ export function getPatientsColumns(
               title="Reset password"
               aria-label="Reset password"
               className="h-9 w-9 rounded-full grid place-items-center border border-gray-300
-             hover:bg-blue-600 active:scale-95 transition"
+             hover:bg-blue-600 active:scale-95 transition cursor-pointer"
             >
-              <RotateCcw className="h-5 w-5 text-gray-800" />
+              <RotateCw className="h-5 w-5 text-gray-800" />
             </button>
             <MeatballsMenu
               items={[
@@ -357,12 +356,6 @@ export function getPatientsColumns(
                     ),
                   className: "text-blue-600",
                 },
-                // {
-                //   label: "Reset Password",
-                //   onClick: () =>
-                //     handleResetPassword(patient, navigate, setError),
-                //   className: "text-green-600",
-                // },
               ]}
             />
           </div>
