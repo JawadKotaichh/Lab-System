@@ -445,6 +445,10 @@ export type LoginResponse = {
   username?: string;
   role: string;
 };
+export type fetchUserResponse = {
+  user_id: string;
+  username: string;
+};
 
 export type Role = "admin" | "patient";
 
