@@ -3,6 +3,7 @@ import type {
   CreateLabTestParams,
   CreatePatientAccountProps,
   fetchedInvoiceData,
+  fetchUserResponse,
   financialTransaction,
   financialTransactionsFilters,
   insuranceCompanyParams,
@@ -307,6 +308,11 @@ const loginUser = async (
   return response.data;
 };
 
+const fetchUser = async (patient_id: string): Promise<fetchUserResponse> => {
+  const url = `/users/${patient_id}`;
+  const response = await api.get(url);
+  return response.data;
+};
 const refreshSession = async (): Promise<boolean> => {
   const response = await api.post("/auth/refresh");
   return response.data?.ok === true;
@@ -359,6 +365,7 @@ export { fetchFinancialTransaction };
 export { fetchFinancialTransactionsPaginated };
 export { fetchAllFinancialTransactions };
 export { apiFetch };
+export { fetchUser };
 export { loginUser };
 export { refreshSession };
 export { logoutUser };

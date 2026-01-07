@@ -1,20 +1,40 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { baseURLL } from "../../api";
+import { fetchUser } from "../utils";
 
 type LoginInProps = {
   onSubmit?: (data: { username: string; password: string }) => Promise<void>;
   title?: string;
   buttonText?: string;
+  patient_id?: string;
 };
 
 const LoginPage = ({
   onSubmit,
   title = "Sign in to your account",
   buttonText = "Sign in",
+  patient_id,
 }: LoginInProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    async function loadUsername() {
+      if (!patient_id) return;
+      try {
+        const resp = await fetchUser(patient_id);
+        if (!cancelled) setUsername(resp.username ?? "");
+      } catch {
+        console.log("Error loading user");
+        if (!cancelled) setUsername("");
+      }
+    }
+    loadUsername();
+    return () => {
+      cancelled = true;
+    };
+  }, [patient_id]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -79,7 +99,7 @@ const LoginPage = ({
               {loading ? (
                 <span className="inline-flex items-center justify-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  {buttonText == "Sign in" ? "Signing in..." : "Creating..."}
+                  {buttonText == "Sign in" ? "Signing in..." : "Updating..."}
                 </span>
               ) : (
                 buttonText
