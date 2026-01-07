@@ -240,6 +240,28 @@ const fetchAllLabTestTypeCategories = async (): Promise<
   return response.data;
 };
 
+const fetchAllfinancialTransactionsCategories = async (): Promise<
+  labTestCategoryParams[]
+> => {
+  const url = "/financial_transaction/get_all_categories";
+  const response = await api.get(url);
+  return response.data;
+};
+const fetchAllfinancialTransactionsCurrencies = async (): Promise<
+  labTestCategoryParams[]
+> => {
+  const url = "/financial_transaction/get_all_currencies";
+  const response = await api.get(url);
+  return response.data;
+};
+const fetchAllfinancialTransactionsTypes = async (): Promise<
+  labTestCategoryParams[]
+> => {
+  const url = "/financial_transaction/get_all_types";
+  const response = await api.get(url);
+  return response.data;
+};
+
 const fetchPatientsPaginated = async (
   page_number: number,
   page_size: number,
@@ -364,6 +386,9 @@ const fetchAllFinancialTransactions = async (): Promise<
 export { fetchFinancialTransaction };
 export { fetchFinancialTransactionsPaginated };
 export { fetchAllFinancialTransactions };
+export { fetchAllfinancialTransactionsCategories };
+export { fetchAllfinancialTransactionsCurrencies };
+export { fetchAllfinancialTransactionsTypes };
 export { apiFetch };
 export { fetchUser };
 export { loginUser };

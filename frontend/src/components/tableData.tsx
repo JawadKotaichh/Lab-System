@@ -42,6 +42,8 @@ import {
 import { Trash2 } from "lucide-react";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 
+type SelectOption = { value: string; label: string };
+
 export interface LabTestColumnOptions {
   showAddForLabPanels?: boolean;
   setShowAddForLabPanels?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -70,6 +72,12 @@ export interface LabTestColumnOptions {
   >;
   setCurrency?: React.Dispatch<React.SetStateAction<string>>;
 }
+
+type FinancialTransactionColumnOptions = {
+  currencyOptions?: SelectOption[];
+  typeOptions?: SelectOption[];
+  categoryOptions?: SelectOption[];
+};
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
 import MeatballsMenu from "./react-table/MeatBallsMenu";
@@ -1157,8 +1165,10 @@ export function getFinancialTransactionColumns(
   navigate: NavigateFunction,
   showFilters: Record<string, boolean>,
   toggleFilter: (id: string) => void,
-  setError: React.Dispatch<React.SetStateAction<string>>
+  setError: React.Dispatch<React.SetStateAction<string>>,
+  options?: FinancialTransactionColumnOptions
 ): ColumnDef<financialTransaction>[] {
+  const { currencyOptions, typeOptions, categoryOptions } = options ?? {};
   return [
     {
       accessorKey: "date",
@@ -1207,6 +1217,7 @@ export function getFinancialTransactionColumns(
           label="Type"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
+          options={typeOptions}
         />
       ),
       sortingFn: (rowA, rowB, columnId) => {
@@ -1225,6 +1236,7 @@ export function getFinancialTransactionColumns(
           label="Category"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
+          options={categoryOptions}
         />
       ),
       sortingFn: (rowA, rowB, columnId) => {
@@ -1284,6 +1296,7 @@ export function getFinancialTransactionColumns(
           label="Currency"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
+          options={currencyOptions}
         />
       ),
       sortingFn: (rowA, rowB, columnId) => {
