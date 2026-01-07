@@ -17,8 +17,8 @@ class update_financial_transaction(BaseModel):
     type: Optional[str] = None
     date: Optional[datetime] = None
     amount: Optional[float] = None
-    currency: Optional[float] = None
-    description: Optional[float] = None
+    currency: Optional[str] = None
+    description: Optional[str] = None
     category: Optional[str] = None
     visit_id: Optional[str] = None
 
