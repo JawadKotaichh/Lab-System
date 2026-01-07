@@ -38,6 +38,7 @@ import {
   handleNewVisit,
   handleResetPassword,
 } from "./Function";
+import { Trash2 } from "lucide-react";
 import { ColumnFilter } from "./react-table/ColumnFilter";
 
 export interface LabTestColumnOptions {
@@ -1011,31 +1012,19 @@ export function getVisitsColumns(
               initialPosted={posted}
               setError={setError}
             />
-            <MeatballsMenu
-              items={[
-                // {
-                //   label: "Edit",
-                //   onClick: () =>
-                //     navigate(`${visitEditPageURL}${visit_id}`, {
-                //       state: {
-                //         patientData: {
-                //           ...patient,
-                //           insurance_company_name: insurance_company_name,
-                //         },
-                //       },
-                //     }),
-                // },
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeleteVisit({
-                      elementID: visit_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
-              ]}
-            />
+            <button
+              type="button"
+              onClick={() =>
+                handleDeleteVisit({
+                  elementID: visit_id,
+                  setError,
+                })
+              }
+              className="p-2 rounded-full hover:bg-red-50 text-red-600"
+              title="Delete"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
           </div>
         );
       },
