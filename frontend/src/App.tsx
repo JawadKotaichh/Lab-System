@@ -299,6 +299,14 @@ const App: React.FC = () => {
             }
           />
           <Route
+            path="/financial-transactions/:transaction_id"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <EditFinancialTransaction title="Edit transaction" />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/financial-transactions/edit-patient/:transaction-id"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
