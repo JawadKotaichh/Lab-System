@@ -22,7 +22,7 @@ import PlusButtonMenu from "../PlusButtonMenu";
 import {
   buildFinancialTransactionsFilters,
   useFinancialTransactionsOptions,
-} from "src/hooks/useLabTestCategoryOptions";
+} from "../../hooks/useLabTestCategoryOptions";
 
 const FinancialTransactionsTable: React.FC = () => {
   const [data, setData] = useState<financialTransaction[]>([]);
