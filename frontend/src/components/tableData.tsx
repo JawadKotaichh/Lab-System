@@ -160,7 +160,20 @@ export function getInsuranceCompanyColumns(
         const company = row.original;
         return (
           <div className="flex justify-center">
-            <MeatballsMenu
+            <button
+              type="button"
+              onClick={() =>
+                handleDeleteInsuranceCompany({
+                  elementID: company.insurance_company_id,
+                  setError,
+                })
+              }
+              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+              title="Delete lab test category"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+            {/* <MeatballsMenu
               items={[
                 {
                   label: "Delete",
@@ -172,7 +185,7 @@ export function getInsuranceCompanyColumns(
                   className: "text-red-600",
                 },
               ]}
-            />
+            /> */}
           </div>
         );
       },
@@ -331,7 +344,7 @@ export function getPatientsColumns(
               title="Reset password"
               aria-label="Reset password"
               className="h-9 w-9 rounded-full grid place-items-center border border-gray-300
-             hover:bg-blue-600 active:scale-95 transition cursor-pointer"
+             hover:bg-blue-600 hover:text-white active:scale-95 transition cursor-pointer"
             >
               <RotateCw className="h-5 w-5 text-gray-800" />
             </button>
@@ -359,7 +372,7 @@ export function getPatientsColumns(
                   setError
                 )
               }
-              className="p-2 rounded-full hover:bg-blue-800 text-blue-600 cursor-pointer"
+              className="p-2 rounded-full hover:bg-blue-800 hover:text-white text-blue-600 cursor-pointer"
               title="New Visit"
             >
               <ClipboardPlus className="h-5 w-5" />
@@ -712,7 +725,20 @@ export function getLabTestColumns(
           );
         } else {
           return (
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-4">
+              <button
+                type="button"
+                onClick={() =>
+                  handleDeleteLabTest({
+                    elementID: lab_test_id,
+                    setError,
+                  })
+                }
+                className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+                title="Delete lab test"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
               <MeatballsMenu items={items} />
             </div>
           );
@@ -772,7 +798,20 @@ export function getLabTestCategoryColumns(
         const { lab_test_category_id } = row.original;
         return (
           <div className="flex justify-center">
-            <MeatballsMenu
+            <button
+              type="button"
+              onClick={() =>
+                handleDeleteLabTestCategory({
+                  elementID: lab_test_category_id,
+                  setError,
+                })
+              }
+              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+              title="Delete lab test category"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+            {/* <MeatballsMenu
               items={[
                 {
                   label: "Delete",
@@ -784,7 +823,7 @@ export function getLabTestCategoryColumns(
                   className: "text-red-600",
                 },
               ]}
-            />
+            /> */}
           </div>
         );
       },
