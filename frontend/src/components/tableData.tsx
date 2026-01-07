@@ -1161,9 +1161,23 @@ export function getFinancialTransactionColumns(
   return [
     {
       accessorKey: "date",
-      cell: ({ getValue }) => {
+      cell: ({ row, getValue }) => {
         const iso = getValue<string>() ?? "";
-        return iso.split("T")[0];
+        const dateOnly = iso.split("T")[0];
+        const transactionId = row.original.id;
+        const category = row.original.category;
+
+        return (
+          <button
+            type="button"
+            onClick={() => navigate(`/financial-transactions/${transactionId}`)}
+            className="text-blue-800 hover:underline cursor-pointer"
+            title="Edit Transaction"
+            disabled={category === "Visit"}
+          >
+            {dateOnly}
+          </button>
+        );
       },
       header: ({ column }) => (
         <ColumnFilter

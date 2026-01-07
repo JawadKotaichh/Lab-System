@@ -8,6 +8,7 @@ from ..models import insurance_company as DBInsurance_company
 from ..schemas.schema_financial_transactions import (
     financial_transaction,
     update_financial_transaction,
+    financial_transaction_with_id,
 )
 from fastapi.responses import Response
 from typing import Any, Dict, List, Mapping, Optional, Sequence
@@ -87,10 +88,11 @@ async def get_financial_transaction_with_page_size(
         mongo_filter
     ).count()
     cursor = DBfinancial_transaction.find(mongo_filter).skip(offset).limit(page_size)
-    financial_transactions: List[financial_transaction] = []
+    financial_transactions: List[financial_transaction_with_id] = []
     async for current_financial_transaction in cursor:
         financial_transactions.append(
-            financial_transaction(
+            financial_transaction_with_id(
+                id=str(current_financial_transaction.id),
                 type=current_financial_transaction.type,
                 currency=current_financial_transaction.currency,
                 date=current_financial_transaction.date,
@@ -188,7 +190,7 @@ async def get_unique_category_financial_transactions() -> List[Dict[str, Any]]:
     return results
 
 
-@router.get("/{financial_transaction_id}", response_model=financial_transaction)
+@router.get("/{financial_transaction_id}", response_model=financial_transaction_with_id)
 async def get_financial_transaction(financial_transaction_id: str):
     if not PydanticObjectId.is_valid(financial_transaction_id):
         raise HTTPException(400, "Invalid financial_transaction ID")
@@ -201,7 +203,8 @@ async def get_financial_transaction(financial_transaction_id: str):
             404, f"financial_transaction {financial_transaction_id} not found"
         )
     if existing_financial_transaction.visit_id is not None:
-        output = financial_transaction(
+        output = financial_transaction_with_id(
+            id=str(existing_financial_transaction.id),
             type=existing_financial_transaction.type,
             currency=existing_financial_transaction.currency,
             date=existing_financial_transaction.date,
@@ -211,7 +214,8 @@ async def get_financial_transaction(financial_transaction_id: str):
             visit_id=str(existing_financial_transaction.visit_id),
         )
     else:
-        output = financial_transaction(
+        output = financial_transaction_with_id(
+            id=str(existing_financial_transaction.id),
             type=existing_financial_transaction.type,
             currency=existing_financial_transaction.currency,
             date=existing_financial_transaction.date,

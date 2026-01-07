@@ -299,6 +299,14 @@ const App: React.FC = () => {
             }
           />
           <Route
+            path="/financial-transactions/:transaction_id"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <EditFinancialTransaction title="Edit transaction" />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/financial-transactions/edit-patient/:transaction-id"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
@@ -351,6 +359,14 @@ const App: React.FC = () => {
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
                 <InsuranceCompanyTable />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/create-insurance-company"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <EditInsuranceCompany title="Create insurance company" />
               </RequireAuth>
             }
           />
