@@ -34,6 +34,7 @@ import {
   handleDeleteLabTest,
   handleDeleteLabTestCategory,
   handleDeletePatient,
+  handleDeleteTransaction,
   handleDeleteVisit,
   handleNewVisit,
   handleResetPassword,
@@ -1155,8 +1156,8 @@ export function getVisitsColumns(
 export function getFinancialTransactionColumns(
   navigate: NavigateFunction,
   showFilters: Record<string, boolean>,
-  toggleFilter: (id: string) => void
-  // setError: React.Dispatch<React.SetStateAction<string>>
+  toggleFilter: (id: string) => void,
+  setError: React.Dispatch<React.SetStateAction<string>>
 ): ColumnDef<financialTransaction>[] {
   return [
     {
@@ -1291,54 +1292,66 @@ export function getFinancialTransactionColumns(
         return a.localeCompare(b);
       },
     },
-    // {
-    //   id: "actions",
-    //   enableSorting: false,
-    //   header: () => <div className="text-xl mt-4 text-center">Actions</div>,
-    //   cell: ({ row }) => {
-    //     const { visit_id, patient, insurance_company_name, posted } =
-    //       row.original;
-    //     return (
-    //       <div className="flex justify-center gap-4">
-    //         <MeatballsMenu
-    //           items={[
-    //             {
-    //               label: "Edit",
-    //               onClick: () =>
-    //                 navigate(`${visitEditPageURL}${visit_id}`, {
-    //                   state: {
-    //                     patientData: {
-    //                       ...patient,
-    //                       insurance_company_name: insurance_company_name,
-    //                     },
-    //                   },
-    //                 }),
-    //             },
-    //             {
-    //               label: "Preview Result",
-    //               onClick: () => navigate(`/result/${visit_id}`),
-    //               className: "text-blue-800",
-    //             },
-    //             {
-    //               label: "View Invoice",
-    //               onClick: () => navigate(`/invoice/${visit_id}`),
-    //               className: "text-blue-800",
-    //             },
-    //             {
-    //               label: "Delete",
-    //               onClick: () =>
-    //                 handleDeleteVisit({
-    //                   elementID: visit_id,
-    //                   setError,
-    //                 }),
-    //               className: "text-red-600",
-    //             },
-    //           ]}
-    //         />
-    //       </div>
-    //     );
-    //   },
-    // },
+    {
+      id: "actions",
+      enableSorting: false,
+      header: () => <div className="text-xl mt-4 text-center">Actions</div>,
+      cell: ({ row }) => {
+        const { id } = row.original;
+        return (
+          <div className="flex justify-center gap-4">
+            <button
+              type="button"
+              onClick={() =>
+                handleDeleteTransaction({
+                  elementID: id!,
+                  setError,
+                })
+              }
+              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+              title="Delete transaction"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+            {/* <MeatballsMenu
+              items={[
+                {
+                  label: "Edit",
+                  onClick: () =>
+                    navigate(`${visitEditPageURL}${visit_id}`, {
+                      state: {
+                        patientData: {
+                          ...patient,
+                          insurance_company_name: insurance_company_name,
+                        },
+                      },
+                    }),
+                },
+                {
+                  label: "Preview Result",
+                  onClick: () => navigate(`/result/${visit_id}`),
+                  className: "text-blue-800",
+                },
+                {
+                  label: "View Invoice",
+                  onClick: () => navigate(`/invoice/${visit_id}`),
+                  className: "text-blue-800",
+                },
+                {
+                  label: "Delete",
+                  onClick: () =>
+                    handleDeleteVisit({
+                      elementID: visit_id,
+                      setError,
+                    }),
+                  className: "text-red-600",
+                },
+              ]}
+            /> */}
+          </div>
+        );
+      },
+    },
   ];
 }
 
