@@ -12,10 +12,11 @@ import type { labTest } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import {
   pageListTitle,
-  tableCreateButton,
+  // tableCreateButton,
   tableHead,
   tableItem,
 } from "../../style";
+import { FlaskConical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../Pagination";
 import { getLabTestColumns } from "../tableData";
@@ -127,11 +128,27 @@ const LabTestTable = () => {
       <div className="grid grid-cols-2">
         <h1 className={pageListTitle}>Lab Test List</h1>
         <button
+          type="button"
+          onClick={() => handleCreateLabTest(navigate)}
+          className="
+            h-10 inline-flex items-center gap-2
+            rounded-lg bg-blue-600 px-4
+            text-sm font-medium text-white
+            shadow-sm
+            hover:bg-blue-700
+            active:scale-95 transition
+            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
+          "
+        >
+          <FlaskConical className="h-4 w-4" />
+          Create Lab Test
+        </button>
+        {/* <button
           className={`${tableCreateButton} ml-auto text-xl`}
           onClick={() => handleCreateLabTest(navigate)}
         >
           Create Lab Test
-        </button>
+        </button> */}
       </div>
       {error && <div className="text-red-600">{error}</div>}
 
