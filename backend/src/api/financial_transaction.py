@@ -265,7 +265,7 @@ async def update_the_financial_transaction(
         db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == visit_id)
         db_visit = await DBVisit.get(visit_id)
         if db_invoice and db_visit:
-            db_invoice.total_paid = int(existing_financial_transaction.amount)
+            db_invoice.total_paid = existing_financial_transaction.amount
             db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
             db_insurance_company = None
             if db_patient:
@@ -273,16 +273,15 @@ async def update_the_financial_transaction(
                     DBInsurance_company.id == db_patient.insurance_company_id
                 )
             if db_insurance_company:
-                total_price = 0
+                total_price = 0.0
                 for test in db_invoice.list_of_tests:
                     total_price += test.price
                 for panel in db_invoice.list_of_lab_panels:
                     total_price += panel.lab_panel_price
                 total_price *= db_insurance_company.rate
                 total_price += db_invoice.adjustment_minor
-                if db_invoice.total_paid >= total_price:
-                    db_visit.posted = True
-                    await db_visit.replace()
+                db_visit.posted = db_invoice.total_paid >= total_price
+                await db_visit.replace()
             await db_invoice.replace()
 
     return existing_financial_transaction
