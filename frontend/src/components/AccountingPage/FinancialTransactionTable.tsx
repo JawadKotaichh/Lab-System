@@ -24,16 +24,6 @@ import {
   useFinancialTransactionsOptions,
 } from "src/hooks/useLabTestCategoryOptions";
 
-const currencyOptions = [
-  { value: "USD", label: "USD" },
-  { value: "LBP", label: "LBP" },
-];
-
-const typeOptions = [
-  { value: "Income", label: "Income" },
-  { value: "Expense", label: "Expense" },
-];
-
 const FinancialTransactionsTable: React.FC = () => {
   const [data, setData] = useState<financialTransaction[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -62,7 +52,8 @@ const FinancialTransactionsTable: React.FC = () => {
   const handleSetPageSize = (size: number) => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
-  const categoryOptions = useFinancialTransactionsOptions();
+  const { categoryOptions, currencyOptions, typeOptions } =
+    useFinancialTransactionsOptions();
 
   const financialTransactionCols = getFinancialTransactionColumns(
     navigate,
