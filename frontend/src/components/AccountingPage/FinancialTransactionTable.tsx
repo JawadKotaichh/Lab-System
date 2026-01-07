@@ -19,6 +19,10 @@ import {
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import PlusButtonMenu from "../PlusButtonMenu";
+import {
+  buildFinancialTransactionsFilters,
+  useFinancialTransactionsOptions,
+} from "src/hooks/useLabTestCategoryOptions";
 
 const FinancialTransactionsTable: React.FC = () => {
   const [data, setData] = useState<financialTransaction[]>([]);
@@ -48,11 +52,15 @@ const FinancialTransactionsTable: React.FC = () => {
   const handleSetPageSize = (size: number) => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
+  const { categoryOptions, currencyOptions, typeOptions } =
+    useFinancialTransactionsOptions();
+
   const financialTransactionCols = getFinancialTransactionColumns(
     navigate,
     showFilters,
-    toggleFilter
-    // setError
+    toggleFilter,
+    setError,
+    { categoryOptions, currencyOptions, typeOptions }
   );
   const table = useReactTable({
     data,
@@ -89,13 +97,7 @@ const FinancialTransactionsTable: React.FC = () => {
       setLoading(true);
       setError("");
       try {
-        const filters = columnFilters.reduce<Record<string, string>>(
-          (acc, f) => {
-            acc[f.id] = String(f.value);
-            return acc;
-          },
-          {}
-        );
+        const filters = buildFinancialTransactionsFilters(columnFilters);
         const res = await fetchFinancialTransactionsPaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,

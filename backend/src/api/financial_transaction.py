@@ -146,23 +146,58 @@ async def create_financial_transaction(data: financial_transaction):
     return new_financial_transaction
 
 
-# @router.get("/all", response_model=List[Dict[str, Any]])
-# async def getAllFinancialTransactions() -> List[Dict[str, Any]]:
-#     cursor = DBfinancial_transaction.find()
-#     all_financial_transactions: List[Dict[str, Any]] = []
-#     async for element in cursor:
-#         all_financial_transactions.append(
-#             {
-#                 "id": str(element.id),
-#                 "type": element.type,
-#                 "date": element.date,
-#                 "amount": element.amount,
-#                 "currency": element.currency,
-#                 "description": element.description,
-#                 "category": element.category,
-#             }
-#         )
-#     return all_financial_transactions
+@router.get("/get_all_currencies", response_model=List[Dict[str, Any]])
+async def getAllFinancialTransactionsCurrencies() -> List[Dict[str, Any]]:
+    pipeline: Sequence[Mapping[str, Any]] = [
+        {"$sort": {"date": -1}},
+        {"$group": {"_id": "$currency", "doc": {"$first": "$$ROOT"}}},
+        {"$replaceRoot": {"newRoot": "$doc"}},
+    ]
+    cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
+    all_financial_transactions_currencies: List[Dict[str, Any]] = []
+    async for element in cursor:
+        all_financial_transactions_currencies.append(
+            {
+                "currency": element.currency,
+            }
+        )
+    return all_financial_transactions_currencies
+
+
+@router.get("/get_all_categories", response_model=List[Dict[str, Any]])
+async def getAllFinancialTransactionsCategories() -> List[Dict[str, Any]]:
+    pipeline: Sequence[Mapping[str, Any]] = [
+        {"$sort": {"date": -1}},
+        {"$group": {"_id": "$category", "doc": {"$first": "$$ROOT"}}},
+        {"$replaceRoot": {"newRoot": "$doc"}},
+    ]
+    cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
+    all_financial_transactions_categories: List[Dict[str, Any]] = []
+    async for element in cursor:
+        all_financial_transactions_categories.append(
+            {
+                "category": element.category,
+            }
+        )
+    return all_financial_transactions_categories
+
+
+@router.get("/get_all_types", response_model=List[Dict[str, Any]])
+async def getAllFinancialTransactionsTypes() -> List[Dict[str, Any]]:
+    pipeline: Sequence[Mapping[str, Any]] = [
+        {"$sort": {"date": -1}},
+        {"$group": {"_id": "$type", "doc": {"$first": "$$ROOT"}}},
+        {"$replaceRoot": {"newRoot": "$doc"}},
+    ]
+    cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
+    all_financial_transactions_types: List[Dict[str, Any]] = []
+    async for element in cursor:
+        all_financial_transactions_types.append(
+            {
+                "type": element.type,
+            }
+        )
+    return all_financial_transactions_types
 
 
 @router.get("/all", response_model=List[Dict[str, Any]])
