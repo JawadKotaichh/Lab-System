@@ -355,6 +355,14 @@ const App: React.FC = () => {
             }
           />
           <Route
+            path="/create-insurance-company"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <EditInsuranceCompany title="Create insurance company" />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/patients/create-patient"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
