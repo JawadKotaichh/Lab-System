@@ -28,7 +28,7 @@ export function DateRangeFilter<TData>({
     start: initial?.start ?? "",
     end: initial?.end ?? "",
   });
-  const debounced = useDebounce(draft, 1500);
+  const debounced = useDebounce(draft, 2000);
   const fromId = `${column.id}-from`;
   const toId = `${column.id}-to`;
 

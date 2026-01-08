@@ -165,7 +165,10 @@ async def get_invoice(visit_id: str):
 async def get_visits_with_page_size(
     page_number: int,
     page_size: int,
-    visit_date: Optional[str] = Query(
+    start_date: Optional[str] = Query(
+        None, description="Filter visits by date prefix YYYY-MM-DD"
+    ),
+    end_date: Optional[str] = Query(
         None, description="Filter visits by date prefix YYYY-MM-DD"
     ),
     patient_name: Optional[str] = Query(
@@ -226,17 +229,38 @@ async def get_visits_with_page_size(
                 )
             patient_ids = [doc["_id"] for doc in matching_patients]
             mongo_filter_visits["patient_id"] = {"$in": patient_ids}
+    start_dt = end_dt = None
 
-    if visit_date:
+    if start_date:
         try:
-            parsed_date = datetime.strptime(visit_date, "%Y-%m-%d").date()
+            parsed = datetime.strptime(start_date, "%Y-%m-%d").date()
+            start_dt = datetime.combine(parsed, time.min)
         except ValueError:
             raise HTTPException(
-                status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+                status_code=400, detail="Invalid start_date. Use YYYY-MM-DD"
             )
-        start_dt = datetime.combine(parsed_date, time.min)
-        end_dt = datetime.combine(parsed_date, time.max)
+
+    if end_date:
+        try:
+            parsed = datetime.strptime(end_date, "%Y-%m-%d").date()
+            end_dt = datetime.combine(parsed, time.max)
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="Invalid end_date. Use YYYY-MM-DD"
+            )
+
+    if start_dt and end_dt:
         mongo_filter_visits["visit_date"] = {"$gte": start_dt, "$lte": end_dt}
+    elif start_dt:
+        mongo_filter_visits["visit_date"] = {
+            "$gte": start_dt,
+            "$lte": datetime.combine(start_dt.date(), time.max),
+        }
+    elif end_dt:
+        mongo_filter_visits["visit_date"] = {
+            "$gte": datetime.combine(end_dt.date(), time.min),
+            "$lte": end_dt,
+        }
 
     total_number_of_visits = await DBVisit.find(mongo_filter_visits).count()
     cursor = DBVisit.find(mongo_filter_visits).skip(offset).limit(page_size)
