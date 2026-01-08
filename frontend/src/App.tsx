@@ -39,6 +39,7 @@ import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
 import UserVisitsPage from "./components/UserVisitsPage/UserVisitsPage";
 import FinancialTransactionTable from "./components/AccountingPage/FinancialTransactionTable";
 import EditFinancialTransaction from "./components/AccountingPage/EditFinancialTransaction";
+import FinancialDashboard from "./components/AccountingPage/FinancialDashboard";
 type NavItem = {
   to: string;
   label: string;
@@ -146,6 +147,7 @@ const navItemsAdmin: NavItem[] = [
   { to: "/patients", label: "Patients" },
   { to: "/monthly-summary", label: "Month Summary" },
   { to: "/financial-transactions", label: "Financial Transactions", end: true },
+  { to: "/financial-dashboard", label: "Financial Dashboard", end: true },
 ];
 const navItemsUser: NavItem[] = [
   { to: "/my-visits", label: "My Visits", end: true },
@@ -295,6 +297,14 @@ const App: React.FC = () => {
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
                 <FinancialTransactionTable />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/financial-dashboard"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <FinancialDashboard />
               </RequireAuth>
             }
           />

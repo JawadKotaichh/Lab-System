@@ -432,7 +432,7 @@ async def create_invoice(visit_id: str, patient: Patient):
         date=db_visit.visit_date,
         amount=0.0,
         description=f"Paid by: {patient.name}",
-        category="VisitBySystem",
+        category="Visit By System",
         visit_id=PydanticObjectId(visit_id),
     )
     new_financial_transaction = await db_financial_transacion.insert()
