@@ -1194,7 +1194,7 @@ export function getFinancialTransactionColumns(
             onClick={() => navigate(`/financial-transactions/${transactionId}`)}
             className="text-blue-800 hover:underline cursor-pointer"
             title="Edit Transaction"
-            disabled={category === "Visit"}
+            disabled={category === "VisitBySystem"}
           >
             {dateOnly}
           </button>
@@ -1318,11 +1318,12 @@ export function getFinancialTransactionColumns(
       enableSorting: false,
       header: () => <div className="text-xl mt-4 text-center">Actions</div>,
       cell: ({ row }) => {
-        const { id } = row.original;
+        const { id, category } = row.original;
         return (
           <div className="flex justify-center gap-4">
             <button
               type="button"
+              disabled={category === "VisitBySystem"}
               onClick={() =>
                 handleDeleteTransaction({
                   elementID: id!,
@@ -1334,6 +1335,7 @@ export function getFinancialTransactionColumns(
             >
               <Trash2 className="h-5 w-5" />
             </button>
+
             {/* <MeatballsMenu
               items={[
                 {
