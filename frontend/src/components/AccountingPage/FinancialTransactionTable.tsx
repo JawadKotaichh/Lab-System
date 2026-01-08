@@ -104,7 +104,7 @@ const FinancialTransactionsTable: React.FC = () => {
           filters
         );
         console.log(
-          "Financial transactions Data: ",
+          "Financial transactions Data : ",
           res.financial_transactions
         );
         setData(res.financial_transactions);
