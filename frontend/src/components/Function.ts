@@ -229,6 +229,7 @@ export const handleAddLabTest = async ({
     alreadyExistsPanel;
 
   if (alreadyExistsAnywhere) {
+    alert(duplicateMessage);
     setAddError(duplicateMessage);
     return;
   }
