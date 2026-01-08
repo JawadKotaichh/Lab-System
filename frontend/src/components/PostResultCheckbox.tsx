@@ -29,7 +29,7 @@ export function PostResultCheckbox({
   };
 
   return (
-    <label className="flex items-center gap-2 select-none">
+    <label className="flex items-center gap-2 select-none cursor-pointer">
       <input
         type="checkbox"
         checked={posted}
