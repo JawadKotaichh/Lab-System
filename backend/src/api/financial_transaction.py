@@ -184,16 +184,17 @@ async def get_unique_category_financial_transactions() -> List[Dict[str, Any]]:
 
     results: List[Dict[str, Any]] = []
     async for element in cursor:
-        results.append(
-            {
-                "type": element.get("type"),
-                "date": element.get("date"),
-                "amount": element.get("amount"),
-                "currency": element.get("currency"),
-                "description": element.get("description"),
-                "category": element.get("category"),
-            }
-        )
+        if element.get("category") != "VisitBySystem":
+            results.append(
+                {
+                    "type": element.get("type"),
+                    "date": element.get("date"),
+                    "amount": element.get("amount"),
+                    "currency": element.get("currency"),
+                    "description": element.get("description"),
+                    "category": element.get("category"),
+                }
+            )
     return results
 
 

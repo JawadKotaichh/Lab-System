@@ -28,7 +28,9 @@ export function DateRangeFilter<TData>({
     start: initial?.start ?? "",
     end: initial?.end ?? "",
   });
-  const debounced = useDebounce(draft, 1000);
+  const debounced = useDebounce(draft, 1500);
+  const fromId = `${column.id}-from`;
+  const toId = `${column.id}-to`;
 
   useEffect(() => {
     const current = column.getFilterValue() as DateRangeValue | undefined;
@@ -117,31 +119,39 @@ export function DateRangeFilter<TData>({
       </div>
 
       {showFilter && (
-        <div className="mt-2 grid gap-2 p-2">
-          <label className="flex items-center gap-2">
-            <span className="text-sm whitespace-nowrap">From</span>
-            <input
-              type="date"
-              className="border rounded p-1 h-9 flex-1 text-center"
-              value={draft.start ?? ""}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, start: e.target.value }))
-              }
-              aria-label="From date"
-            />
+        <div className="mt-2 grid grid-cols-[3.5rem_1fr] items-center gap-x-2 gap-y-2 p-2">
+          <label
+            htmlFor={fromId}
+            className="text-sm whitespace-nowrap text-right"
+          >
+            From:
           </label>
-          <label className="flex items-center gap-2">
-            <span className="text-sm whitespace-nowrap">To</span>
-            <input
-              type="date"
-              className="border rounded p-1 h-9 flex-1 text-center"
-              value={draft.end ?? ""}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, end: e.target.value }))
-              }
-              aria-label="To date"
-            />
+          <input
+            id={fromId}
+            type="date"
+            className="border rounded p-1 h-9 w-full text-center"
+            value={draft.start ?? ""}
+            onChange={(e) =>
+              setDraft((prev) => ({ ...prev, start: e.target.value }))
+            }
+            aria-label="From date"
+          />
+          <label
+            htmlFor={toId}
+            className="text-sm whitespace-nowrap text-right"
+          >
+            To:
           </label>
+          <input
+            id={toId}
+            type="date"
+            className="border rounded p-1 h-9 w-full text-center"
+            value={draft.end ?? ""}
+            onChange={(e) =>
+              setDraft((prev) => ({ ...prev, end: e.target.value }))
+            }
+            aria-label="To date"
+          />
         </div>
       )}
     </div>
