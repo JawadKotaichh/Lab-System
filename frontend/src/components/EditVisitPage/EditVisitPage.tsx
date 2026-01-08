@@ -257,19 +257,19 @@ const EditVisitPage: React.FC = () => {
         currency={currency}
       />
       <button
-        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
+        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j cursor-pointer"
         onClick={() => setShowTestsTable(true)}
       >
         Add test result
       </button>
       <button
-        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j"
+        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j cursor-pointer"
         onClick={() => setShowPanelsTable(true)}
       >
         Add lab panel
       </button>
       <button
-        className="p-2 h-10 w-20 rounded-sm border bg-blue-400 hover:bg-green-500"
+        className="p-2 h-10 w-20 rounded-sm border bg-blue-400 hover:bg-green-500 cursor-pointer"
         onClick={() => handleSaveAll()}
       >
         Save

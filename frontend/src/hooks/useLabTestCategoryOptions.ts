@@ -167,16 +167,32 @@ export const buildFinancialTransactionsFilters = (
   columnFilters: ColumnFiltersState
 ): Record<string, string> =>
   columnFilters.reduce<Record<string, string>>((acc, filter) => {
+    if (filter.id === "date") {
+      const value = filter.value as
+        | { start?: string; end?: string }
+        | string
+        | undefined;
+      if (typeof value === "string") {
+        if (value) {
+          acc["start_date"] = value;
+          acc["end_date"] = value;
+        }
+        return acc;
+      }
+      if (value?.start) acc["start_date"] = value.start;
+      if (value?.end) acc["end_date"] = value.end;
+      return acc;
+    }
+
     if (!filter.value) return acc;
     const value = String(filter.value);
     if (filter.id === "currency") {
       acc["currency"] = value;
-    } else if(filter.id === "type"){
-        acc["type"] = value;
-    }else if(filter.id === "category"){
-        acc["category"] = value;
-    }
-    else {
+    } else if (filter.id === "type") {
+      acc["type"] = value;
+    } else if (filter.id === "category") {
+      acc["category"] = value;
+    } else {
       acc[filter.id] = value;
     }
     return acc;
