@@ -7,7 +7,7 @@ __pycache__/
 venv/
 .Python
 *.db
-
+t.py
 # FastAPI-related
 *.log
 *.sqlite
