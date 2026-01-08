@@ -82,6 +82,7 @@ import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
 import MeatballsMenu from "./react-table/MeatBallsMenu";
 import { PostResultCheckbox } from "./PostResultCheckbox";
+import { tableHandleButton } from "src/style";
 
 export function getInsuranceCompanyColumns(
   navigate: NavigateFunction,
@@ -723,6 +724,15 @@ export function getLabTestColumns(
         if (items.length == 1) {
           return (
             <div className="flex justify-center">
+              {items[0].label == "Add" &&
+                items.map((item) => (
+                  <button
+                    className={tableHandleButton}
+                    onClick={() => item.onClick()}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               {/* {items.map((item) => (
                 <button
                   className={tableHandleButton}
