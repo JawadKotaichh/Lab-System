@@ -1,5 +1,5 @@
 import React from "react";
-// import { tableHandleButton } from "../style";
+import { tableHandleButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
 import { ClipboardPlus, RotateCw } from "lucide-react";
 import type {
@@ -41,6 +41,10 @@ import {
 } from "./Function";
 import { Trash2 } from "lucide-react";
 import { ColumnFilter } from "./react-table/ColumnFilter";
+import type { ColumnDef, PaginationState } from "@tanstack/react-table";
+import renderNormalValue from "./renderNormalValue";
+import MeatballsMenu from "./react-table/MeatBallsMenu";
+import { PostResultCheckbox } from "./PostResultCheckbox";
 
 type SelectOption = { value: string; label: string };
 
@@ -78,11 +82,6 @@ type FinancialTransactionColumnOptions = {
   typeOptions?: SelectOption[];
   categoryOptions?: SelectOption[];
 };
-import type { ColumnDef, PaginationState } from "@tanstack/react-table";
-import renderNormalValue from "./renderNormalValue";
-import MeatballsMenu from "./react-table/MeatBallsMenu";
-import { PostResultCheckbox } from "./PostResultCheckbox";
-import { tableHandleButton } from "src/style";
 
 export function getInsuranceCompanyColumns(
   navigate: NavigateFunction,
