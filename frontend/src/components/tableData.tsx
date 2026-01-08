@@ -1203,7 +1203,7 @@ export function getFinancialTransactionColumns(
             onClick={() => navigate(`/financial-transactions/${transactionId}`)}
             className="text-blue-800 hover:underline cursor-pointer"
             title="Edit Transaction"
-            disabled={category === "VisitBySystem"}
+            disabled={category === "Visit By System"}
           >
             {dateOnly}
           </button>
@@ -1265,9 +1265,22 @@ export function getFinancialTransactionColumns(
     {
       accessorKey: "amount",
       cell: ({ row }) => {
-        const currency = row.original.currency ?? "$";
-        if (currency === "USD") return `${row.original.amount.toFixed(2)} $`;
-        else return `${row.original.amount.toLocaleString("en-US")} LBP`;
+        const currency = row.original.currency ?? "USD";
+        const type = (row.original.type ?? "").toLowerCase();
+
+        const amountText =
+          currency === "USD"
+            ? `${row.original.amount.toFixed(2)} $`
+            : `${row.original.amount.toLocaleString("en-US")} LBP`;
+
+        const amountClass =
+          type === "expense"
+            ? "text-red-600"
+            : type === "income"
+            ? "text-blue-600"
+            : "text-gray-800";
+
+        return <span className={amountClass}>{amountText}</span>;
       },
       header: ({ column }) => (
         <ColumnFilter
@@ -1332,7 +1345,7 @@ export function getFinancialTransactionColumns(
           <div className="flex justify-center gap-4">
             <button
               type="button"
-              disabled={category === "VisitBySystem"}
+              disabled={category === "Visit By System"}
               onClick={() =>
                 handleDeleteTransaction({
                   elementID: id!,
@@ -1344,42 +1357,6 @@ export function getFinancialTransactionColumns(
             >
               <Trash2 className="h-5 w-5" />
             </button>
-
-            {/* <MeatballsMenu
-              items={[
-                {
-                  label: "Edit",
-                  onClick: () =>
-                    navigate(`${visitEditPageURL}${visit_id}`, {
-                      state: {
-                        patientData: {
-                          ...patient,
-                          insurance_company_name: insurance_company_name,
-                        },
-                      },
-                    }),
-                },
-                {
-                  label: "Preview Result",
-                  onClick: () => navigate(`/result/${visit_id}`),
-                  className: "text-blue-800",
-                },
-                {
-                  label: "View Invoice",
-                  onClick: () => navigate(`/invoice/${visit_id}`),
-                  className: "text-blue-800",
-                },
-                {
-                  label: "Delete",
-                  onClick: () =>
-                    handleDeleteVisit({
-                      elementID: visit_id,
-                      setError,
-                    }),
-                  className: "text-red-600",
-                },
-              ]}
-            /> */}
           </div>
         );
       },

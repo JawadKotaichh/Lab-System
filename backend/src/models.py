@@ -6,7 +6,7 @@ from beanie import Document, PydanticObjectId
 
 from typing import Union
 
-from pymongo import IndexModel
+from pymongo import ASCENDING, IndexModel
 
 from .schemas.schema_Lab_Test_Type import (
     NormalValueByGender,
@@ -169,3 +169,13 @@ class Financial_transaction(Document):
 
     class Settings:
         name = "financial_transactions"
+        indexes = [
+            IndexModel([("date", ASCENDING)], name="idx_date"),
+            IndexModel([("currency", ASCENDING)], name="idx_currency"),
+            IndexModel([("type", ASCENDING)], name="idx_type"),
+            IndexModel([("category", ASCENDING)], name="idx_category"),
+            IndexModel(
+                [("date", ASCENDING), ("type", ASCENDING), ("currency", ASCENDING)],
+                name="idx_date_type_currency",
+            ),
+        ]

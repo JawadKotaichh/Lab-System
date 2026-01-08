@@ -1,4 +1,6 @@
 import type {
+  AnalyticsQuery,
+  AnalyticsSummaryResponse,
   CreateLabPanelParams,
   CreateLabTestParams,
   CreatePatientAccountProps,
@@ -382,10 +384,18 @@ const fetchAllFinancialTransactions = async (): Promise<
   const response = await api.get(url);
   return response.data;
 };
+const fetchAnalyticsSummary = async (
+  q: AnalyticsQuery
+): Promise<AnalyticsSummaryResponse> => {
+  const url = "/financial_transaction/analytics/summary";
+  const response = await api.get(url, { params: q });
+  return response.data;
+};
 
 export { fetchFinancialTransaction };
 export { fetchFinancialTransactionsPaginated };
 export { fetchAllFinancialTransactions };
+export { fetchAnalyticsSummary };
 export { fetchAllfinancialTransactionsCategories };
 export { fetchAllfinancialTransactionsCurrencies };
 export { fetchAllfinancialTransactionsTypes };
