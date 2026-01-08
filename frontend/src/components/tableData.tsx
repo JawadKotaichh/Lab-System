@@ -876,12 +876,21 @@ export function getVisitsColumns(
           </button>
         );
       },
+      // header: ({ column }) => (
+      //   <ColumnFilter
+      //     withFilter={true}
+      //     inputType="date"
+      //     column={column}
+      //     placeholder="Search visit date…"
+      //     label="Date"
+      //     showFilter={!!showFilters[column.id]}
+      //     toggleShowFilter={() => toggleFilter(column.id)}
+      //   />
+      // ),
       header: ({ column }) => (
-        <ColumnFilter
+        <DateRangeFilter
           withFilter={true}
-          inputType="date"
           column={column}
-          placeholder="Search visit date…"
           label="Date"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
