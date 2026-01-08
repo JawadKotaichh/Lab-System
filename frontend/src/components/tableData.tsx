@@ -41,6 +41,7 @@ import {
 } from "./Function";
 import { Trash2 } from "lucide-react";
 import { ColumnFilter } from "./react-table/ColumnFilter";
+import { DateRangeFilter } from "./react-table/DateRangeFilter";
 import type { ColumnDef, PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "./renderNormalValue";
 import MeatballsMenu from "./react-table/MeatBallsMenu";
@@ -1200,11 +1201,9 @@ export function getFinancialTransactionColumns(
         );
       },
       header: ({ column }) => (
-        <ColumnFilter
+        <DateRangeFilter
           withFilter={true}
-          inputType="date"
           column={column}
-          placeholder="Search financial transaction date…"
           label="Date"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
