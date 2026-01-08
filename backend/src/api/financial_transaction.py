@@ -122,10 +122,11 @@ async def getAllFinancialTransactionsCurrencies() -> List[Dict[str, Any]]:
     cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
     all_financial_transactions_currencies: List[Dict[str, Any]] = []
     async for element in cursor:
+        element_id = element.get("_id") or element.get("id")
         all_financial_transactions_currencies.append(
             {
-                "id": str(element.id),
-                "currency": element.currency,
+                "id": str(element_id) if element_id is not None else "",
+                "currency": element.get("currency"),
             }
         )
     return all_financial_transactions_currencies
@@ -141,10 +142,11 @@ async def getAllFinancialTransactionsCategories() -> List[Dict[str, Any]]:
     cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
     all_financial_transactions_categories: List[Dict[str, Any]] = []
     async for element in cursor:
+        element_id = element.get("_id") or element.get("id")
         all_financial_transactions_categories.append(
             {
-                "id": str(element.id),
-                "category": element.category,
+                "id": str(element_id) if element_id is not None else "",
+                "category": element.get("category"),
             }
         )
     return all_financial_transactions_categories
@@ -160,10 +162,11 @@ async def getAllFinancialTransactionsTypes() -> List[Dict[str, Any]]:
     cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
     all_financial_transactions_types: List[Dict[str, Any]] = []
     async for element in cursor:
+        element_id = element.get("_id") or element.get("id")
         all_financial_transactions_types.append(
             {
-                "id": str(element.id),
-                "type": element.type,
+                "id": str(element_id) if element_id is not None else "",
+                "type": element.get("type"),
             }
         )
     return all_financial_transactions_types
