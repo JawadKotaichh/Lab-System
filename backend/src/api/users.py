@@ -11,8 +11,9 @@ from ..schemas.schema_users import (
 from ..models import Patient as DBPatient
 from fastapi.responses import Response
 from typing import Any, Dict, List
-from math import ceil
-from fastapi import Query
+
+# from math import ceil
+# from fastapi import Query
 from beanie import PydanticObjectId
 from passlib.context import CryptContext
 
@@ -30,38 +31,38 @@ def verify_password(password: str, password_hash: str) -> bool:
     return pwd_context.verify(password, password_hash)
 
 
-@router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
-async def get_users_with_page_size(
-    page_number: int,
-    page_size: int,
-    username: str | None = Query(None),
-):
-    offset = (page_number - 1) * page_size
-    mongo_filter: dict[str, Any] = {}
-    if username:
-        mongo_filter["username"] = {
-            "$regex": username,
-            "$options": "i",
-        }
+# @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
+# async def get_users_with_page_size(
+#     page_number: int,
+#     page_size: int,
+#     username: str | None = Query(None),
+# ):
+#     offset = (page_number - 1) * page_size
+#     mongo_filter: dict[str, Any] = {}
+#     if username:
+#         mongo_filter["username"] = {
+#             "$regex": username,
+#             "$options": "i",
+#         }
 
-    total_number_of_users = await DBUser.find(mongo_filter).count()
-    cursor = DBUser.find(mongo_filter).skip(offset).limit(page_size)
-    users: List[Dict[str, Any]] = []
-    async for user in cursor:
-        users.append(
-            {
-                "role": user.role,
-                "username": user.username,
-            }
-        )
+#     total_number_of_users = await DBUser.find(mongo_filter).count()
+#     cursor = DBUser.find(mongo_filter).skip(offset).limit(page_size)
+#     users: List[Dict[str, Any]] = []
+#     async for user in cursor:
+#         users.append(
+#             {
+#                 "role": user.role,
+#                 "username": user.username,
+#             }
+#         )
 
-    total_pages = ceil(total_number_of_users / page_size)
-    result = {
-        "TotalNumberOfUsers": total_number_of_users,
-        "total_pages": total_pages,
-        "users": users,
-    }
-    return result
+#     total_pages = ceil(total_number_of_users / page_size)
+#     result = {
+#         "TotalNumberOfUsers": total_number_of_users,
+#         "total_pages": total_pages,
+#         "users": users,
+#     }
+#     return result
 
 
 @router.get("/all", response_model=List[Dict[str, Any]])
@@ -91,14 +92,14 @@ async def create_user(data: User):
     hashed_password = hash_password(data.password)
     existing = await DBUser.find_one(DBUser.user_id == pid)
     if existing:
-        existing.username = data.username
+        existing.username = data.username.lower()
         existing.password_hashed = hashed_password
         await existing.replace()
         return existing
 
     db_user = DBUser(
         user_id=PydanticObjectId(data.user_id),
-        username=data.username,
+        username=data.username.lower(),
         password_hashed=hashed_password,
     )
     new_user = await db_user.insert()
@@ -153,7 +154,7 @@ async def get_user(user_id: str):
 
     output: Dict[str, Any] = {}
     output["user_id"] = PydanticObjectId(user_id)
-    output["username"] = user.username
+    output["username"] = user.username.lower()
     return output
 
 
@@ -167,7 +168,7 @@ async def update_the_user(user_id: str, update_data: update_user):
         raise HTTPException(404, f"user {user_id} not found")
 
     if update_data.username is not None:
-        existing_user.username = update_data.username
+        existing_user.username = update_data.username.lower()
     if update_data.password is not None:
         hashed_password = hash_password(password=update_data.password)
         existing_user.password_hashed = hashed_password
