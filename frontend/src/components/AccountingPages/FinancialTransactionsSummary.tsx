@@ -42,6 +42,11 @@ const todayYMD = () => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+const toYMD = (v: unknown) => {
+  const s = String(v ?? "");
+  return s ? s.slice(0, 10) : "";
+};
+
 const FinancialTransactionsSummary = () => {
   const [state, setState] = useState<string>("");
   const [data, setData] = useState<financialTransactionsSummaryParams>({
@@ -93,15 +98,22 @@ const FinancialTransactionsSummary = () => {
   const handleSave = async () => {
     setState("");
 
+    const start = toYMD(data.start_date);
+    const end = toYMD(data.end_date);
+
+    if (start && end && start > end) {
+      setState("From date must be before (or equal to) To date.");
+      return;
+    }
+
     const filters: financialTransactionsSummaryParams = {
       type: data.type,
-      start_date: data.start_date
-        ? String(data.start_date).slice(0, 10)
-        : undefined,
-      end_date: data.end_date ? String(data.end_date).slice(0, 10) : undefined,
+      start_date: start || undefined,
+      end_date: end || undefined,
       currency: data.currency !== "ALL" ? data.currency : "ALL",
       category: data.category !== "ALL" ? data.category : "ALL",
     };
+
     try {
       const response = await getFinancialTransactionsSummary(filters);
 
@@ -204,12 +216,22 @@ const FinancialTransactionsSummary = () => {
               <input
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
-                value={String(
+                value={toYMD(
                   data[
                     i.attributeName as keyof financialTransactionsSummaryParams
-                  ] ?? ""
+                  ]
                 )}
                 placeholder={i.placeHolder}
+                max={
+                  i.attributeName === "start_date"
+                    ? toYMD(data.end_date)
+                    : undefined
+                }
+                min={
+                  i.attributeName === "end_date"
+                    ? toYMD(data.start_date)
+                    : undefined
+                }
                 onKeyDown={(e) => {
                   if (e.key === "Enter") e.currentTarget.blur();
                 }}
