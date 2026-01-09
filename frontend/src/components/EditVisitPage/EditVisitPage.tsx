@@ -287,39 +287,44 @@ const EditVisitPage: React.FC = () => {
           markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
         />
       )}
-      <AddTestResultTable
-        refreshResults={refreshResults}
-        showAdd={showAdd}
-        addError={addError}
-        visit_id={visit_id}
-        showTestsTable={showTestsTable}
-        panelResults={panelResults}
-        setPanelResults={setPanelResults}
-        setStandAloneTestResults={setStandAloneTestResults}
-        standAloneTestResults={standAloneTestResults}
-        existingLabTestTypeIds={existingLabTestTypeIds}
-        setAddError={setAddError}
-        setShowTestsTable={setShowTestsTable}
-        error={error}
-        setError={setError}
-        markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
-        setCurrency={setCurrency}
-      />
-      <LabPanelsTable
-        refreshResults={refreshResults}
-        setPanelResults={setPanelResults}
-        pagination={pagination}
-        setStandAloneTestResults={setStandAloneTestResults}
-        setTotalNumberOfTests={setTotalNumberOfTests}
-        panelResults={panelResults}
-        setUpdatedInvoiceData={setUpdatedInvoiceData}
-        setCurrency={setCurrency}
-        showPanelsTable={showPanelsTable}
-        setShowPanelsTable={setShowPanelsTable}
-        visit_id={visit_id}
-        markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
-      />
+      {showTestsTable && (
+        <AddTestResultTable
+          refreshResults={refreshResults}
+          showAdd={showAdd}
+          addError={addError}
+          visit_id={visit_id}
+          showTestsTable={showTestsTable}
+          panelResults={panelResults}
+          setPanelResults={setPanelResults}
+          setStandAloneTestResults={setStandAloneTestResults}
+          standAloneTestResults={standAloneTestResults}
+          existingLabTestTypeIds={existingLabTestTypeIds}
+          setAddError={setAddError}
+          setShowTestsTable={setShowTestsTable}
+          error={error}
+          setError={setError}
+          markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
+          setUpdatedInvoiceData={setUpdatedInvoiceData}
+          setCurrency={setCurrency}
+        />
+      )}
+
+      {showPanelsTable && (
+        <LabPanelsTable
+          refreshResults={refreshResults}
+          setPanelResults={setPanelResults}
+          pagination={pagination}
+          setStandAloneTestResults={setStandAloneTestResults}
+          setTotalNumberOfTests={setTotalNumberOfTests}
+          panelResults={panelResults}
+          setUpdatedInvoiceData={setUpdatedInvoiceData}
+          setCurrency={setCurrency}
+          showPanelsTable={showPanelsTable}
+          setShowPanelsTable={setShowPanelsTable}
+          visit_id={visit_id}
+          markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
+        />
+      )}
 
       <Pagination
         TotalNumberOfPaginatedItems={totalNumberOfTests}
