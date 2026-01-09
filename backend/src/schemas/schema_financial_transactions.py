@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -32,3 +32,10 @@ class financial_transaction_with_id(BaseModel):
     description: str = Field(default="")
     category: str = Field(...)
     visit_id: Optional[str] = None
+
+
+class financial_transaction_summary(BaseModel):
+    type: Optional[str] = None
+    by_currency: Dict[str, Dict[str, List[financial_transaction_with_id]]] = Field(
+        default_factory=dict
+    )

@@ -78,6 +78,17 @@ export type monthlySummaryInvoicesParams = {
   end_date: Date;
   currency?: string;
 };
+export type financialTransactionsSummaryParams = {
+  type: string;
+  currency?: string;
+  category?: string;
+  start_date?: string;
+  end_date?: string;
+};
+export type financial_transaction_summary = {
+  type: string;
+  by_currency: Record<string, Record<string, financialTransaction[]>>;
+};
 
 export type patientTestResult = {
   lab_test_result_id: string;
@@ -340,7 +351,18 @@ export interface labTestCategoryParams {
   lab_test_category_id: string;
   lab_test_category_name: string;
 }
-
+export interface transactionType {
+  id: string;
+  type: string;
+}
+export interface transactionCategory {
+  id: string;
+  category: string;
+}
+export interface transactionCurrency {
+  id: string;
+  currency: string;
+}
 export type LabTestTypeParams = {
   lab_test_type_id: string;
 };

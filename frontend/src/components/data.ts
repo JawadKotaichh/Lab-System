@@ -215,9 +215,39 @@ const listOfAttributesFinancialTransaction = [
   },
 ];
 
+const listOfAttributesFinancialTransactionSummary = [
+  {
+    subItem: "Type",
+    attributeName: "type",
+    typeOfInput: "Selection",
+    icon: "type",
+    placeHolder: "Select transaction type",
+  },
+  {
+    subItem: "Date",
+    attributeName: "date",
+    typeOfInput: "date",
+    icon: "date",
+    placeHolder: "Enter date of the transaction",
+  },
+  {
+    subItem: "Currency",
+    attributeName: "currency",
+    typeOfInput: "Selection",
+    icon: "currency",
+    placeHolder: "Select transaction currency",
+  },
+  {
+    subItem: "Category",
+    attributeName: "category",
+    typeOfInput: "Selection",
+    icon: "category",
+    placeHolder: "Select transaction category",
+  },
+];
 
 
-
+export{listOfAttributesFinancialTransactionSummary};
 export{FinancialTransactionsMainPageURL};
 export{FinancialTransactionsApiURL};
 export{listOfAttributesFinancialTransaction};

@@ -7,6 +7,7 @@ from ..models import Visit as DBVisit
 from ..models import insurance_company as DBInsurance_company
 from ..schemas.schema_financial_transactions import (
     financial_transaction,
+    financial_transaction_summary,
     update_financial_transaction,
     financial_transaction_with_id,
 )
@@ -19,31 +20,25 @@ from beanie import PydanticObjectId
 router = APIRouter(prefix="/financial_transaction", tags=["financial_transactions"])
 
 
-@router.get("/summary", response_model=List[financial_transaction_with_id])
+@router.get("/summary", response_model=financial_transaction_summary)
 async def get_financial_transactions_summary(
-    type: str | None = Query(None),
-    category: str | None = Query(None),
-    currency: str | None = Query(None),
+    type: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    currency: Optional[str] = Query(None),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-) -> List[financial_transaction_with_id]:
+) -> financial_transaction_summary:
     mongo_filter: dict[str, Any] = {}
+
     if type:
-        mongo_filter["type"] = {
-            "$regex": type,
-            "$options": "i",
-        }
+        mongo_filter["type"] = {"$regex": type, "$options": "i"}
 
     if category:
-        mongo_filter["category"] = {
-            "$regex": category,
-            "$options": "i",
-        }
+        mongo_filter["category"] = {"$regex": category, "$options": "i"}
+
     if currency:
-        mongo_filter["currency"] = {
-            "$regex": currency,
-            "$options": "i",
-        }
+        mongo_filter["currency"] = {"$regex": currency, "$options": "i"}
+
     start_dt = end_dt = None
 
     if start_date:
@@ -76,25 +71,38 @@ async def get_financial_transactions_summary(
             "$gte": datetime.combine(end_dt.date(), time.min),
             "$lte": end_dt,
         }
+
     mongo_filter["amount"] = {"$gt": 0}
 
     cursor = DBfinancial_transaction.find(mongo_filter)
-    financial_transactions: List[financial_transaction_with_id] = []
-    async for current_financial_transaction in cursor:
-        financial_transactions.append(
+
+    by_currency: Dict[str, Dict[str, List[financial_transaction_with_id]]] = {}
+    if currency:
+        by_currency[currency.upper()] = {}
+    else:
+        by_currency["USD"] = {}
+        by_currency["LBP"] = {}
+
+    async for tx in cursor:
+        curr = (tx.currency).upper()
+        cat = tx.category
+        by_currency.setdefault(curr, {})
+        by_currency[curr].setdefault(cat, [])
+
+        by_currency[curr][cat].append(
             financial_transaction_with_id(
-                id=str(current_financial_transaction.id),
-                type=current_financial_transaction.type,
-                currency=current_financial_transaction.currency,
-                date=current_financial_transaction.date,
-                amount=current_financial_transaction.amount,
-                description=current_financial_transaction.description,
-                category=current_financial_transaction.category,
-                visit_id=str(current_financial_transaction.visit_id),
+                id=str(tx.id),
+                type=tx.type,
+                currency=tx.currency,
+                date=tx.date,
+                amount=tx.amount,
+                description=tx.description,
+                category=tx.category,
+                visit_id=str(tx.visit_id) if tx.visit_id else None,
             )
         )
 
-    return financial_transactions
+    return financial_transaction_summary(type=type, by_currency=by_currency)
 
 
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])

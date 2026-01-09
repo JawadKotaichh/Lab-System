@@ -1,7 +1,5 @@
 import { useNavigate } from "react-router-dom";
-// import DateRangePicker from './DataRangePicker';
 import React, { useEffect, useState } from "react";
-// import api from '../../../api';
 import { fetchFinancialTransactionsPaginated } from "../utils";
 import { financialTransaction } from "../types";
 import Pagination from "../Pagination";
