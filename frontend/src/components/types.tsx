@@ -79,14 +79,14 @@ export type monthlySummaryInvoicesParams = {
   currency?: string;
 };
 export type financialTransactionsSummaryParams = {
-  type: string;
+  type?: string;
   currency?: string;
   category?: string;
   start_date?: string;
   end_date?: string;
 };
 export type financial_transaction_summary = {
-  type: string;
+  type?: string;
   by_currency: Record<string, Record<string, financialTransaction[]>>;
 };
 
