@@ -132,14 +132,6 @@ const AddTestResultTable: React.FC<TestsList> = ({
       setCurrency,
     }
   );
-  ///neeed adjusments
-  //   const labPanelsCols = getLabTestColumns(
-  //     navigate,
-  //     showFilters,
-  //     toggleFilter,
-  //     setError,
-  //     false
-  //   );
 
   const labTestsTable = useReactTable({
     data,
@@ -156,22 +148,6 @@ const AddTestResultTable: React.FC<TestsList> = ({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-
-  //   const labPanelsTable = useReactTable({
-  //     data,
-  //     columns: labPanelsCols,
-  //     pageCount: totalPages,
-  //     state: { pagination, columnFilters, sorting },
-  //     manualPagination: true,
-  //     manualFiltering: true,
-  //     manualSorting: false,
-  //     onSortingChange: setSorting,
-  //     onPaginationChange: setPagination,
-  //     onColumnFiltersChange: setColumnFilters,
-  //     getCoreRowModel: getCoreRowModel(),
-  //     getSortedRowModel: getSortedRowModel(),
-  //     getPaginationRowModel: getPaginationRowModel(),
-  //   });
 
   useEffect(() => {
     const loadPage = async () => {

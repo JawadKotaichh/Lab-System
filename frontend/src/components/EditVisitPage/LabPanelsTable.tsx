@@ -8,7 +8,7 @@ import type {
 } from "../types";
 import {
   fetchLabPanelsPaginated,
-  fetchLabTestResultsAndPanelsPaginated,
+  // fetchLabTestResultsAndPanelsPaginated,
   rebuildInvoice,
 } from "../utils";
 import {
@@ -64,10 +64,10 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   setShowPanelsTable,
   setUpdatedInvoiceData,
   setCurrency,
-  pagination,
-  setPanelResults,
-  setStandAloneTestResults,
-  setTotalNumberOfTests,
+  // pagination,
+  // setPanelResults,
+  // setStandAloneTestResults,
+  // setTotalNumberOfTests,
   refreshResults,
   panelResults,
   markExistingLabTestIdsDirty,
@@ -82,38 +82,28 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
     useState<number>(0);
   const [searchInput, setSearchInput] = useState<string>("");
   const debouncedSearch = useDebounced(searchInput, 500);
-
   const handleAddLabPanel = async (visit_id: string, lab_panel_id: string) => {
     setLoading(true);
     setError("");
+
     if (panelResults.some((panel) => panel.lab_panel_id === lab_panel_id)) {
       alert("This lab panel already exists.");
       setLoading(false);
       return;
     }
+
     try {
       await api.post(`${labTestResultApiURL}/${visit_id}/${lab_panel_id}`);
-      const res = await fetchLabTestResultsAndPanelsPaginated(
-        visit_id,
-        pagination.pageIndex + 1,
-        pagination.pageSize
-      );
-      setStandAloneTestResults(res.list_of_standalone_test_results);
-      setPanelResults(res.list_of_panel_results);
-      setTotalPages(res.total_pages);
-      setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
+      markExistingLabTestIdsDirty();
       const invoiceData = await rebuildInvoice(visit_id);
       setUpdatedInvoiceData(invoiceData.invoice_data);
       setCurrency(invoiceData.currency);
       setShowPanelsTable(false);
-      markExistingLabTestIdsDirty();
-      void refreshResults();
+      await refreshResults();
     } catch (err: unknown) {
-      console.error("🛑 handleAddLabPanel error:", err);
+      console.error("handleAddLabPanel error:", err);
       let message = "Failed to add lab panel";
       if (axios.isAxiosError(err)) {
-        console.error("Response status:", err.response?.status);
-        console.error("Response data:", err.response?.data);
         const data = err.response?.data as Partial<ErrorResponse> | undefined;
         message =
           data?.detail ||
