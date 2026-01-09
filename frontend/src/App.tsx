@@ -37,8 +37,10 @@ import {
 import { AuthUser, Role } from "./components/types";
 import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
 import UserVisitsPage from "./components/UserVisitsPage/UserVisitsPage";
-import FinancialTransactionTable from "./components/AccountingPage/FinancialTransactionTable";
-import EditFinancialTransaction from "./components/AccountingPage/EditFinancialTransaction";
+import FinancialTransactionTable from "./components/AccountingPages/FinancialTransactionTable";
+import EditFinancialTransaction from "./components/AccountingPages/EditFinancialTransaction";
+import FinancialTransactionsSummary from "./components/AccountingPages/FinancialTransactionsSummary";
+import FinancialTransactionsSummaryContainer from "./components/AccountingPages/FinancialTransactionsSummaryContainer";
 type NavItem = {
   to: string;
   label: string;
@@ -58,7 +60,6 @@ function RequireAuth({
   if (!user) return <Navigate to="/login" replace />;
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // if user tries to access a page not allowed for their role
     return (
       <UnauthorizedPage
         homePath={user.role === "admin" ? "/visits" : "/my-visits"}
@@ -319,6 +320,22 @@ const App: React.FC = () => {
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
                 <EditFinancialTransaction title={"Create Transaction"} />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/financial-transactions/summary"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <FinancialTransactionsSummary />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/financial-transactions/summary/:start_date"
+            element={
+              <RequireAuth user={user} allowedRoles={["admin"]}>
+                <FinancialTransactionsSummaryContainer />
               </RequireAuth>
             }
           />
