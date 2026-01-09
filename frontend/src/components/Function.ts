@@ -80,7 +80,7 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
     }
     try {
       await api.delete(`${FinancialTransactionsApiURL}${elementID}`);
-      dispatchDeleteEvent("transaction-deleted");
+      window.dispatchEvent(new CustomEvent("financialTransaction-deleted", { detail: { elementID } }));
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
