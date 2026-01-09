@@ -78,6 +78,17 @@ export type monthlySummaryInvoicesParams = {
   end_date: Date;
   currency?: string;
 };
+export type financialTransactionsSummaryParams = {
+  type: string;
+  currency?: string;
+  category?: string;
+  start_date?: string;
+  end_date?: string;
+};
+export type financial_transaction_summary = {
+  type: string;
+  by_currency: Record<string, Record<string, financialTransaction[]>>;
+};
 
 export type patientTestResult = {
   lab_test_result_id: string;
@@ -340,7 +351,18 @@ export interface labTestCategoryParams {
   lab_test_category_id: string;
   lab_test_category_name: string;
 }
-
+export interface transactionType {
+  id: string;
+  type: string;
+}
+export interface transactionCategory {
+  id: string;
+  category: string;
+}
+export interface transactionCurrency {
+  id: string;
+  currency: string;
+}
 export type LabTestTypeParams = {
   lab_test_type_id: string;
 };
@@ -474,66 +496,4 @@ export type financialTransaction = {
   description: string;
   category: string;
   visit_id?: string;
-};
-export type AnalyticsMode = "daily" | "monthly" | "yearly" | "range";
-export type GranularityUnit = "hour" | "day" | "month";
-export type TransactionType = "Income" | "Expense";
-export type Currency = "USD" | "LBP";
-export type KPIModel = {
-  total_income: number;
-  total_expense: number;
-  net: number;
-  count_income: number;
-  count_expense: number;
-  total_count: number;
-};
-export type SeriesPoint = {
-  bucket: string;
-  income: number;
-  expense: number;
-  net: number;
-  count_income: number;
-  count_expense: number;
-};
-export type BreakdownRow = {
-  key: string;
-  type: TransactionType;
-  total: number;
-  count: number;
-};
-export type AnalyticsFilters = {
-  currency?: Currency | null;
-  category?: string | null;
-  type?: TransactionType | null;
-  include_system: boolean;
-};
-export type AnalyticsSummaryResponse = {
-  mode: AnalyticsMode;
-  start_dt: string;
-  end_dt_exclusive: string;
-  unit: GranularityUnit;
-  tz: string;
-  filters: AnalyticsFilters;
-  kpis_by_currency: Record<string, KPIModel>;
-  series_by_currency: Record<string, SeriesPoint[]>;
-  by_category_by_currency: Record<string, BreakdownRow[]>;
-  kpis?: KPIModel | null;
-  series?: SeriesPoint[] | null;
-  by_category?: BreakdownRow[] | null;
-};
-
-export type AnalyticsQuery = {
-  mode: AnalyticsMode;
-  day?: string; // YYYY-MM-DD
-  month?: string; // YYYY-MM
-  year?: number; // YYYY
-  start_date?: string; // YYYY-MM-DD
-  end_date?: string; // YYYY-MM-DD
-  granularity?: GranularityUnit;
-  tz?: string;
-  currency?: Currency;
-  category?: string;
-  type?: TransactionType;
-  include_system?: boolean;
-  top_n?: number;
 };

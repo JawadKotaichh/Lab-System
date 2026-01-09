@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 from fastapi import APIRouter, HTTPException, status
 from ..models import Financial_transaction as DBfinancial_transaction
 from ..models import Invoice as DBInvoice
@@ -6,356 +6,103 @@ from ..models import Patient as DBPatient
 from ..models import Visit as DBVisit
 from ..models import insurance_company as DBInsurance_company
 from ..schemas.schema_financial_transactions import (
-    AnalyticsAvailableYearsResponse,
-    AnalyticsFilters,
-    AnalyticsMode,
-    AnalyticsSummaryResponse,
-    BreakdownRow,
-    Currency,
-    GranularityUnit,
-    KPIModel,
-    SeriesPoint,
-    TransactionType,
     financial_transaction,
+    financial_transaction_summary,
     update_financial_transaction,
     financial_transaction_with_id,
 )
 from fastapi.responses import Response
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, cast
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 from math import ceil
 from fastapi import Query
 from beanie import PydanticObjectId
 
 router = APIRouter(prefix="/financial_transaction", tags=["financial_transactions"])
 
-ALLOWED_CURRENCIES = {"USD", "LBP"}
-ALLOWED_TYPES = {"Income", "Expense"}
 
-
-def _parse_ymd(s: str):
-    return datetime.strptime(s, "%Y-%m-%d").date()
-
-
-def _build_range_and_unit(
-    mode: str,
-    day: Optional[str],
-    month: Optional[str],
-    year: Optional[int],
-    start_date: Optional[str],
-    end_date: Optional[str],
-    granularity: Optional[str],
-) -> Tuple[datetime, datetime, str]:
-    mode = mode.lower()
-
-    if mode == "daily":
-        if not day:
-            raise HTTPException(400, "day is required for mode=daily (YYYY-MM-DD)")
-        d = _parse_ymd(day)
-        start_dt = datetime.combine(d, time.min)
-        end_excl = start_dt + timedelta(days=1)
-        unit = "hour"
-
-    elif mode == "monthly":
-        if not month:
-            raise HTTPException(400, "month is required for mode=monthly (YYYY-MM)")
-        y, m = map(int, month.split("-"))
-        start_dt = datetime(y, m, 1, 0, 0, 0)
-        end_excl = (
-            datetime(y + 1, 1, 1, 0, 0, 0)
-            if m == 12
-            else datetime(y, m + 1, 1, 0, 0, 0)
-        )
-        unit = "day"
-
-    elif mode == "yearly":
-        if not year:
-            raise HTTPException(400, "year is required for mode=yearly")
-        start_dt = datetime(year, 1, 1, 0, 0, 0)
-        end_excl = datetime(year + 1, 1, 1, 0, 0, 0)
-        unit = "month"
-
-    elif mode == "range":
-        if not start_date or not end_date:
-            raise HTTPException(
-                400, "start_date and end_date are required for mode=range"
-            )
-        sd = _parse_ymd(start_date)
-        ed = _parse_ymd(end_date)
-        start_dt = datetime.combine(sd, time.min)
-        end_excl = datetime.combine(ed + timedelta(days=1), time.min)
-
-        days = (ed - sd).days + 1
-        unit = "hour" if days <= 2 else ("day" if days <= 90 else "month")
-    else:
-        raise HTTPException(400, "mode must be one of: daily, monthly, yearly, range")
-
-    if granularity:
-        granularity = granularity.lower()
-        if granularity not in ("hour", "day", "month"):
-            raise HTTPException(400, "granularity must be one of: hour, day, month")
-        unit = granularity
-
-    return start_dt, end_excl, unit
-
-
-@router.get("/analytics/summary", response_model=AnalyticsSummaryResponse)
-async def financial_analytics_summary(
-    mode: AnalyticsMode = Query(..., description="daily|monthly|yearly|range"),
-    day: Optional[str] = Query(None, description="YYYY-MM-DD (for daily)"),
-    month: Optional[str] = Query(None, description="YYYY-MM (for monthly)"),
-    year: Optional[int] = Query(None, description="YYYY (for yearly)"),
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD (for range)"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD (for range)"),
-    granularity: Optional[GranularityUnit] = Query(
-        None, description="hour|day|month override"
-    ),
-    tz: str = Query("UTC", description="Timezone for bucketing e.g. Africa/Tripoli"),
-    currency: Optional[Currency] = Query(None, description="USD or LBP (optional)"),
+@router.get("/summary", response_model=financial_transaction_summary)
+async def get_financial_transactions_summary(
+    type: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
-    transaction_type: Optional[TransactionType] = Query(
-        None, alias="type", description="Income or Expense"
-    ),
-    include_system: bool = Query(True, description="Include category=Visit By System"),
-    top_n: int = Query(12, ge=1, le=100),
-):
-    start_dt, end_excl, unit_str = _build_range_and_unit(
-        mode, day, month, year, start_date, end_date, granularity
-    )
+    currency: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+) -> financial_transaction_summary:
+    mongo_filter: dict[str, Any] = {}
 
-    unit = cast(GranularityUnit, unit_str)
+    if type:
+        mongo_filter["type"] = {"$regex": type, "$options": "i"}
 
-    # match with $and to avoid overwriting conditions
-    conditions: List[Dict[str, Any]] = [
-        {"date": {"$gte": start_dt, "$lt": end_excl}},
-        {"amount": {"$gt": 0}},
-    ]
-    if currency:
-        conditions.append({"currency": currency.value})
     if category:
-        conditions.append({"category": category})
-    if transaction_type:
-        conditions.append({"type": transaction_type.value})
-    if not include_system:
-        conditions.append({"category": {"$ne": "Visit By System"}})
+        mongo_filter["category"] = {"$regex": category, "$options": "i"}
 
-    match = {"$and": conditions} if len(conditions) > 1 else conditions[0]
+    if currency:
+        mongo_filter["currency"] = {"$regex": currency, "$options": "i"}
 
-    pipeline: Sequence[Mapping[str, Any]] = [
-        {"$match": match},
-        {
-            "$facet": {
-                "kpis_by_currency": [
-                    {
-                        "$group": {
-                            "_id": "$currency",
-                            "total_count": {"$sum": 1},
-                            "income_total": {
-                                "$sum": {
-                                    "$cond": [
-                                        {"$eq": ["$type", "Income"]},
-                                        "$amount",
-                                        0,
-                                    ]
-                                }
-                            },
-                            "expense_total": {
-                                "$sum": {
-                                    "$cond": [
-                                        {"$eq": ["$type", "Expense"]},
-                                        "$amount",
-                                        0,
-                                    ]
-                                }
-                            },
-                            "income_count": {
-                                "$sum": {"$cond": [{"$eq": ["$type", "Income"]}, 1, 0]}
-                            },
-                            "expense_count": {
-                                "$sum": {"$cond": [{"$eq": ["$type", "Expense"]}, 1, 0]}
-                            },
-                        }
-                    },
-                    {"$sort": {"_id": 1}},
-                ],
-                "series_raw": [
-                    {
-                        "$group": {
-                            "_id": {
-                                "bucket": {
-                                    "$dateTrunc": {
-                                        "date": "$date",
-                                        "unit": unit,
-                                        "timezone": tz,
-                                    }
-                                },
-                                "currency": "$currency",
-                                "type": "$type",
-                            },
-                            "total": {"$sum": "$amount"},
-                            "count": {"$sum": 1},
-                        }
-                    },
-                    {"$sort": {"_id.bucket": 1}},
-                ],
-                "by_category_raw": [
-                    {
-                        "$group": {
-                            "_id": {
-                                "currency": "$currency",
-                                "category": "$category",
-                                "type": "$type",
-                            },
-                            "total": {"$sum": "$amount"},
-                            "count": {"$sum": 1},
-                        }
-                    },
-                    {"$sort": {"total": -1}},
-                ],
-            }
-        },
-    ]
+    start_dt = end_dt = None
 
-    cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
-    res = await cursor.to_list(length=1)
-    data = res[0] if res else {}
+    if start_date:
+        try:
+            parsed = datetime.strptime(start_date, "%Y-%m-%d").date()
+            start_dt = datetime.combine(parsed, time.min)
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="Invalid start_date. Use YYYY-MM-DD"
+            )
 
-    # --- KPIs (typed) ---
-    kpis_by_currency: Dict[Currency, KPIModel] = {}
-    for row in data.get("kpis_by_currency") or []:
-        cur = Currency(row["_id"])
-        inc = float(row.get("income_total") or 0)
-        exp = float(row.get("expense_total") or 0)
-        kpis_by_currency[cur] = KPIModel(
-            total_income=inc,
-            total_expense=exp,
-            net=inc - exp,
-            count_income=int(row.get("income_count") or 0),
-            count_expense=int(row.get("expense_count") or 0),
-            total_count=int(row.get("total_count") or 0),
-        )
+    if end_date:
+        try:
+            parsed = datetime.strptime(end_date, "%Y-%m-%d").date()
+            end_dt = datetime.combine(parsed, time.max)
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="Invalid end_date. Use YYYY-MM-DD"
+            )
 
-    # --- Series (typed) ---
-    series_by_currency_tmp: Dict[Currency, Dict[str, Dict[str, Any]]] = {}
-    for row in data.get("series_raw") or []:
-        bucket = row["_id"]["bucket"].isoformat()
-        cur = Currency(row["_id"]["currency"])
-        t = TransactionType(row["_id"]["type"])
-        total = float(row.get("total") or 0)
-        count = int(row.get("count") or 0)
+    if start_dt and end_dt:
+        mongo_filter["date"] = {"$gte": start_dt, "$lte": end_dt}
+    elif start_dt:
+        mongo_filter["date"] = {
+            "$gte": start_dt,
+            "$lte": datetime.combine(start_dt.date(), time.max),
+        }
+    elif end_dt:
+        mongo_filter["date"] = {
+            "$gte": datetime.combine(end_dt.date(), time.min),
+            "$lte": end_dt,
+        }
 
-        series_by_currency_tmp.setdefault(cur, {})
-        series_by_currency_tmp[cur].setdefault(
-            bucket,
-            {
-                "bucket": bucket,
-                "income": 0.0,
-                "expense": 0.0,
-                "net": 0.0,
-                "count_income": 0,
-                "count_expense": 0,
-            },
-        )
+    mongo_filter["amount"] = {"$gt": 0}
 
-        if t == TransactionType.Income:
-            series_by_currency_tmp[cur][bucket]["income"] += total
-            series_by_currency_tmp[cur][bucket]["count_income"] += count
-        else:
-            series_by_currency_tmp[cur][bucket]["expense"] += total
-            series_by_currency_tmp[cur][bucket]["count_expense"] += count
+    cursor = DBfinancial_transaction.find(mongo_filter)
 
-    series_by_currency: Dict[Currency, List[SeriesPoint]] = {}
-    for cur, buckets in series_by_currency_tmp.items():
-        points: List[SeriesPoint] = []
-        for p in buckets.values():
-            p["net"] = p["income"] - p["expense"]
-            points.append(SeriesPoint(**p))
-        series_by_currency[cur] = points
+    by_currency: Dict[str, Dict[str, List[financial_transaction_with_id]]] = {}
+    if currency:
+        by_currency[currency.upper()] = {}
+    else:
+        by_currency["USD"] = {}
+        by_currency["LBP"] = {}
 
-    # --- By category (typed) ---
-    by_category_by_currency: Dict[Currency, List[BreakdownRow]] = {}
-    for row in data.get("by_category_raw") or []:
-        cur = Currency(row["_id"]["currency"])
-        by_category_by_currency.setdefault(cur, [])
-        by_category_by_currency[cur].append(
-            BreakdownRow(
-                key=row["_id"]["category"],
-                type=TransactionType(row["_id"]["type"]),
-                total=float(row.get("total") or 0),
-                count=int(row.get("count") or 0),
+    async for tx in cursor:
+        curr = (tx.currency).upper()
+        cat = tx.category
+        by_currency.setdefault(curr, {})
+        by_currency[curr].setdefault(cat, [])
+
+        by_currency[curr][cat].append(
+            financial_transaction_with_id(
+                id=str(tx.id),
+                type=tx.type,
+                currency=tx.currency,
+                date=tx.date,
+                amount=tx.amount,
+                description=tx.description,
+                category=tx.category,
+                visit_id=str(tx.visit_id) if tx.visit_id else None,
             )
         )
 
-    # limit top_n per currency
-    for cur in list(by_category_by_currency.keys()):
-        by_category_by_currency[cur] = by_category_by_currency[cur][:top_n]
-
-    # Optional “flat” fields when currency is specified
-    flat_kpis: Optional[KPIModel] = None
-    flat_series: Optional[List[SeriesPoint]] = None
-    flat_by_category: Optional[List[BreakdownRow]] = None
-
-    if currency:
-        flat_kpis = kpis_by_currency.get(
-            currency,
-            KPIModel(
-                total_income=0,
-                total_expense=0,
-                net=0,
-                count_income=0,
-                count_expense=0,
-                total_count=0,
-            ),
-        )
-        flat_series = series_by_currency.get(currency, [])
-        flat_by_category = by_category_by_currency.get(currency, [])
-
-    return AnalyticsSummaryResponse(
-        mode=mode,
-        start_dt=start_dt.isoformat(),
-        end_dt_exclusive=end_excl.isoformat(),
-        unit=unit,
-        tz=tz,
-        filters=AnalyticsFilters(
-            currency=currency,
-            category=category,
-            type=transaction_type,
-            include_system=include_system,
-        ),
-        kpis_by_currency=kpis_by_currency,
-        series_by_currency=series_by_currency,
-        by_category_by_currency=by_category_by_currency,
-        kpis=flat_kpis,
-        series=flat_series,
-        by_category=flat_by_category,
-    )
-
-
-@router.get(
-    "/analytics/available_years", response_model=AnalyticsAvailableYearsResponse
-)
-async def analytics_available_years() -> Dict[str, Any]:
-    pipeline: Sequence[Mapping[str, Any]] = [
-        {"$match": {"date": {"$exists": True}}},
-        {
-            "$group": {
-                "_id": None,
-                "minDate": {"$min": "$date"},
-                "maxDate": {"$max": "$date"},
-            }
-        },
-    ]
-    cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
-    res = await cursor.to_list(length=1)
-    if not res:
-        return {"years": []}
-
-    min_dt = res[0]["minDate"]
-    max_dt = res[0]["maxDate"]
-    if not min_dt or not max_dt:
-        return {"years": []}
-
-    years = list(range(min_dt.year, max_dt.year + 1))
-    return {"years": years, "min": min_dt.isoformat(), "max": max_dt.isoformat()}
+    return financial_transaction_summary(type=type, by_currency=by_currency)
 
 
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
