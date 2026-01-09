@@ -1,13 +1,13 @@
 import type {
-  AnalyticsQuery,
-  AnalyticsSummaryResponse,
   CreateLabPanelParams,
   CreateLabTestParams,
   CreatePatientAccountProps,
   fetchedInvoiceData,
   fetchUserResponse,
+  financial_transaction_summary,
   financialTransaction,
   financialTransactionsFilters,
+  financialTransactionsSummaryParams,
   insuranceCompanyParams,
   InsuranceFilters,
   lab_test_category_filters,
@@ -29,6 +29,9 @@ import type {
   patientsFilters,
   result_suggestions,
   resultListData,
+  transactionCategory,
+  transactionCurrency,
+  transactionType,
   updateInvoiceData,
   visitData,
   visitFilters,
@@ -37,6 +40,7 @@ import type {
 import api from "../api.js";
 import type { labTest } from "./types.js";
 import {
+  FinancialTransactionsApiURL,
   InsuranceApiURL,
   invoicesApiURL,
   labPanelApiURL,
@@ -243,21 +247,21 @@ const fetchAllLabTestTypeCategories = async (): Promise<
 };
 
 const fetchAllfinancialTransactionsCategories = async (): Promise<
-  labTestCategoryParams[]
+  transactionCategory[]
 > => {
   const url = "/financial_transaction/get_all_categories";
   const response = await api.get(url);
   return response.data;
 };
 const fetchAllfinancialTransactionsCurrencies = async (): Promise<
-  labTestCategoryParams[]
+  transactionCurrency[]
 > => {
   const url = "/financial_transaction/get_all_currencies";
   const response = await api.get(url);
   return response.data;
 };
 const fetchAllfinancialTransactionsTypes = async (): Promise<
-  labTestCategoryParams[]
+  transactionType[]
 > => {
   const url = "/financial_transaction/get_all_types";
   const response = await api.get(url);
@@ -384,18 +388,18 @@ const fetchAllFinancialTransactions = async (): Promise<
   const response = await api.get(url);
   return response.data;
 };
-const fetchAnalyticsSummary = async (
-  q: AnalyticsQuery
-): Promise<AnalyticsSummaryResponse> => {
-  const url = "/financial_transaction/analytics/summary";
-  const response = await api.get(url, { params: q });
-  return response.data;
+const getFinancialTransactionsSummary = async (
+  searchData: financialTransactionsSummaryParams
+): Promise<financial_transaction_summary> => {
+  const res = await api.get(`${FinancialTransactionsApiURL}summary`, {
+    params: searchData,
+  });
+  return res.data;
 };
-
+export { getFinancialTransactionsSummary };
 export { fetchFinancialTransaction };
 export { fetchFinancialTransactionsPaginated };
 export { fetchAllFinancialTransactions };
-export { fetchAnalyticsSummary };
 export { fetchAllfinancialTransactionsCategories };
 export { fetchAllfinancialTransactionsCurrencies };
 export { fetchAllfinancialTransactionsTypes };
