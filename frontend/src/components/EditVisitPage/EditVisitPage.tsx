@@ -46,8 +46,7 @@ const EditVisitPage: React.FC = () => {
   const [existingLabTestTypeIds, setExistingLabTestTypeIds] = useState<
     Set<string>
   >(new Set());
-  const [shouldRefreshFullList, setShouldRefreshFullList] =
-    useState<boolean>(true);
+  const shouldRefreshFullListRef = useRef(true);
   const existingLabTestIdsFetchId = useRef(0);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -116,7 +115,7 @@ const EditVisitPage: React.FC = () => {
   );
 
   const markExistingLabTestIdsDirty = useCallback(() => {
-    setShouldRefreshFullList(true);
+    shouldRefreshFullListRef.current = true;
   }, []);
 
   const handleSetPage = (page: number) => {
@@ -142,14 +141,14 @@ const EditVisitPage: React.FC = () => {
       setPanelResults(applyPendingToPanelResults(res.list_of_panel_results));
       setTotalPages(res.total_pages);
       setTotalNumberOfTests(res.TotalNumberOfLabTestResults);
-      if (shouldRefreshFullList) {
+      if (shouldRefreshFullListRef.current) {
         try {
           await loadAllExistingLabTestTypeIds(
             visit_id,
             res.TotalNumberOfLabTestResults
           );
         } finally {
-          setShouldRefreshFullList(false);
+          shouldRefreshFullListRef.current = false;
         }
       }
 
@@ -165,7 +164,6 @@ const EditVisitPage: React.FC = () => {
     visit_id,
     pagination.pageIndex,
     pagination.pageSize,
-    shouldRefreshFullList,
     loadAllExistingLabTestTypeIds,
   ]);
 

@@ -1,3 +1,4 @@
+import re
 from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, status, Query
 from ..models import lab_test_type as DBLab_test_type
@@ -31,9 +32,9 @@ async def get_Lab_test_type_with_page_size(
     offset = (page_number - 1) * page_size
     mongo_filter: dict[str, Any] = {}
     if name:
-        mongo_filter["name"] = {"$regex": name, "$options": "i"}
+        mongo_filter["name"] = {"$regex": re.escape(name), "$options": "i"}
     if unit:
-        mongo_filter["unit"] = {"$regex": unit, "$options": "i"}
+        mongo_filter["unit"] = {"$regex": re.escape(unit), "$options": "i"}
     if price:
         expr = {
             "$expr": {
