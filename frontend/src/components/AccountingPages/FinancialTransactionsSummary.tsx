@@ -47,6 +47,9 @@ const toYMD = (v: unknown) => {
   return s ? s.slice(0, 10) : "";
 };
 
+const normalizeAll = (value?: string) =>
+  !value || value === "ALL" ? undefined : value;
+
 const FinancialTransactionsSummary = () => {
   const [state, setState] = useState<string>("");
   const [data, setData] = useState<financialTransactionsSummaryParams>({
@@ -107,11 +110,11 @@ const FinancialTransactionsSummary = () => {
     }
 
     const filters: financialTransactionsSummaryParams = {
-      type: data.type,
+      type: normalizeAll(data.type),
       start_date: start || undefined,
       end_date: end || undefined,
-      currency: data.currency !== "ALL" ? data.currency : "ALL",
-      category: data.category !== "ALL" ? data.category : "ALL",
+      currency: normalizeAll(data.currency),
+      category: normalizeAll(data.category),
     };
 
     try {
