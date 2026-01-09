@@ -224,13 +224,6 @@ const listOfAttributesFinancialTransactionSummary = [
     placeHolder: "Select transaction type",
   },
   {
-    subItem: "Date",
-    attributeName: "date",
-    typeOfInput: "date",
-    icon: "date",
-    placeHolder: "Enter date of the transaction",
-  },
-  {
     subItem: "Currency",
     attributeName: "currency",
     typeOfInput: "Selection",
@@ -243,6 +236,20 @@ const listOfAttributesFinancialTransactionSummary = [
     typeOfInput: "Selection",
     icon: "category",
     placeHolder: "Select transaction category",
+  },
+  {
+    attributeName: "start_date",
+    subItem: "From date",
+    icon: "date",
+    typeOfInput: "date",
+    placeHolder: "",
+  },
+  {
+    attributeName: "end_date",
+    subItem: "To date",
+    icon: "date",
+    typeOfInput: "date",
+    placeHolder: "",
   },
 ];
 
