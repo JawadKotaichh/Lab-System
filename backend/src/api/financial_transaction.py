@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from fastapi import APIRouter, HTTPException, status
 from ..models import Financial_transaction as DBfinancial_transaction
 from ..models import Invoice as DBInvoice
@@ -16,8 +16,10 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence
 from math import ceil
 from fastapi import Query
 from beanie import PydanticObjectId
+from zoneinfo import ZoneInfo
 
 router = APIRouter(prefix="/financial_transaction", tags=["financial_transactions"])
+TZ = ZoneInfo("Asia/Beirut")
 
 
 @router.get("/summary", response_model=financial_transaction_summary)
@@ -40,24 +42,15 @@ async def get_financial_transactions_summary(
         mongo_filter["currency"] = {"$regex": currency, "$options": "i"}
 
     start_dt = end_dt = None
-
     if start_date:
-        try:
-            parsed = datetime.strptime(start_date, "%Y-%m-%d").date()
-            start_dt = datetime.combine(parsed, time.min)
-        except ValueError:
-            raise HTTPException(
-                status_code=400, detail="Invalid start_date. Use YYYY-MM-DD"
-            )
+        parsed = datetime.strptime(start_date, "%Y-%m-%d").date()
+        start_local = datetime.combine(parsed, time.min, tzinfo=TZ)
+        start_dt = start_local.astimezone(timezone.utc).replace(tzinfo=None)
 
     if end_date:
-        try:
-            parsed = datetime.strptime(end_date, "%Y-%m-%d").date()
-            end_dt = datetime.combine(parsed, time.max)
-        except ValueError:
-            raise HTTPException(
-                status_code=400, detail="Invalid end_date. Use YYYY-MM-DD"
-            )
+        parsed = datetime.strptime(end_date, "%Y-%m-%d").date()
+        end_local = datetime.combine(parsed, time.max, tzinfo=TZ)
+        end_dt = end_local.astimezone(timezone.utc).replace(tzinfo=None)
 
     if start_dt and end_dt:
         mongo_filter["date"] = {"$gte": start_dt, "$lte": end_dt}
