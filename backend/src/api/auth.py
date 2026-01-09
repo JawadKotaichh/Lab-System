@@ -23,8 +23,8 @@ def verify_password(password: str, password_hash: str) -> bool:
     return pwd_context.verify(password, password_hash)
 
 
-async def verify_admin_or_user(username, password):
-    user = await DBUser.find_one(DBUser.username == username)
+async def verify_admin_or_user(username: str, password):
+    user = await DBUser.find_one(DBUser.username == username.lower())
 
     if user:
         if not verify_password(password, user.password_hashed):
@@ -36,7 +36,7 @@ async def verify_admin_or_user(username, password):
             "role": "patient",
         }
 
-    admin = await DBAdmin.find_one(DBAdmin.username == username)
+    admin = await DBAdmin.find_one(DBAdmin.username == username.lower())
 
     if admin:
         if not verify_password(password, admin.password_hashed):
@@ -97,7 +97,6 @@ async def refresh(response: Response, refresh_token: str | None = Cookie(default
     if session.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Session expired")
 
-    # ✅ Issue new access token
     new_access = create_access_token(str(session.user_id), session.role)
     new_refresh = create_refresh_token()
 
