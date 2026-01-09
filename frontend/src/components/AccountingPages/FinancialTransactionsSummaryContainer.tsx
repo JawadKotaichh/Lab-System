@@ -153,7 +153,7 @@ export default function FinancialTransactionsSummaryContainer() {
     getFinancialTransactionsSummary({
       start_date: query.startParam,
       end_date: query.endParam,
-      type: routeType,
+      type: normalizeAll(routeType),
       currency: normalizeAll(query.currencyParam),
       category: normalizeAll(query.categoryParam),
     })

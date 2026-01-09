@@ -332,7 +332,7 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/financial-transactions/summary/:start_date"
+            path="/financial-transactions/summary/:type"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
                 <FinancialTransactionsSummaryContainer />

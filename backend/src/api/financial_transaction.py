@@ -30,6 +30,17 @@ async def get_financial_transactions_summary(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
 ) -> financial_transaction_summary:
+    def normalize_filter(value: Optional[str]) -> Optional[str]:
+        if not value:
+            return None
+        if value.strip().upper() == "ALL":
+            return None
+        return value
+
+    type = normalize_filter(type)
+    category = normalize_filter(category)
+    currency = normalize_filter(currency)
+
     mongo_filter: dict[str, Any] = {}
 
     if type:
