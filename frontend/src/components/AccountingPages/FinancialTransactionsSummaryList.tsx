@@ -101,6 +101,12 @@ const FinancialTransactionSummaryPDF: React.FC<
               </Text>
             </View>
           </View>
+          <View style={styles.patientInfoColumnLast}>
+            <View style={styles.patientInfoPair}>
+              <Text style={styles.patientLabel} />
+              <Text style={styles.patientValue} />
+            </View>
+          </View>
         </View>
       </View>
 
