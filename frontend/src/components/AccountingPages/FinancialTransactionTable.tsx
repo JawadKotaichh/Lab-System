@@ -21,6 +21,7 @@ import {
   buildFinancialTransactionsFilters,
   useFinancialTransactionsOptions,
 } from "../../hooks/useLabTestCategoryOptions";
+import { FilePlus } from "lucide-react";
 
 const FinancialTransactionsTable: React.FC = () => {
   const [data, setData] = useState<financialTransaction[]>([]);
@@ -139,6 +140,22 @@ const FinancialTransactionsTable: React.FC = () => {
       <div className="flex items-center justify-between">
         <h1 className={pageListTitle}>Financial Transactions</h1>
         <PlusButtonMenu variant="toolbar" actions={plusActions} />
+        <button
+          type="button"
+          onClick={() => navigate(`/financial-transactions/summary`)}
+          className="
+            h-10 inline-flex items-center gap-2
+            w-fit shrink-0 rounded-lg bg-blue-600 px-4
+            text-sm font-medium text-white
+            shadow-sm
+            hover:bg-blue-700
+            active:scale-95 transition
+            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer
+          "
+        >
+          <FilePlus className="h-4 w-4" />
+          Get summary
+        </button>
       </div>
 
       {error && <div className="text-red-600">{error}</div>}
