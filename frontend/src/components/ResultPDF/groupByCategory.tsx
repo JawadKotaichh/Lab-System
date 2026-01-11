@@ -11,12 +11,19 @@ type GroupedCategory = {
 
 const CATEGORY_PRIORITY = [
   "hematology",
+  "blood bank",
   "chemistry",
+  "coagulation",
   "serology",
-  "endocrino",
-  "hormone",
+  "endocrinology",
+  "immunology",
+  "tumor marker",
+  "histocompatibility",
+  "drugs",
+  "histopathology",
   "parasitology",
   "bacteriology",
+  "spermograme",
 ] as const;
 
 const normalizeCategory = (s: string) => s.trim().toLowerCase();
