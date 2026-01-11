@@ -35,10 +35,6 @@ const parseDateLocal = (value: Date | string | undefined): Date | undefined => {
 
 const normalizeAll = (v?: string) => (!v || v === "ALL" ? undefined : v);
 
-const firstKey = (
-  obj: Record<string, unknown> | undefined
-): string | undefined => (obj ? Object.keys(obj)[0] : undefined);
-
 export default function FinancialTransactionsSummaryContainer() {
   const location = useLocation();
   const params = useParams();
@@ -90,30 +86,38 @@ export default function FinancialTransactionsSummaryContainer() {
     if (!summary)
       return {
         list: [] as financialTransaction[],
-        resolvedCurrency: "",
-        resolvedCategory: "",
+        displayCurrency: "ALL",
+        displayCategory: "ALL",
       };
 
     const byCurrency = summary.by_currency ?? {};
-    const resolvedCurrency =
-      normalizeAll(currency) ?? firstKey(byCurrency) ?? "";
-    const catsObj =
-      resolvedCurrency && byCurrency[resolvedCurrency]
-        ? byCurrency[resolvedCurrency]
-        : undefined;
-
-    const resolvedCategory = normalizeAll(category) ?? firstKey(catsObj) ?? "";
+    const normalizedCurrency = normalizeAll(currency);
+    const normalizedCategory = normalizeAll(category);
 
     let list: financialTransaction[] = [];
-    if (resolvedCurrency && catsObj) {
-      if (resolvedCategory) {
-        list = catsObj[resolvedCategory] ?? [];
+
+    if (normalizedCurrency) {
+      const catsObj = byCurrency[normalizedCurrency] ?? {};
+      if (normalizedCategory) {
+        list = catsObj[normalizedCategory] ?? [];
       } else {
         list = Object.values(catsObj).flat();
       }
+    } else if (normalizedCategory) {
+      list = Object.values(byCurrency).flatMap(
+        (catsObj) => catsObj?.[normalizedCategory] ?? []
+      );
+    } else {
+      list = Object.values(byCurrency).flatMap((catsObj) =>
+        Object.values(catsObj ?? {}).flat()
+      );
     }
 
-    return { list, resolvedCurrency, resolvedCategory };
+    return {
+      list,
+      displayCurrency: normalizedCurrency ?? "ALL",
+      displayCategory: normalizedCategory ?? "ALL",
+    };
   }, [summary, currency, category]);
 
   useEffect(() => {
@@ -200,9 +204,9 @@ export default function FinancialTransactionsSummaryContainer() {
 
       {!showSignatureOption && (
         <FinancialTransactionsSummaryList
-          category={derived.resolvedCategory}
+          category={derived.displayCategory}
           type={type}
-          currency={derived.resolvedCurrency}
+          currency={derived.displayCurrency}
           end_date={endDate}
           start_date={startDate}
           summaryData={derived.list}
