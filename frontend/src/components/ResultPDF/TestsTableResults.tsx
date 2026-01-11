@@ -107,11 +107,8 @@ const TestsTableResults = ({
                       {t.lab_test_type?.normal_value_list?.length ? (
                         <View>
                           {t.lab_test_type.normal_value_list.map((nv, i) => (
-                            <Text
-                              key={i}
-                              style={styles.tableCellText}
-                            >
-                              {renderNormalValue(nv, { ascii: true })}
+                            <Text key={i} style={styles.tableCellText}>
+                              {renderNormalValue(nv)}
                             </Text>
                           ))}
                         </View>
@@ -194,21 +191,15 @@ const TestsTableResults = ({
                             <View>
                               {t.lab_test_type.normal_value_list.map(
                                 (nv, i) => (
-                                  <Text
-                                    key={i}
-                                    style={styles.tableCellText}
-                                  >
-                                    {renderNormalValue(nv, { ascii: true })}
+                                  <Text key={i} style={styles.tableCellText}>
+                                    {renderNormalValue(nv)}
                                   </Text>
                                 )
                               )}
                             </View>
                           ) : (
                             <Text
-                              style={[
-                                styles.tableCellText,
-                                { opacity: 0.6 },
-                              ]}
+                              style={[styles.tableCellText, { opacity: 0.6 }]}
                             >
                               —
                             </Text>
