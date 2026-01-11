@@ -8,6 +8,7 @@ import type {
   financialTransaction,
   financial_transaction_summary,
 } from "../types";
+const isAll = (v?: string) => !v || v.trim().toUpperCase() === "ALL";
 
 type SummaryState = {
   summaryData?: financial_transaction_summary;
@@ -86,13 +87,17 @@ export default function FinancialTransactionsSummaryContainer() {
     if (!summary)
       return {
         list: [] as financialTransaction[],
-        displayCurrency: "USD",
+        displayCurrency: "ALL",
         displayCategory: "ALL",
       };
 
     const byCurrency = summary.by_currency ?? {};
-    const normalizedCurrency = normalizeAll(currency);
-    const normalizedCategory = normalizeAll(category);
+
+    const normalizedCurrency = isAll(currency)
+      ? undefined
+      : currency.trim().toUpperCase();
+
+    const normalizedCategory = isAll(category) ? undefined : category.trim();
 
     let list: financialTransaction[] = [];
 
@@ -115,8 +120,8 @@ export default function FinancialTransactionsSummaryContainer() {
 
     return {
       list,
-      displayCurrency: normalizedCurrency ?? "USD",
-      displayCategory: normalizedCategory ?? "ALL",
+      displayCurrency: isAll(currency) ? "ALL" : normalizedCurrency!,
+      displayCategory: isAll(category) ? "ALL" : normalizedCategory!,
     };
   }, [summary, currency, category]);
 
