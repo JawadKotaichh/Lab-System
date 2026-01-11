@@ -461,10 +461,10 @@ export function getLabTestColumns(
     "upper_bound_value" in x || "lower_bound_value" in x;
   const fmtBounds = (x: BoundsNV) => {
     if ("upper_bound_value" in x && "lower_bound_value" in x) {
-      return `${x.lower_bound_value} – ${x.upper_bound_value}`;
+      return `> ${x.lower_bound_value} < ${x.upper_bound_value}`;
     }
-    if ("upper_bound_value" in x) return `≤ ${x.upper_bound_value}`;
-    return `≥ ${x.lower_bound_value}`;
+    if ("upper_bound_value" in x) return `< ${x.upper_bound_value}`;
+    return `> ${x.lower_bound_value}`;
   };
 
   const fmtGenderInner = (x: GenderInnerNV) => {
