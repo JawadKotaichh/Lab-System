@@ -263,12 +263,17 @@ async def get_result_list(
             DBLab_test_type.id == test_result.lab_test_type_id
         )
         if not db_lab_test_type:
-            raise HTTPException(400, detail="Invalid lab test type ID")
+            raise HTTPException(
+                400, detail=f"Invalid lab test type ID {test_result.lab_test_type_id}"
+            )
         lab_test_type_category = await DBLab_test_category.find_one(
             DBLab_test_category.id == db_lab_test_type.lab_test_category_id
         )
         if not lab_test_type_category:
-            raise HTTPException(400, detail="Invalid lab test category ID")
+            raise HTTPException(
+                400,
+                detail=f"Invalid lab test category ID {db_lab_test_type.lab_test_category_id}",
+            )
         prev_data = prev_results_map.get(test_result.lab_test_type_id) or {
             "result": None,
             "date": None,
