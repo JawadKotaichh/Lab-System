@@ -1,12 +1,7 @@
 const fmt = (v: unknown) =>
   v === undefined || v === null || v === "" ? "—" : String(v);
 
-export default function renderNormalValue(
-  nv: unknown,
-  opts?: { ascii?: boolean }
-): string {
-  const le = opts?.ascii ? "<=" : "≤";
-  const ge = opts?.ascii ? ">=" : "≥";
+export default function renderNormalValue(nv: unknown): string {
   if (typeof nv !== "object" || nv === null) return "—";
   const rec = nv as Record<string, unknown>;
 
@@ -18,12 +13,13 @@ export default function renderNormalValue(
       if ("normal_value" in r) return prefix + fmt(r.normal_value);
       if ("lower_bound_value" in r && "upper_bound_value" in r)
         return (
-          prefix + `${fmt(r.lower_bound_value)} – ${fmt(r.upper_bound_value)}`
+          prefix +
+          `> ${fmt(r.lower_bound_value)} < ${fmt(r.upper_bound_value)}`
         );
       if ("lower_bound_value" in r)
-        return prefix + `${ge} ${fmt(r.lower_bound_value)}`;
+        return prefix + `> ${fmt(r.lower_bound_value)}`;
       if ("upper_bound_value" in r)
-        return prefix + `${le} ${fmt(r.upper_bound_value)}`;
+        return prefix + `< ${fmt(r.upper_bound_value)}`;
       if ("description" in rec) return prefix;
 
       return "—";
@@ -38,12 +34,13 @@ export default function renderNormalValue(
   if ("normal_value" in rec) return prefix + fmt(rec.normal_value);
   if ("lower_bound_value" in rec && "upper_bound_value" in rec)
     return (
-      prefix + `${fmt(rec.lower_bound_value)} – ${fmt(rec.upper_bound_value)}`
+      prefix +
+      `> ${fmt(rec.lower_bound_value)} < ${fmt(rec.upper_bound_value)}`
     );
   if ("lower_bound_value" in rec)
-    return prefix + `${ge} ${fmt(rec.lower_bound_value)}`;
+    return prefix + `> ${fmt(rec.lower_bound_value)}`;
   if ("upper_bound_value" in rec)
-    return prefix + `${le} ${fmt(rec.upper_bound_value)}`;
+    return prefix + `< ${fmt(rec.upper_bound_value)}`;
   if ("description" in rec) return prefix;
   return "—";
 }
