@@ -119,7 +119,7 @@ const FinancialTransactionsSummary = () => {
 
     try {
       const response = await getFinancialTransactionsSummary(filters);
-
+      console.log(`filters: ${filters}`);
       const query = new URLSearchParams({
         start_date: filters.start_date ?? "",
         end_date: filters.end_date ?? "",
@@ -192,22 +192,18 @@ const FinancialTransactionsSummary = () => {
                   })
                 }
               >
-                <option value="ALL">ALL</option>
-
                 {i.attributeName === "type" &&
                   types.map((t) => (
                     <option key={t.id} value={t.type}>
                       {t.type}
                     </option>
                   ))}
-
                 {i.attributeName === "category" &&
                   categories.map((c) => (
                     <option key={c.id} value={c.category}>
                       {c.category}
                     </option>
                   ))}
-
                 {i.attributeName === "currency" &&
                   currencies.map((c) => (
                     <option key={c.id} value={c.currency}>
