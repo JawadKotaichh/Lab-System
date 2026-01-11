@@ -23,15 +23,15 @@ export default function AnalyseResult(nv: unknown, result: string): boolean[] {
 
     if ("lower_bound_value" in r && "upper_bound_value" in r) {
       return (
-        Number(r.lower_bound_value) < Number(result) &&
-        Number(r.upper_bound_value) > Number(result)
+        Number(r.lower_bound_value) <= Number(result) &&
+        Number(r.upper_bound_value) >= Number(result)
       );
     }
     if ("lower_bound_value" in r) {
-      return Number(r.lower_bound_value) <= Number(result);
+      return Number(r.lower_bound_value) < Number(result);
     }
     if ("upper_bound_value" in r) {
-      return Number(r.upper_bound_value) >= Number(result);
+      return Number(r.upper_bound_value) > Number(result);
     }
 
     const getString = (key: string) =>
