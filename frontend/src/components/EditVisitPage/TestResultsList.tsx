@@ -25,6 +25,21 @@ interface ShowResultsListParams {
   markExistingLabTestIdsDirty: () => void;
 }
 
+const isNumericLike = (s: string) => /^[+-]?\d+(?:[.,]\d+)?$/.test(s.trim());
+
+const toTitleCase = (s: string) =>
+  s
+    .trim()
+    .split(/\s+/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
+    .join(" ");
+
+const normalizeResult = (value: string) => {
+  const v = value.trim();
+  if (!v) return value;
+  if (isNumericLike(v)) return v;
+  return toTitleCase(v);
+};
 const TestResultsList: React.FC<ShowResultsListParams> = ({
   panelResults,
   setPanelResults,
@@ -78,7 +93,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     }, 200);
   };
   const onPickSuggestion = (lab_test_result_id: string, value: string) => {
-    void handleChange(lab_test_result_id, value);
+    void handleChange(lab_test_result_id, normalizeResult(value));
     closeDropdown();
   };
 
@@ -189,7 +204,11 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                         r.lab_test_result_id
                       );
                     }}
-                    onBlur={() => {
+                    onBlur={(e) => {
+                      const formatted = normalizeResult(e.currentTarget.value);
+                      if (formatted !== e.currentTarget.value) {
+                        void handleChange(r.lab_test_result_id, formatted);
+                      }
                       setTimeout(() => closeDropdown(), 150);
                     }}
                     onKeyDown={(e) => {
