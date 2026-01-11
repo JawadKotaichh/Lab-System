@@ -92,6 +92,12 @@ const FinancialTransactionsSummary = () => {
     attributeName: string;
     value: string;
   }) => {
+    console.log(`start_date: ${data.start_date}`);
+    console.log(`end_date: ${data.end_date}`);
+    console.log(`currency: ${data.currency}`);
+    console.log(`category: ${data.category}`);
+    console.log(`type: ${data.type}`);
+
     setData((prev) => ({
       ...prev,
       [attributeName]: value,
@@ -119,11 +125,6 @@ const FinancialTransactionsSummary = () => {
 
     try {
       const response = await getFinancialTransactionsSummary(filters);
-      console.log(`start_date: ${filters.start_date}`);
-      console.log(`end_date: ${filters.end_date}`);
-      console.log(`currency: ${filters.currency}`);
-      console.log(`category: ${filters.category}`);
-      console.log(`type: ${filters.type}`);
 
       const query = new URLSearchParams({
         start_date: filters.start_date ?? "",
