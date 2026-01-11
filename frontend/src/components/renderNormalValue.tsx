@@ -13,8 +13,7 @@ export default function renderNormalValue(nv: unknown): string {
       if ("normal_value" in r) return prefix + fmt(r.normal_value);
       if ("lower_bound_value" in r && "upper_bound_value" in r)
         return (
-          prefix +
-          `> ${fmt(r.lower_bound_value)} < ${fmt(r.upper_bound_value)}`
+          prefix + `${fmt(r.lower_bound_value)} - ${fmt(r.upper_bound_value)}`
         );
       if ("lower_bound_value" in r)
         return prefix + `> ${fmt(r.lower_bound_value)}`;
@@ -34,8 +33,7 @@ export default function renderNormalValue(nv: unknown): string {
   if ("normal_value" in rec) return prefix + fmt(rec.normal_value);
   if ("lower_bound_value" in rec && "upper_bound_value" in rec)
     return (
-      prefix +
-      `> ${fmt(rec.lower_bound_value)} < ${fmt(rec.upper_bound_value)}`
+      prefix + `${fmt(rec.lower_bound_value)} - ${fmt(rec.upper_bound_value)}`
     );
   if ("lower_bound_value" in rec)
     return prefix + `> ${fmt(rec.lower_bound_value)}`;
