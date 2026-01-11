@@ -394,7 +394,7 @@ async def get_Lab_test_results_with_page_size(
         if db_lab_test_type is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid lab test type ID",
+                detail=f"Invalid lab test type ID {test_result.lab_test_type_id}",
             )
         lab_test_type_category = await DBLab_test_category.find_one(
             DBLab_test_category.id == db_lab_test_type.lab_test_category_id
@@ -402,7 +402,7 @@ async def get_Lab_test_results_with_page_size(
         if lab_test_type_category is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid lab test category ID",
+                detail=f"Invalid lab test category ID {db_lab_test_type.lab_test_category_id}",
             )
         lab_test_type = Lab_test_type(
             lab_test_id=str(db_lab_test_type.id),
