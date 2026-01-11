@@ -203,7 +203,8 @@ const FinancialTransactionsSummary = () => {
                       {t.type}
                     </option>
                   ))}
-                {i.attributeName === "category" && (
+                {(i.attributeName === "category" ||
+                  i.attributeName === "currency") && (
                   <option value="ALL">ALL</option>
                 )}
                 {i.attributeName === "category" &&

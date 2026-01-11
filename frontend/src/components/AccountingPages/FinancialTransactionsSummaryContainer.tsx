@@ -86,7 +86,7 @@ export default function FinancialTransactionsSummaryContainer() {
     if (!summary)
       return {
         list: [] as financialTransaction[],
-        displayCurrency: "ALL",
+        displayCurrency: "USD",
         displayCategory: "ALL",
       };
 
@@ -115,7 +115,7 @@ export default function FinancialTransactionsSummaryContainer() {
 
     return {
       list,
-      displayCurrency: normalizedCurrency ?? "ALL",
+      displayCurrency: normalizedCurrency ?? "USD",
       displayCategory: normalizedCategory ?? "ALL",
     };
   }, [summary, currency, category]);
