@@ -209,7 +209,7 @@ const Prices: React.FC<PricesParams> = ({
                   onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                   className="w-24 text-right"
                   min={0}
-                  max={netTotal}
+                  max={netTotal + 0.1}
                   step={currency === "USD" ? 0.01 : 1}
                 />
               </span>
