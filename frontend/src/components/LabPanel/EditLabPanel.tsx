@@ -30,6 +30,13 @@ import LoadingPage from "../LoadingPage/LoadingPage";
 interface EditLabPanelProps {
   title: string;
 }
+const toTitleCase = (value: string) =>
+  value
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ");
 
 const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const { lab_panel_id } = useParams();
@@ -203,7 +210,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         <input
           className={inputFormAttributeListItemInput + " w-fit"}
           type={"text"}
-          value={data.lab_panel.panel_name || ""}
+          value={toTitleCase(data.lab_panel.panel_name) || ""}
           placeholder={"Enter Lab Panel Name"}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
