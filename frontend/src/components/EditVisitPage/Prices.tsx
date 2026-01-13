@@ -50,20 +50,22 @@ const Prices: React.FC<PricesParams> = ({
 
   const roundTo = (value: number, decimals: number) =>
     Number(value.toFixed(decimals));
+  const moneyDecimals = currency === "USD" ? 2 : 0;
+  const roundMoney = (value: number) => roundTo(value, moneyDecimals);
 
-  const gross = totalPrice * patientInsuranceCompanyRate;
+  const gross = roundMoney(totalPrice * patientInsuranceCompanyRate);
 
-  const netTotal = gross + draftAdjustment;
+  const netTotal = roundMoney(gross + draftAdjustment);
   console.log("netTotal: ", netTotal);
   console.log("gross: ", gross);
   console.log("patientInsuranceCompanyRate: ", patientInsuranceCompanyRate);
   console.log("totalPrice: ", totalPrice);
 
-  const safePaid = Math.max(0, draftTotalPaid);
-  const remaining = Math.max(0, netTotal - safePaid);
+  const safePaid = roundMoney(Math.max(0, draftTotalPaid));
+  const remaining = roundMoney(Math.max(0, netTotal - safePaid));
 
   const formatMoney = (value: number) => {
-    if (currency === "USD") return `${roundTo(value, 2)} $`;
+    if (currency === "USD") return `${roundMoney(value)} $`;
     return `${Math.round(value).toLocaleString("en-US")} LBP`;
   };
 
