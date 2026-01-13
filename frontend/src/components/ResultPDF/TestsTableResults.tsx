@@ -1,5 +1,5 @@
 import { Text, View } from "@react-pdf/renderer";
-import type { visitResultData } from "../types";
+import type { NV, visitResultData } from "../types";
 import { styles } from "./ResultStyle";
 import groupByCategory from "./groupByCategory";
 import renderNormalValue from "../renderNormalValue";
@@ -14,32 +14,13 @@ const TestsTableResults = ({
   list_of_panel_results,
   patientGender,
 }: TestsTableResultsProps) => {
-  const isNormalForGender = (
-    nv: unknown,
-    result: string | number,
-    gender?: string
-  ): boolean => {
-    const verdict = AnalyseResult(nv, String(result));
-    const rec = nv as Record<string, unknown>;
-    const hasSexSplit =
-      "male_normal_value_type" in rec && "female_normal_value_type" in rec;
-
-    if (hasSexSplit) {
-      const g = (gender ?? "").toString().toLowerCase();
-      const idx = g === "male" ? 0 : g === "female" ? 1 : -1;
-      if (idx >= 0) return !!verdict[idx];
-      return !!(verdict[0] || verdict[1]);
-    }
-    return !!verdict[0];
-  };
-
   const isAbnormal = (
-    normalValueList: unknown[] | undefined,
+    normalValueList: NV[],
     result: string | number,
     gender?: string
   ): boolean => {
     if (!normalValueList?.length) return false;
-    return !normalValueList.some((nv) => isNormalForGender(nv, result, gender));
+    return !normalValueList.some((nv) => AnalyseResult(nv, result, gender!));
   };
 
   const groupedData = groupByCategory(
@@ -88,7 +69,7 @@ const TestsTableResults = ({
                     </View>
                     <View style={styles.tableColResult}>
                       <Text style={styles.tableCellText}>
-                        {t.result}{" "}
+                        {t.result}
                         {isAbnormal(
                           t.lab_test_type?.normal_value_list,
                           t.result,
