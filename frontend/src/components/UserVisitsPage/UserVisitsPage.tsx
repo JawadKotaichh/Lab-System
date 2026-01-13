@@ -23,7 +23,9 @@ const UserVisitsPage: React.FC = () => {
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
 
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "visit_date", desc: true },
+  ]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 50,
