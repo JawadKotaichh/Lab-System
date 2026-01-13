@@ -19,7 +19,7 @@ from ..schemas.schema_Visit import (
     visitInvoice,
 )
 from collections import defaultdict
-from beanie import PydanticObjectId
+from beanie import PydanticObjectId, SortDirection
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
@@ -263,7 +263,12 @@ async def get_visits_with_page_size(
         }
 
     total_number_of_visits = await DBVisit.find(mongo_filter_visits).count()
-    cursor = DBVisit.find(mongo_filter_visits).skip(offset).limit(page_size)
+    cursor = (
+        DBVisit.find(mongo_filter_visits)
+        .sort([("visit_date", SortDirection.DESCENDING)])
+        .skip(offset)
+        .limit(page_size)
+    )
 
     visits: List[VisitData] = []
     async for visit in cursor:
