@@ -31,12 +31,7 @@ interface EditLabPanelProps {
   title: string;
 }
 const toTitleCase = (value: string) =>
-  value
-    .toLowerCase()
-    .split(" ")
-    .filter(Boolean)
-    .map((word) => word[0].toUpperCase() + word.slice(1))
-    .join(" ");
+  value.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
 const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const { lab_panel_id } = useParams();
@@ -210,12 +205,13 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         <input
           className={inputFormAttributeListItemInput + " w-fit"}
           type={"text"}
-          value={toTitleCase(data.lab_panel.panel_name) || ""}
+          value={data.lab_panel.panel_name || ""}
           placeholder={"Enter Lab Panel Name"}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
           onChange={(e) => handlePanelNameChange(e.target.value)}
+          onBlur={(e) => handlePanelNameChange(toTitleCase(e.target.value))}
         />
         <label className={inputFormAttributeListItemLabel + " p-3"}>
           <span className="text-xl mr-5">L:</span>
