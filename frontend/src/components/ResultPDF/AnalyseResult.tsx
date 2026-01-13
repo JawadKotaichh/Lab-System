@@ -1,65 +1,61 @@
-export default function AnalyseResult(nv: unknown, result: string): boolean[] {
-  const normText = (v: unknown) =>
-    String(v ?? "")
-      .trim()
-      .toLowerCase();
+import {
+  guessNVType,
+  isByGender,
+  isLowerOnly,
+  isPosNeg,
+  isUAndL,
+  isUpperOnly,
+} from "../LabTest/guessNormalValueType";
+import type { NV } from "../types";
 
-  const analyse = (x: unknown): boolean => {
-    if (typeof x === "string") return normText(x) === normText(result);
+const normText = (v: unknown) =>
+  String(v ?? "")
+    .trim()
+    .toLowerCase();
 
-    if (typeof x !== "object" || x === null) return false;
-    const r = x as Record<string, unknown>;
+export default function AnalyseResult(
+  nv: NV,
+  result: string | number,
+  gender: string
+): boolean {
+  const normalValueType = guessNVType(nv);
 
-    if ("normal_value" in r) {
-      const expected = normText(r.normal_value);
-      const got = normText(result);
-
-      if (!expected) return false;
-      if (expected === "positive") return got !== "negative";
-      if (expected === "negative") return got === "negative";
-
-      return got === expected;
-    }
-
-    if ("lower_bound_value" in r && "upper_bound_value" in r) {
+  switch (normalValueType) {
+    case "upper_and_lower_bound_only":
+      if (!isUAndL(nv)) return false;
       return (
-        Number(r.lower_bound_value) <= Number(result) &&
-        Number(r.upper_bound_value) >= Number(result)
+        Number(nv.lower_bound_value) <= Number(result) &&
+        Number(nv.upper_bound_value) >= Number(result)
       );
-    }
-    if ("lower_bound_value" in r) {
-      return Number(r.lower_bound_value) < Number(result);
-    }
-    if ("upper_bound_value" in r) {
-      return Number(r.upper_bound_value) > Number(result);
-    }
+    case "upper_bound_only":
+      if (!isUpperOnly(nv)) return false;
+      return Number(result) < Number(nv.upper_bound_value);
 
-    const getString = (key: string) =>
-      typeof r[key] === "string" ? (r[key] as string) : undefined;
+    case "lower_bound_only":
+      if (!isLowerOnly(nv)) return false;
+      return Number(result) > Number(nv.lower_bound_value);
 
-    const desc =
-      getString("description") ??
-      getString("normal_value_description") ??
-      getString("reference_range_description") ??
-      getString("reference_range") ??
-      getString("text");
+    case "positive_or_negative":
+      if (!isPosNeg(nv)) return false;
+      return normText(nv.normal_value) === normText(result);
 
-    if (desc) {
-      return normText(desc) === normText(result);
+    case "normal_value_by_gender": {
+      if (!isByGender(nv)) return false;
+
+      const g = normText(gender);
+      const picked =
+        g === "male"
+          ? nv.male_normal_value_type
+          : g === "female"
+          ? nv.female_normal_value_type
+          : null;
+
+      if (!picked) return false;
+      return normText(picked) === normText(result);
     }
-
-    return false;
-  };
-
-  if (typeof nv === "object" && nv !== null) {
-    const rec = nv as Record<string, unknown>;
-    if ("male_normal_value_type" in rec && "female_normal_value_type" in rec) {
-      return [
-        analyse(rec.male_normal_value_type),
-        analyse(rec.female_normal_value_type),
-      ];
-    }
+    case "description_only":
+    default:
+      if (!("description" in nv)) return false;
+      return normText(nv.description) === normText(result);
   }
-
-  return [analyse(nv)];
 }

@@ -233,6 +233,7 @@ export type labPanel = {
   lab_panel_price?: number;
   lab_panel_category_id?: string;
 };
+
 export type CreateLabTestParams = {
   lab_test_category_id: string;
   name: string;
