@@ -3,6 +3,7 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, status, Query
 from ..models import lab_test_type as DBLab_test_type
 from ..models import lab_test_category as DBlab_test_category
+from ..models import lab_panel as DBLab_panel
 from ..schemas.schema_Lab_Test_Type import Lab_test_type, update_Lab_test_type_model
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -251,6 +252,8 @@ async def delete_lab_test_type(lab_test_type_id: str):
     lab_test_type_to_be_deleted = await DBLab_test_type.get(
         PydanticObjectId(lab_test_type_id)
     )
+    oid = PydanticObjectId(lab_test_type_id)
+
     if not lab_test_type_to_be_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -259,7 +262,9 @@ async def delete_lab_test_type(lab_test_type_id: str):
     await DBResult_suggestions.find(
         DBResult_suggestions.lab_test_type_id == lab_test_type_id
     ).delete()
-
+    await DBLab_panel.find(DBLab_panel.list_of_test_type_ids == oid).update(
+        {"$pull": {"list_of_test_type_ids": oid}}
+    )
     await lab_test_type_to_be_deleted.delete()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
