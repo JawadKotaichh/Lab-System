@@ -77,7 +77,7 @@ function analyseNonGender(nv: NV, result: string | number): boolean {
 export default function AnalyseResult(
   nv: NV,
   result: string | number,
-  gender: string
+  gender: string,
 ): boolean {
   if (isByGender(nv)) {
     const g = normalizeGender(gender);
