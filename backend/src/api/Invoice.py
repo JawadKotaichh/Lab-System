@@ -6,6 +6,7 @@ from ..models import Invoice as DBInvoice
 from ..models import Financial_transaction as DBFinancial_transaction
 from ..schemas.schema_Invoice import (
     Invoice,
+    LabTestChanged,
     invoiceData,
     update_invoice,
 )
@@ -128,6 +129,8 @@ async def get_monthly_summary_invoice(
             visit_id=str(db_visit.id),
             invoice_number=invoice.invoice_number,
             total_paid=invoice.total_paid,
+            list_of_lab_tests_ids_changed=invoice.list_of_lab_tests_ids_changed,
+            list_of_lab_panels_ids_changed=invoice.list_of_lab_panels_ids_changed,
         )
         current_invoice_data = invoiceData(
             patient=currentPatient,
@@ -151,6 +154,14 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
+    if update_data.list_of_lab_tests_ids_changed is not None:
+        existing_invoice.list_of_lab_tests_ids_changed = (
+            update_data.list_of_lab_tests_ids_changed
+        )
+    if update_data.list_of_lab_panels_ids_changed is not None:
+        existing_invoice.list_of_lab_panels_ids_changed = (
+            update_data.list_of_lab_panels_ids_changed
+        )
 
     if update_data.adjustment_minor is not None:
         existing_invoice.adjustment_minor = update_data.adjustment_minor
@@ -213,12 +224,27 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
             status_code=404,
             detail=f"Insurance company with id: {db_patient.insurance_company_id} not found",
         )
+    changed_lab_tests = {}
+    for changed_test in existing_invoice.list_of_lab_tests_ids_changed:
+        changed_lab_tests[changed_test.lab_test_id] = changed_test.new_price
+
+    changed_lab_panels = {}
+    for changed_panel in existing_invoice.list_of_lab_panels_ids_changed:
+        changed_lab_panels[changed_panel.panel_id] = changed_panel.new_price
+
     total_price = 0.0
     for test in existing_invoice.list_of_tests:
-        total_price += test.price
+        if test.id not in changed_lab_tests:
+            total_price += test.price * db_insurance_company
+        else:
+            total_price += changed_lab_tests[test.id]
+
     for panel in existing_invoice.list_of_lab_panels:
-        total_price += panel.lab_panel_price
-    total_price *= db_insurance_company.rate
+        if panel.id not in changed_lab_panels:
+            total_price += panel.lab_panel_price * db_insurance_company
+        else:
+            total_price += changed_lab_panels[panel.id]
+
     total_price += existing_invoice.adjustment_minor
     if existing_invoice.total_paid >= total_price:
         db_visit.posted = True
@@ -226,6 +252,40 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     await existing_invoice.replace()
 
     return existing_invoice
+
+
+@router.put("/{visit_id}/override_test_price", response_model=DBInvoice)
+async def override_test_price(visit_id: str, body: LabTestChanged):
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(status_code=400, detail="Invalid visit ID")
+    if not PydanticObjectId.is_valid(body.lab_test_id):
+        raise HTTPException(status_code=400, detail="Invalid lab_test_id")
+
+    db_visit = await DBVisit.get(PydanticObjectId(visit_id))
+    if not db_visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+
+    invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+
+    found = False
+    for i, item in enumerate(invoice.list_of_lab_tests_ids_changed):
+        if str(item.lab_test_id) == str(body.lab_test_id):
+            invoice.list_of_lab_tests_ids_changed[i].new_price = body.new_price
+            found = True
+            break
+    if not found:
+        invoice.list_of_lab_tests_ids_changed.append(
+            type(invoice.list_of_lab_tests_ids_changed[0])(
+                lab_test_id=body.lab_test_id, new_price=body.new_price
+            )
+            if invoice.list_of_lab_tests_ids_changed
+            else {"lab_test_id": body.lab_test_id, "new_price": body.new_price}
+        )
+
+    await invoice.replace()
+    return invoice
 
 
 @router.get("/{visit_id}/rebuild_invoice", response_model=invoiceData)
@@ -378,6 +438,8 @@ async def rebuild_invoice(visit_id: str):
         adjustment_minor=db_invoice.adjustment_minor,
         invoice_number=db_invoice.invoice_number,
         total_paid=db_invoice.total_paid,
+        list_of_lab_panels_ids_changed=db_invoice.list_of_lab_panels_ids_changed,
+        list_of_lab_tests_ids_changed=db_invoice.list_of_lab_tests_ids_changed,
     )
 
     db_invoice.list_of_lab_panels = listOfPanels
@@ -413,6 +475,8 @@ async def create_invoice(visit_id: str, patient: Patient):
         adjustment_minor=0.0,
         insurance_company_id=patient.insurance_company_id,
         invoice_number=await get_next_sequence("invoice_number"),
+        list_of_lab_panels_ids_changed=[],
+        list_of_lab_tests_ids_changed=[],
     )
     new_invoice = await db_invoice.insert()
     if not new_invoice:
@@ -513,6 +577,8 @@ async def get_invoice(visit_id: str):
         insurance_company_id=str(db_patient.insurance_company_id),
         invoice_number=db_invoice.invoice_number,
         total_paid=db_invoice.total_paid,
+        list_of_lab_tests_ids_changed=db_invoice.list_of_lab_tests_ids_changed,
+        list_of_lab_panels_ids_changed=db_invoice.list_of_lab_panels_ids_changed,
     )
     output_invoice_data = invoiceData(
         patient=currentPatient,
@@ -585,6 +651,8 @@ async def get_invoices_with_page_size(
             patient_insurance_company_rate=patient_insurance_company_rate,
             invoice_number=invoice.invoice_number,
             total_paid=invoice.total_paid,
+            list_of_lab_panels_ids_changed=invoice.list_of_lab_panels_ids_changed,
+            list_of_lab_tests_ids_changed=invoice.list_of_lab_panels_ids_changed,
         )
         allInvoices.append(currentInvoice)
 

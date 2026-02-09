@@ -136,6 +136,16 @@ export type InvoiceWrapperProps = {
   patient_insurance_company_rate: number;
   showSignature: boolean;
 };
+
+export type lab_test_changed = {
+  lab_test_id: string;
+  new_price: number;
+};
+export type lab_panel_changed = {
+  panel_id: string;
+  new_price: number;
+};
+
 export type InvoiceData = {
   total_paid: number;
   invoice_number: number;
@@ -143,6 +153,8 @@ export type InvoiceData = {
   adjustment_minor: number;
   list_of_lab_panels: labPanel[];
   list_of_tests: labTest[];
+  list_of_lab_tests_ids_changed: lab_test_changed[];
+  list_of_lab_panels_ids_changed: lab_panel_changed[];
   visit_date: Date;
   patient_insurance_company_rate: number;
 };
@@ -158,6 +170,8 @@ export type updateInvoiceData = {
   visit_date?: Date;
   currency?: string;
   adjustment_minor?: number;
+  list_of_lab_tests_ids_changed?: lab_test_changed[];
+  list_of_lab_panels_ids_changed?: lab_panel_changed[];
   patient_insurance_company_rate?: number;
   total_paid?: number;
 };
