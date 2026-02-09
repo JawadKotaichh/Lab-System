@@ -355,6 +355,8 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 {panel.lab_panel_price}
               </td>
               <td></td>
+              <td></td>
+
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
