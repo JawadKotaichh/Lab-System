@@ -1,5 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { type patientInfo, type updateInvoiceData } from "../types.js";
+import {
+  type lab_panel_changed,
+  type lab_test_changed,
+  type patientInfo,
+  type updateInvoiceData,
+} from "../types.js";
 import { useDebounce } from "../react-table/Debounce";
 import {
   fetchInvoice,
@@ -72,18 +77,38 @@ const Prices: React.FC<PricesParams> = ({
   useEffect(() => {
     const tests = updatedInvoiceData.list_of_tests ?? [];
     const panels = updatedInvoiceData.list_of_lab_panels ?? [];
+    const testOverrides = new Map<string, number>();
+    (updatedInvoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
+      (item: lab_test_changed) => {
+        testOverrides.set(String(item.lab_test_id), Number(item.new_price) || 0);
+      },
+    );
+    const panelOverrides = new Map<string, number>();
+    (updatedInvoiceData.list_of_lab_panels_ids_changed ?? []).forEach(
+      (item: lab_panel_changed) => {
+        panelOverrides.set(String(item.panel_id), Number(item.new_price) || 0);
+      },
+    );
 
-    const testsTotal = tests.reduce(
-      (sum, t) => sum + (Number(t?.price) || 0),
-      0
-    );
-    const panelsTotal = panels.reduce(
-      (sum, p) => sum + (Number(p?.lab_panel_price) || 0),
-      0
-    );
+    const testsTotal = tests.reduce((sum, t) => {
+      const base = Number(t?.price) || 0;
+      const override = testOverrides.get(String(t?.lab_test_id));
+      return sum + (override ?? base);
+    }, 0);
+
+    const panelsTotal = panels.reduce((sum, p) => {
+      const base = Number(p?.lab_panel_price) || 0;
+      const override = panelOverrides.get(String(p?.id));
+      return sum + (override ?? base);
+    }, 0);
 
     setTotalPrice(testsTotal + panelsTotal);
-  }, [updatedInvoiceData.list_of_tests, updatedInvoiceData.list_of_lab_panels]);
+  }, [
+    updatedInvoiceData.list_of_tests,
+    updatedInvoiceData.list_of_lab_panels,
+    updatedInvoiceData.list_of_lab_tests_ids_changed,
+    updatedInvoiceData.list_of_lab_panels_ids_changed,
+  ]);
 
   useEffect(() => {
     const loadRate = async () => {

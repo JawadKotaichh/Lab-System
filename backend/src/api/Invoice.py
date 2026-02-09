@@ -109,7 +109,9 @@ async def get_monthly_summary_invoice(
                     detail=f"Lab Test category {test.lab_test_category_id} not found",
                 )
             lab_test = Lab_test_type(
-                lab_test_id=test.id,
+                lab_test_id=str(
+                    getattr(test, "lab_test_id", None) or getattr(test, "id", "")
+                ),
                 lab_test_category_name=db_category.lab_test_category_name,
                 nssf_id=test.nssf_id,
                 lab_test_category_id=str(test.lab_test_category_id),
@@ -226,24 +228,27 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         )
     changed_lab_tests = {}
     for changed_test in existing_invoice.list_of_lab_tests_ids_changed:
-        changed_lab_tests[changed_test.lab_test_id] = changed_test.new_price
+        changed_lab_tests[str(changed_test.lab_test_id)] = changed_test.new_price
 
     changed_lab_panels = {}
     for changed_panel in existing_invoice.list_of_lab_panels_ids_changed:
-        changed_lab_panels[changed_panel.panel_id] = changed_panel.new_price
+        changed_lab_panels[str(changed_panel.panel_id)] = changed_panel.new_price
 
     total_price = 0.0
+    insurance_rate = db_insurance_company.rate
     for test in existing_invoice.list_of_tests:
-        if test.id not in changed_lab_tests:
-            total_price += test.price * db_insurance_company
+        test_id = str(getattr(test, "lab_test_id", None) or getattr(test, "id", ""))
+        if test_id in changed_lab_tests:
+            total_price += changed_lab_tests[test_id]
         else:
-            total_price += changed_lab_tests[test.id]
+            total_price += test.price * insurance_rate
 
     for panel in existing_invoice.list_of_lab_panels:
-        if panel.id not in changed_lab_panels:
-            total_price += panel.lab_panel_price * db_insurance_company
+        panel_id = str(getattr(panel, "id", ""))
+        if panel_id in changed_lab_panels:
+            total_price += changed_lab_panels[panel_id]
         else:
-            total_price += changed_lab_panels[panel.id]
+            total_price += (panel.lab_panel_price or 0) * insurance_rate
 
     total_price += existing_invoice.adjustment_minor
     if existing_invoice.total_paid >= total_price:
@@ -557,7 +562,9 @@ async def get_invoice(visit_id: str):
                 detail=f"Lab Test Category with id: {test.lab_test_category_id} not found",
             )
         lab_test = Lab_test_type(
-            lab_test_id=str(test.id),
+            lab_test_id=str(
+                getattr(test, "lab_test_id", None) or getattr(test, "id", "")
+            ),
             lab_test_category_name=db_category.lab_test_category_name,
             nssf_id=test.nssf_id,
             lab_test_category_id=str(test.lab_test_category_id),
