@@ -1,7 +1,13 @@
 import { Text, View } from "@react-pdf/renderer";
 import { styles } from "./InvoiceStyle";
 import amountToWords from "./amountToWords";
-import type { InvoiceWrapperProps, labPanel, labTest } from "../types";
+import type {
+  InvoiceWrapperProps,
+  lab_test_changed,
+  labPanel,
+  labTest,
+} from "../types";
+import { useEffect, useState } from "react";
 
 const TestsTableInvoice = ({
   list_of_tests,
@@ -9,10 +15,29 @@ const TestsTableInvoice = ({
   patient_insurance_company_rate,
   list_of_lab_panels,
   currency,
+  invoiceData,
 }: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
 
   console.log(`currency :${currency}`);
+  const [priceEdits, setPriceEdits] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const next: Record<string, number> = {};
+    (invoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
+      (x: lab_test_changed) => {
+        next[String(x.lab_test_id)] = x.new_price;
+      },
+    );
+    setPriceEdits(next);
+  }, [invoiceData.list_of_lab_tests_ids_changed]);
+
+  const getDisplayedPrice = (labTestTypeId: string, basePrice: number) => {
+    const override = priceEdits[labTestTypeId];
+    if (override !== undefined) return override;
+
+    const rate = invoiceData.patient_insurance_company_rate ?? 1;
+    return basePrice * rate;
+  };
 
   const formatPrice = (currency: string, value: number = 0) => {
     const rate = patient_insurance_company_rate ?? 1;
@@ -22,7 +47,8 @@ const TestsTableInvoice = ({
       : `${final.toLocaleString("en-US")} LBP`;
   };
 
-  const getPrice = (test: labTest) => formatPrice(currency, test.price);
+  const getPrice = (test: labTest) =>
+    formatPrice(currency, getDisplayedPrice(test.lab_test_id, test.price));
 
   const getPanelPrice = (panel: labPanel) =>
     formatPrice(currency, panel.lab_panel_price);
@@ -127,7 +153,7 @@ const TestsTableInvoice = ({
             >
               {currency === "USD"
                 ? `${(total_price * patient_insurance_company_rate).toFixed(
-                    2
+                    2,
                   )} $`
                 : `${(
                     total_price * patient_insurance_company_rate
@@ -140,7 +166,7 @@ const TestsTableInvoice = ({
         <Text>
           {amountToWords(
             total_price * patient_insurance_company_rate,
-            currency
+            currency,
           )}
         </Text>
       </View>

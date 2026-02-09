@@ -23,6 +23,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
   showSignature,
   adjustment_minor,
   currency,
+  invoiceData,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -77,6 +78,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         </View>
       </View>
       <TestsTableInvoice
+        invoiceData={invoiceData}
         invoice_number={invoice_number}
         adjustment_minor={adjustment_minor}
         showSignature={showSignature}

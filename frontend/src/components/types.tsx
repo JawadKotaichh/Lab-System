@@ -135,6 +135,7 @@ export type InvoiceWrapperProps = {
   adjustment_minor: number;
   patient_insurance_company_rate: number;
   showSignature: boolean;
+  invoiceData: InvoiceData;
 };
 
 export type lab_test_changed = {
