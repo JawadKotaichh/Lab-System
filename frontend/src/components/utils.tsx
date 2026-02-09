@@ -58,7 +58,7 @@ const fetchVisit = async (visit_id: string): Promise<visitData> => {
 };
 // Invoice
 const rebuildInvoice = async (
-  visit_id: string
+  visit_id: string,
 ): Promise<fetchedInvoiceData> => {
   const url = `${invoicesApiURL}/${visit_id}/rebuild_invoice`;
   const response = await api.get(url);
@@ -74,19 +74,29 @@ const fetchInvoice = async (visit_id: string): Promise<fetchedInvoiceData> => {
 };
 const updateInvoice = async (
   visit_id: string,
-  updated_data: updateInvoiceData
+  updated_data: updateInvoiceData,
 ) => {
   await api.put(`${invoicesApiURL}/${visit_id}/update_invoice`, updated_data);
 };
 const getMonthlyInvoiceSummary = async (
-  searchData: monthlySummaryInvoicesParams
+  searchData: monthlySummaryInvoicesParams,
 ): Promise<fetchedInvoiceData[]> => {
   const res = await api.get(
     `${invoicesApiURL}/${searchData.insurance_company_id}/get_monthly_summary`,
-    { params: searchData }
+    { params: searchData },
   );
   return res.data;
 };
+export async function overrideTestPrice(
+  visit_id: string,
+  lab_test_type_id: string,
+  new_price: number,
+) {
+  return api.put(`/invoices/${visit_id}/override_test_price`, {
+    lab_test_id: lab_test_type_id,
+    new_price,
+  });
+}
 
 // Result
 
@@ -103,7 +113,7 @@ const fetchCurrencies = async (): Promise<string[]> => {
 
 export async function fetchResultSuggestions(
   lab_test_type_id: string,
-  prefix: string
+  prefix: string,
 ) {
   const url = `${resultSuggestionsApiURL}/by_test/${lab_test_type_id}`;
   const { data } = await api.get<result_suggestions[]>(url, {
@@ -114,7 +124,7 @@ export async function fetchResultSuggestions(
 
 const trackResultSuggestionUse = async (
   lab_test_type_id: string,
-  value: string
+  value: string,
 ): Promise<void> => {
   await api.post(`${resultSuggestionsApiURL}/use/${lab_test_type_id}`, null, {
     params: { value: String(value) },
@@ -123,7 +133,7 @@ const trackResultSuggestionUse = async (
 const fetchLabTestResultsAndPanelsPaginated = async (
   visit_id: string,
   page_number: number,
-  page_size: number
+  page_size: number,
 ): Promise<paginatedMixedVisitResults> => {
   const url = `${labTestResultApiURL}/page/${visit_id}/${page_size}/${page_number}`;
   const response = await api.get(url);
@@ -139,7 +149,7 @@ const fetchResultList = async (visit_id: string): Promise<resultListData> => {
 const fetchLabTestResultsPaginated = async (
   visit_id: string,
   page_number: number,
-  page_size: number
+  page_size: number,
 ): Promise<paginatedVisitResults> => {
   const url = `${labTestResultApiURL}/page/${visit_id}/${page_size}/${page_number}`;
   const response = await api.get(url);
@@ -152,21 +162,21 @@ const fetchAllLabTest = async (): Promise<labTest[]> => {
   return response.data;
 };
 const fetchLabTest = async (
-  lab_test_type_id: string
+  lab_test_type_id: string,
 ): Promise<CreateLabTestParams> => {
   const url = `/lab_test_type/${lab_test_type_id}`;
   const response = await api.get(url);
   return response.data;
 };
 const fetchLabPanel = async (
-  lab_panel_id: string
+  lab_panel_id: string,
 ): Promise<CreateLabPanelParams> => {
   const url = `${labPanelApiURL}/${lab_panel_id}/test_ids`;
   const response = await api.get(url);
   return response.data;
 };
 const fetchLabPanelWithTests = async (
-  lab_panel_id: string
+  lab_panel_id: string,
 ): Promise<labPanelsWithIdsList> => {
   const url = `${labPanelApiURL}/${lab_panel_id}/test_types`;
   const response = await api.get(url);
@@ -176,7 +186,7 @@ const fetchLabPanelWithTests = async (
 const fetchLabPanelsPaginated = async (
   page_number: number,
   page_size: number,
-  filters: labPanelFilter = {}
+  filters: labPanelFilter = {},
 ): Promise<paginatedlabPanel> => {
   const url = `${labPanelApiURL}/page/${page_size}/${page_number}`;
   const response = await api.get(url, { params: filters });
@@ -186,7 +196,7 @@ const fetchLabPanelsPaginated = async (
 const fetchInsuranceCompaniesPaginated = async (
   page_number: number,
   page_size: number,
-  filters: InsuranceFilters = {}
+  filters: InsuranceFilters = {},
 ) => {
   const url = `${InsuranceApiURL}page/${page_size}/${page_number}`;
   const response = await api.get(url, { params: filters });
@@ -210,16 +220,16 @@ const fetchPatient = async (patient_id: string): Promise<patientInfo> => {
   return response.data;
 };
 const fetchInsuranceCompany = async (
-  insurance_company_id: string
+  insurance_company_id: string,
 ): Promise<insuranceCompanyParams> => {
   const response = await api.get(`/insurance_company/${insurance_company_id}`);
   return response.data;
 };
 const fetchLabTestCategory = async (
-  lab_test_category_id: string
+  lab_test_category_id: string,
 ): Promise<labTestCategoryParams> => {
   const response = await api.get(
-    `${labTestCategoryApiURL}${lab_test_category_id}`
+    `${labTestCategoryApiURL}${lab_test_category_id}`,
   );
   return response.data;
 };
@@ -271,7 +281,7 @@ const fetchAllfinancialTransactionsTypes = async (): Promise<
 const fetchPatientsPaginated = async (
   page_number: number,
   page_size: number,
-  filters: patientsFilters = {}
+  filters: patientsFilters = {},
 ): Promise<paginatedPatientInfo> => {
   console.log("Fetching patients....");
   const url = `${PatientsApiURL}page/${page_size}/${page_number}`;
@@ -284,7 +294,7 @@ const fetchPatientsPaginated = async (
 const fetchLabTestCategoryPaginated = async (
   page_number: number,
   page_size: number,
-  filters: lab_test_category_filters
+  filters: lab_test_category_filters,
 ): Promise<paginatedTestCategoryInfo> => {
   const url = `${labTestCategoryApiURL}page/${page_size}/${page_number}`;
   const response = await api.get(url, { params: filters });
@@ -294,7 +304,7 @@ const fetchLabTestCategoryPaginated = async (
 const fetchLabTestTypePaginated = async (
   page_number: number,
   page_size: number,
-  filters: labTestFilters = {}
+  filters: labTestFilters = {},
 ): Promise<paginatedlabTest> => {
   const url = `/lab_test_type/page/${page_size}/${page_number}`;
   const response = await api.get(url, { params: filters });
@@ -310,7 +320,7 @@ const fetchAllVisits = async (): Promise<VisitsInfo[]> => {
 const fetchVisitsPaginated = async (
   page_number: number,
   page_size: number,
-  filters: visitFilters = {}
+  filters: visitFilters = {},
 ): Promise<paginatedVisitData> => {
   const url = `/visits/page/${page_size}/${page_number}`;
   const response = await api.get(url, { params: filters });
@@ -319,7 +329,7 @@ const fetchVisitsPaginated = async (
 const createPatientAccount = async (
   user_id: string,
   username: string,
-  password: string
+  password: string,
 ): Promise<CreatePatientAccountProps> => {
   const url = `/users/create_user/${user_id}`;
   const response = await api.post(url, { user_id, username, password });
@@ -327,7 +337,7 @@ const createPatientAccount = async (
 };
 const loginUser = async (
   username: string,
-  password: string
+  password: string,
 ): Promise<LoginResponse> => {
   const response = await api.post("/auth/login", {
     username,
@@ -369,14 +379,14 @@ async function apiFetch(input: RequestInfo, init: RequestInit = {}) {
 const fetchFinancialTransactionsPaginated = async (
   page_number: number,
   page_size: number,
-  filters: financialTransactionsFilters = {}
+  filters: financialTransactionsFilters = {},
 ): Promise<paginatedFinancialTransactionsData> => {
   const url = `/financial_transaction/page/${page_size}/${page_number}`;
   const response = await api.get(url, { params: filters });
   return response.data;
 };
 const fetchFinancialTransaction = async (
-  transaction_id: string
+  transaction_id: string,
 ): Promise<financialTransaction> => {
   const response = await api.get(`/financial_transaction/${transaction_id}`);
   return response.data;
@@ -389,7 +399,7 @@ const fetchAllFinancialTransactions = async (): Promise<
   return response.data;
 };
 const getFinancialTransactionsSummary = async (
-  searchData: financialTransactionsSummaryParams
+  searchData: financialTransactionsSummaryParams,
 ): Promise<financial_transaction_summary> => {
   const res = await api.get(`${FinancialTransactionsApiURL}summary`, {
     params: searchData,

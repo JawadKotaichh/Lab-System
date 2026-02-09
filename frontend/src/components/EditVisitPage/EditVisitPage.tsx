@@ -37,7 +37,7 @@ const EditVisitPage: React.FC = () => {
   const [showPanelsTable, setShowPanelsTable] = useState<boolean>(false);
   const [showTestsTable, setShowTestsTable] = useState<boolean>(false);
   const [pendingResults, setPendingResults] = useState<Record<string, string>>(
-    {}
+    {},
   );
   const pendingResultsRef = useRef<Record<string, string>>({});
   useEffect(() => {
@@ -92,26 +92,26 @@ const EditVisitPage: React.FC = () => {
         const res = await fetchLabTestResultsAndPanelsPaginated(
           visitId,
           1,
-          totalResults
+          totalResults,
         );
         if (existingLabTestIdsFetchId.current !== requestId) {
           return;
         }
         const ids = new Set<string>();
         res.list_of_standalone_test_results.forEach((test) =>
-          ids.add(test.lab_test_type_id)
+          ids.add(test.lab_test_type_id),
         );
         res.list_of_panel_results.forEach((panel) =>
           panel.list_of_test_results.forEach((test) =>
-            ids.add(test.lab_test_type_id)
-          )
+            ids.add(test.lab_test_type_id),
+          ),
         );
         setExistingLabTestTypeIds(ids);
       } catch (err) {
         console.error("Failed to refresh existing lab test ids:", err);
       }
     },
-    []
+    [],
   );
 
   const markExistingLabTestIdsDirty = useCallback(() => {
@@ -133,10 +133,10 @@ const EditVisitPage: React.FC = () => {
       const res = await fetchLabTestResultsAndPanelsPaginated(
         visit_id,
         pagination.pageIndex + 1,
-        pagination.pageSize
+        pagination.pageSize,
       );
       setStandAloneTestResults(
-        applyPendingToTestResults(res.list_of_standalone_test_results)
+        applyPendingToTestResults(res.list_of_standalone_test_results),
       );
       setPanelResults(applyPendingToPanelResults(res.list_of_panel_results));
       setTotalPages(res.total_pages);
@@ -145,7 +145,7 @@ const EditVisitPage: React.FC = () => {
         try {
           await loadAllExistingLabTestTypeIds(
             visit_id,
-            res.TotalNumberOfLabTestResults
+            res.TotalNumberOfLabTestResults,
           );
         } finally {
           shouldRefreshFullListRef.current = false;
@@ -205,7 +205,7 @@ const EditVisitPage: React.FC = () => {
         Object.entries(pendingResults).map(([lab_test_result_id, result]) => {
           const url = `${labTestResultApiURL}/${lab_test_result_id}`;
           return api.put(url, null, { params: { result } });
-        })
+        }),
       );
       await Promise.all(
         Object.entries(pendingResults)
@@ -215,7 +215,7 @@ const EditVisitPage: React.FC = () => {
             if (!lab_test_type_id || !trimmed) return null;
             return trackResultSuggestionUse(lab_test_type_id, trimmed);
           })
-          .filter((request) => request !== null)
+          .filter((request) => request !== null),
       );
       setPendingResults({});
       alert("Saved successfully!");
@@ -276,6 +276,7 @@ const EditVisitPage: React.FC = () => {
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
         <TestResultsList
+          updatedInvoiceData={updatedInvoiceData}
           refreshResults={refreshResults}
           visit_id={visit_id}
           setError={setError}

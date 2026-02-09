@@ -1,13 +1,19 @@
 import type {
+  lab_test_changed,
   patientPanelResult,
   patientTestResult,
   result_suggestions,
+  updateInvoiceData,
 } from "../types.js";
 import api from "../../api.js";
 import { labTestResultApiURL } from "../data.js";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import renderNormalValue from "../renderNormalValue.js";
-import { fetchResultSuggestions, rebuildInvoice } from "../utils.js";
+import {
+  fetchResultSuggestions,
+  overrideTestPrice,
+  rebuildInvoice,
+} from "../utils.js";
 
 interface ShowResultsListParams {
   panelResults: patientPanelResult[];
@@ -23,6 +29,7 @@ interface ShowResultsListParams {
     React.SetStateAction<Record<string, string>>
   >;
   markExistingLabTestIdsDirty: () => void;
+  updatedInvoiceData: updateInvoiceData;
 }
 
 const isNumericLike = (s: string) => /^[+-]?\d+(?:[.,]\d+)?$/.test(s.trim());
@@ -50,6 +57,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   refreshResults,
   setPendingResults,
   markExistingLabTestIdsDirty,
+  updatedInvoiceData,
 }: ShowResultsListParams) => {
   const [activeInputId, setActiveInputId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<result_suggestions[]>([]);
@@ -62,10 +70,39 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     setSugError(null);
     setLoadingSug(false);
   };
+  const [priceEdits, setPriceEdits] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const next: Record<string, string> = {};
+    (updatedInvoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
+      (x: lab_test_changed) => {
+        next[String(x.lab_test_id)] = String(x.new_price);
+      },
+    );
+    setPriceEdits(next);
+  }, [updatedInvoiceData.list_of_lab_tests_ids_changed]);
+
+  const getDisplayedPrice = (labTestTypeId: string, basePrice: number) => {
+    const override = priceEdits[labTestTypeId];
+    if (override !== undefined) return override;
+
+    const rate = updatedInvoiceData.patient_insurance_company_rate ?? 1;
+    return String(basePrice * rate);
+  };
+  const savePriceOverride = async (labTestTypeId: string, raw: string) => {
+    const v = Number(raw);
+    if (!Number.isFinite(v) || v < 0) return;
+
+    try {
+      await overrideTestPrice(visit_id, labTestTypeId, v);
+      await rebuildInvoice(visit_id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load data");
+    }
+  };
   const requestSuggestions = (
     lab_test_type_id: string,
     prefix: string,
-    inputId: string
+    inputId: string,
   ) => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
 
@@ -99,14 +136,14 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
 
   const handleChange = async (
     lab_test_result_id: string,
-    newResult: string
+    newResult: string,
   ) => {
     setStandAloneTestResults((prev) =>
       prev.map((item) =>
         item.lab_test_result_id == lab_test_result_id
           ? { ...item, result: newResult }
-          : item
-      )
+          : item,
+      ),
     );
     setPanelResults((prevPanels) =>
       prevPanels.map((panel) => ({
@@ -114,9 +151,9 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
         list_of_test_results: panel.list_of_test_results.map((res) =>
           res.lab_test_result_id === lab_test_result_id
             ? { ...res, result: newResult }
-            : res
+            : res,
         ),
-      }))
+      })),
     );
     setPendingResults((prev: Record<string, string>) => ({
       ...prev,
@@ -162,12 +199,13 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
           <th className="h-8 px-0 py-2">Unit</th>
           <th className="h-8 px-0 py-2">L</th>
           <th className="h-8 px-0 py-2">Normal Value</th>
+          <th className="h-8 px-0 py-2">Price</th>
           <th className="h-8 px-0 py-2">Remove</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td colSpan={7}>
+          <td colSpan={8}>
             <h1 className="font-bold rounded-b-sm px-4 py-2">Tests</h1>
           </td>
         </tr>
@@ -191,7 +229,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                       requestSuggestions(
                         r.lab_test_type.lab_test_id,
                         r.result ?? "",
-                        r.lab_test_result_id
+                        r.lab_test_result_id,
                       );
                     }}
                     onChange={(e) => {
@@ -201,7 +239,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                       requestSuggestions(
                         r.lab_test_type.lab_test_id,
                         v,
-                        r.lab_test_result_id
+                        r.lab_test_result_id,
                       );
                     }}
                     onBlur={(e) => {
@@ -271,6 +309,31 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   <span className="text-gray-400">—</span>
                 )}
               </td>
+              <td className="border rounded-b-sm px-4 py-2">
+                <input
+                  type="number"
+                  className="h-8 text-center w-full"
+                  value={getDisplayedPrice(
+                    r.lab_test_type.lab_test_id,
+                    r.lab_test_type.price,
+                  )}
+                  onChange={(e) => {
+                    const labTestTypeId = r.lab_test_type.lab_test_id;
+                    setPriceEdits((prev) => ({
+                      ...prev,
+                      [labTestTypeId]: e.target.value,
+                    }));
+                  }}
+                  onBlur={(e) => {
+                    const labTestTypeId = r.lab_test_type.lab_test_id;
+                    void savePriceOverride(
+                      labTestTypeId,
+                      e.currentTarget.value,
+                    );
+                  }}
+                />
+              </td>
+
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
@@ -322,7 +385,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                         requestSuggestions(
                           r.lab_test_type.lab_test_id,
                           r.result ?? "",
-                          r.lab_test_result_id
+                          r.lab_test_result_id,
                         );
                       }}
                       onChange={(e) => {
@@ -332,7 +395,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                         requestSuggestions(
                           r.lab_test_type.lab_test_id,
                           v,
-                          r.lab_test_result_id
+                          r.lab_test_result_id,
                         );
                       }}
                       onBlur={() => {
@@ -377,7 +440,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                                 onClick={() =>
                                   onPickSuggestion(
                                     r.lab_test_result_id,
-                                    s.value
+                                    s.value,
                                   )
                                 }
                               >

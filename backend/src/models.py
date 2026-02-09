@@ -8,6 +8,8 @@ from typing import Union
 
 from pymongo import ASCENDING, IndexModel
 
+from .schemas.schema_Invoice import LabPanelChanged, LabTestChanged
+
 from .schemas.schema_Lab_Test_Type import (
     NormalValueByGender,
     PositiveOrNegative,
@@ -156,6 +158,8 @@ class Invoice(Document):
     adjustment_minor: float = Field(default=0.0)
     insurance_company_id: PydanticObjectId = Field(...)
     total_paid: float = Field(default=0.0)
+    list_of_lab_tests_ids_changed: List[LabTestChanged] = Field(default=[])
+    list_of_lab_panels_ids_changed: List[LabPanelChanged] = Field(default=[])
 
 
 class Financial_transaction(Document):
