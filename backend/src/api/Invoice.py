@@ -109,9 +109,7 @@ async def get_monthly_summary_invoice(
                     detail=f"Lab Test category {test.lab_test_category_id} not found",
                 )
             lab_test = Lab_test_type(
-                lab_test_id=str(
-                    getattr(test, "lab_test_id", None) or getattr(test, "id", "")
-                ),
+                lab_test_id=str(test.lab_test_id),
                 lab_test_category_name=db_category.lab_test_category_name,
                 nssf_id=test.nssf_id,
                 lab_test_category_id=str(test.lab_test_category_id),
@@ -237,14 +235,14 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     total_price = 0.0
     insurance_rate = db_insurance_company.rate
     for test in existing_invoice.list_of_tests:
-        test_id = str(getattr(test, "lab_test_id", None) or getattr(test, "id", ""))
+        test_id = str(test.lab_test_id)
         if test_id in changed_lab_tests:
             total_price += changed_lab_tests[test_id]
         else:
             total_price += test.price * insurance_rate
 
     for panel in existing_invoice.list_of_lab_panels:
-        panel_id = str(getattr(panel, "id", ""))
+        panel_id = str(panel.id)
         if panel_id in changed_lab_panels:
             total_price += changed_lab_panels[panel_id]
         else:
@@ -449,6 +447,7 @@ async def rebuild_invoice(visit_id: str):
 
     db_invoice.list_of_lab_panels = listOfPanels
     db_invoice.list_of_tests = listOfTests
+
     await db_invoice.replace()
     output = invoiceData(
         patient=currentPatient,
@@ -562,9 +561,7 @@ async def get_invoice(visit_id: str):
                 detail=f"Lab Test Category with id: {test.lab_test_category_id} not found",
             )
         lab_test = Lab_test_type(
-            lab_test_id=str(
-                getattr(test, "lab_test_id", None) or getattr(test, "id", "")
-            ),
+            lab_test_id=str(test.lab_test_id),
             lab_test_category_name=db_category.lab_test_category_name,
             nssf_id=test.nssf_id,
             lab_test_category_id=str(test.lab_test_category_id),
