@@ -114,7 +114,7 @@ export default function InvoiceContainer() {
       0,
     );
 
-    setTotalPrice(testsTotal + panelsTotal);
+    setTotalPrice(testsTotal + panelsTotal * rate);
   }, [invoiceData, priceEdits, listOfTests, listOfPanels]);
   // console.log("patient: ", patient);
   // console.log("visisDate: ", visitDate);
