@@ -12,7 +12,6 @@ import { useEffect, useState } from "react";
 const TestsTableInvoice = ({
   list_of_tests,
   total_price,
-  patient_insurance_company_rate,
   list_of_lab_panels,
   currency,
   invoiceData,
@@ -40,11 +39,9 @@ const TestsTableInvoice = ({
   };
 
   const formatPrice = (currency: string, value: number = 0) => {
-    const rate = patient_insurance_company_rate ?? 1;
-    const final = value * rate;
     return currency === "USD"
-      ? `${final.toFixed(2)} $`
-      : `${final.toLocaleString("en-US")} LBP`;
+      ? `${value.toFixed(2)} $`
+      : `${value.toLocaleString("en-US")} LBP`;
   };
 
   const getPrice = (test: labTest) =>
@@ -152,23 +149,14 @@ const TestsTableInvoice = ({
               ]}
             >
               {currency === "USD"
-                ? `${(total_price * patient_insurance_company_rate).toFixed(
-                    2,
-                  )} $`
-                : `${(
-                    total_price * patient_insurance_company_rate
-                  ).toLocaleString("en-US")} LBP`}
+                ? `${total_price.toFixed(2)} $`
+                : `${total_price.toLocaleString("en-US")} LBP`}
             </Text>
           </View>
         </View>
       </View>
       <View style={[{ textAlign: "center" }, styles.AmountBox]} wrap={false}>
-        <Text>
-          {amountToWords(
-            total_price * patient_insurance_company_rate,
-            currency,
-          )}
-        </Text>
+        <Text>{amountToWords(total_price, currency)}</Text>
       </View>
     </View>
   );
