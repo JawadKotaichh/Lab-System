@@ -23,6 +23,10 @@ const TestsTableInvoice = ({
   const [priceEdits, setPriceEdits] = useState<Record<string, number>>({});
   useEffect(() => {
     const next: Record<string, number> = {};
+    console.log(
+      "list_of_lab_tests_ids_changed",
+      invoiceData.list_of_lab_tests_ids_changed,
+    );
     (invoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
       (x: lab_test_changed) => {
         next[String(x.lab_test_id)] = x.new_price;
@@ -32,10 +36,15 @@ const TestsTableInvoice = ({
   }, [invoiceData.list_of_lab_tests_ids_changed]);
 
   const getDisplayedPrice = (labTestTypeId: string, basePrice: number) => {
+    console.log("test id: ", labTestTypeId);
     const override = priceEdits[labTestTypeId];
-    if (override !== undefined) return override;
+    if (override !== undefined) {
+      console.log("Adjusted price", override);
+      return override;
+    }
 
     const rate = invoiceData.patient_insurance_company_rate ?? 1;
+    console.log("Base price", basePrice * rate);
     return basePrice * rate;
   };
 
