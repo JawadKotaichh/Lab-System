@@ -14,6 +14,7 @@ const TestsTableInvoice = ({
   total_price,
   list_of_lab_panels,
   currency,
+  patient_insurance_company_rate,
   invoiceData,
 }: InvoiceWrapperProps) => {
   const headers = ["Nssf ID", "Test Name", "Price"];
@@ -48,7 +49,10 @@ const TestsTableInvoice = ({
     formatPrice(currency, getDisplayedPrice(test.lab_test_id, test.price));
 
   const getPanelPrice = (panel: labPanel) =>
-    formatPrice(currency, panel.lab_panel_price);
+    formatPrice(
+      currency,
+      panel.lab_panel_price! * patient_insurance_company_rate,
+    );
 
   return (
     <View>
