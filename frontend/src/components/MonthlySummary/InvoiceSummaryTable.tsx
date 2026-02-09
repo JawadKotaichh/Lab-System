@@ -13,7 +13,9 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
       getTotalPrice(
         d.patient_insurance_company_rate,
         d.list_of_tests,
-        d.list_of_lab_panels
+        d.list_of_lab_panels,
+        d.list_of_lab_tests_ids_changed,
+        d.list_of_lab_panels_ids_changed
       )
     );
   }, 0);
@@ -37,7 +39,9 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
           const rowTotal = getTotalPrice(
             current_invoice_data.patient_insurance_company_rate,
             current_invoice_data.list_of_tests,
-            current_invoice_data.list_of_lab_panels
+            current_invoice_data.list_of_lab_panels,
+            current_invoice_data.list_of_lab_tests_ids_changed,
+            current_invoice_data.list_of_lab_panels_ids_changed
           );
 
           return (
