@@ -6,6 +6,16 @@ from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from datetime import datetime
 
 
+class LabTestChanged(BaseModel):
+    lab_test_id: str
+    new_price: float
+
+
+class LabPanelChanged(BaseModel):
+    panel_id: str
+    new_price: float
+
+
 class Invoice(BaseModel):
     invoice_number: int = Field(...)
     list_of_tests: List[Lab_test_type] = Field(...)
@@ -16,6 +26,8 @@ class Invoice(BaseModel):
     adjustment_minor: float = Field(default=0.0)
     insurance_company_id: str = Field(...)
     total_paid: float = Field(...)
+    list_of_lab_tests_ids_changed: List[LabTestChanged] = Field(default=[])
+    list_of_lab_panels_ids_changed: List[LabPanelChanged] = Field(default=[])
 
 
 class invoiceData(BaseModel):
@@ -39,3 +51,5 @@ class update_invoice(BaseModel):
     adjustment_minor: Optional[float] = None
     insurance_company_id: Optional[str] = None
     total_paid: Optional[float] = None
+    list_of_lab_tests_ids_changed: Optional[List[LabTestChanged]] = None
+    list_of_lab_panels_ids_changed: Optional[List[LabPanelChanged]] = None
