@@ -70,12 +70,12 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     setSugError(null);
     setLoadingSug(false);
   };
-  const [priceEdits, setPriceEdits] = useState<Record<string, string>>({});
+  const [priceEdits, setPriceEdits] = useState<Record<string, number>>({});
   useEffect(() => {
-    const next: Record<string, string> = {};
+    const next: Record<string, number> = {};
     (updatedInvoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
       (x: lab_test_changed) => {
-        next[String(x.lab_test_id)] = String(x.new_price);
+        next[String(x.lab_test_id)] = x.new_price;
       },
     );
     setPriceEdits(next);
@@ -86,7 +86,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     if (override !== undefined) return override;
 
     const rate = updatedInvoiceData.patient_insurance_company_rate ?? 1;
-    return String(basePrice * rate);
+    return basePrice * rate;
   };
   const savePriceOverride = async (labTestTypeId: string, raw: string) => {
     const v = Number(raw);
@@ -316,12 +316,12 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   value={getDisplayedPrice(
                     r.lab_test_type.lab_test_id,
                     r.lab_test_type.price,
-                  )}
+                  ).toFixed(2)}
                   onChange={(e) => {
                     const labTestTypeId = r.lab_test_type.lab_test_id;
                     setPriceEdits((prev) => ({
                       ...prev,
-                      [labTestTypeId]: e.target.value,
+                      [labTestTypeId]: Number(e.target.value),
                     }));
                   }}
                   onBlur={(e) => {
@@ -355,6 +355,8 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 {panel.lab_panel_price}
               </td>
               <td></td>
+              <td></td>
+
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
