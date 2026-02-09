@@ -81,6 +81,7 @@ class Session(Document):
 
 
 class lab_test_type(Document):
+    lab_test_id: Optional[str]
     nssf_id: int = Field(...)
     lab_test_category_id: PydanticObjectId = Field(...)
     name: str = Field(...)
