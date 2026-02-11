@@ -33,7 +33,7 @@ export default function InvoiceSummaryContainer() {
     () => (Array.isArray(state.summaryData) ? state.summaryData : []),
     [state.summaryData],
   );
-  console.log("summary data is: ", stateSummary);
+  // console.log("summary data is: ", stateSummary);
   const [summaryData, setSummaryData] =
     useState<fetchedInvoiceData[]>(stateSummary);
   const [currency, setCurrency] = useState<string>(

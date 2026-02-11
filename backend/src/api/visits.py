@@ -561,6 +561,10 @@ async def update_visit(visit_id: PydanticObjectId, update_data: update_visit_mod
         raise HTTPException(404, f"Visit {visit_id} not found")
     if update_data.visit_date is not None:
         existing_visit.visit_date = update_data.visit_date
+        db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == visit_id)
+        if not db_invoice:
+            raise HTTPException(404, f"Invoice with visit id: {visit_id} not found")
+        db_invoice.visit_date = update_data.visit_date
     if update_data.report_date is not None:
         existing_visit.report_date = update_data.report_date
     if update_data.posted is not None:
