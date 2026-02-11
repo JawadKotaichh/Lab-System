@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import ShowWithSignature from "../ShowWithSignature";
 import InvoiceSummaryList from "./InvoiceSummaryList";
@@ -24,21 +24,26 @@ export default function InvoiceSummaryContainer() {
   const { insurance_company_id } = useParams<{
     insurance_company_id: string;
   }>();
-  const state = (location.state || {}) as SummaryState;
-  const stateSummary = Array.isArray(state.summaryData)
-    ? state.summaryData
-    : [];
+  const state = useMemo(
+    () => (location.state || {}) as SummaryState,
+    [location.state],
+  );
 
+  const stateSummary = useMemo(
+    () => (Array.isArray(state.summaryData) ? state.summaryData : []),
+    [state.summaryData],
+  );
+  console.log("summary data is: ", stateSummary);
   const [summaryData, setSummaryData] =
     useState<fetchedInvoiceData[]>(stateSummary);
   const [currency, setCurrency] = useState<string>(
-    state.currency ?? stateSummary[0]?.currency ?? ""
+    state.currency ?? stateSummary[0]?.currency ?? "",
   );
   const [startDate, setStartDate] = useState<Date | undefined>(
-    toDate(state.start_date)
+    toDate(state.start_date),
   );
   const [endDate, setEndDate] = useState<Date | undefined>(
-    toDate(state.end_date)
+    toDate(state.end_date),
   );
   const [loading, setLoading] = useState<boolean>(stateSummary.length === 0);
   const [error, setError] = useState<string>("");
