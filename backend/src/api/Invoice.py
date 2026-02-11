@@ -65,9 +65,10 @@ async def get_monthly_summary_invoice(
         "visit_date": {"$gte": start_date, "$lte": end_date},
     }
     all_invoices = DBInvoice.find(filters)
-
+    print(all_invoices)
     listOfInvoices: List[invoiceData] = []
     async for invoice in all_invoices:
+        print("\n current invoice is: ", invoice)
         db_visit = await DBVisit.get(invoice.visit_id)
         if not db_visit:
             raise HTTPException(
