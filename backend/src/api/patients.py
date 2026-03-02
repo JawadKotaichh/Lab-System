@@ -230,7 +230,7 @@ async def update_patient(patient_id: str, update_data: update_patient_model):
             ).to_list()
             visit_ids = [v.id for v in visit_docs]
             if visit_ids:
-                await DBInvoice.find(DBInvoice.visit_id.in_(visit_ids)).update_many(
+                await DBInvoice.find({"visit_id": {"$in": visit_ids}}).update_many(
                     {"$set": {"insurance_company_id": new_ins_oid}}
                 )
 
