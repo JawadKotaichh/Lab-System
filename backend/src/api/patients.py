@@ -219,23 +219,20 @@ async def update_patient(patient_id: str, update_data: update_patient_model):
     if update_data.phone_number is not None:
         existing_patient.phone_number = update_data.phone_number
     if update_data.insurance_company_id is not None:
-        existing_patient.insurance_company_id = PydanticObjectId(
-            update_data.insurance_company_id
-        )
-        # if not PydanticObjectId.is_valid(update_data.insurance_company_id):
-        #     raise HTTPException(400, "Invalid insurance_company ID")
+        if not PydanticObjectId.is_valid(update_data.insurance_company_id):
+            raise HTTPException(400, "Invalid insurance_company ID")
 
-        # new_ins_oid = PydanticObjectId(update_data.insurance_company_id)
-        # if existing_patient.insurance_company_id != new_ins_oid:
-        #     existing_patient.insurance_company_id = new_ins_oid
-        #     visit_docs = await DBVisit.find(
-        #         DBVisit.patient_id == existing_patient.id
-        #     ).to_list()
-        #     visit_ids = [v.id for v in visit_docs]
-        #     if visit_ids:
-        #         await DBInvoice.find(DBInvoice.visit_id.in_(visit_ids)).update_many(
-        #             {"$set": {"insurance_company_id": new_ins_oid}}
-        #         )
+        new_ins_oid = PydanticObjectId(update_data.insurance_company_id)
+        if existing_patient.insurance_company_id != new_ins_oid:
+            existing_patient.insurance_company_id = new_ins_oid
+            visit_docs = await DBVisit.find(
+                DBVisit.patient_id == existing_patient.id
+            ).to_list()
+            visit_ids = [v.id for v in visit_docs]
+            if visit_ids:
+                await DBInvoice.find(DBInvoice.visit_id.in_(visit_ids)).update_many(
+                    {"$set": {"insurance_company_id": new_ins_oid}}
+                )
 
     await existing_patient.replace()
 
