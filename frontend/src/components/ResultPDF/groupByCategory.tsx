@@ -126,10 +126,11 @@ const ITEM_PRIORITY: Record<string, PriorityEntry[]> = {
   bacteriology: [
     "urine culture",
     "antibiogram (atb)",
+
     "gram stain",
     "stool culture",
   ],
-  spermograme: [{ name: "spermogramme", type: "panel" }, "sperme culture"],
+  spermograme: [{ name: "spermogram", type: "panel" }, "sperme culture"],
 };
 
 const itemRankByCategory = new Map<string, Map<string, number>>();
