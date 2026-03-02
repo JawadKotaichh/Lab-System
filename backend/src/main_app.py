@@ -1,6 +1,6 @@
 import uvicorn
 import asyncio
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from .db import init_db
 from .api.patients import router as patients_router
 from .api.visits import router as visits_router
@@ -15,25 +15,28 @@ from .api.result_suggestions import router as result_suggestions_router
 from .api.users import router as users_router
 from .api.auth import router as authentication_router
 from .api.financial_transaction import router as financial_transaction_router
+from .api.deps import get_current_principal
 from fastapi_pagination import add_pagination
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Lab System API")
 add_pagination(app)
 
-app.include_router(patients_router)
-app.include_router(visits_router)
-app.include_router(lab_test_type_router)
-app.include_router(lab_test_results_router)
-app.include_router(insurance_comapny_router)
-app.include_router(lab_test_category_router)
-app.include_router(lab_panel_router)
-app.include_router(invoice_router)
+protected_dependencies = [Depends(get_current_principal)]
+
+app.include_router(patients_router, dependencies=protected_dependencies)
+app.include_router(visits_router, dependencies=protected_dependencies)
+app.include_router(lab_test_type_router, dependencies=protected_dependencies)
+app.include_router(lab_test_results_router, dependencies=protected_dependencies)
+app.include_router(insurance_comapny_router, dependencies=protected_dependencies)
+app.include_router(lab_test_category_router, dependencies=protected_dependencies)
+app.include_router(lab_panel_router, dependencies=protected_dependencies)
+app.include_router(invoice_router, dependencies=protected_dependencies)
 app.include_router(branding_router)
-app.include_router(result_suggestions_router)
-app.include_router(users_router)
+app.include_router(result_suggestions_router, dependencies=protected_dependencies)
+app.include_router(users_router, dependencies=protected_dependencies)
 app.include_router(authentication_router)
-app.include_router(financial_transaction_router)
+app.include_router(financial_transaction_router, dependencies=protected_dependencies)
 
 origins = [
     "http://20.174.9.177:5173",
