@@ -193,42 +193,43 @@ const AddTestResultTable: React.FC<TestsList> = ({
   if (loading) return <LoadingPage title="Loading lab tests ..." />;
 
   return (
-    <>
-      {showTestsTable && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded shadow-lg w-fit max-h-[80vh] overflow-y-auto">
-            <div className="p-8 bg-white">
-              {error && <div className="text-red-600">{error}</div>}
-              {addError && <div className="text-red-600">{addError}</div>}
+    <div
+      className={
+        showTestsTable
+          ? "fixed inset-0 flex items-center justify-center bg-black/50"
+          : "hidden"
+      }
+      aria-hidden={!showTestsTable}
+    >
+      <div className="bg-white p-6 rounded shadow-lg w-fit max-h-[80vh] overflow-y-auto">
+        <div className="p-8 bg-white">
+          {error && <div className="text-red-600">{error}</div>}
+          {addError && <div className="text-red-600">{addError}</div>}
 
-              {showTestsTable && (
-                <>
-                  <h1 className={pageListTitle}>Add Lab Test Result</h1>
-                  <button
-                    className={tableDeleteButton + " mb-2"}
-                    onClick={() => setShowTestsTable(false)}
-                  >
-                    Close
-                  </button>
-                  <GenericTable
-                    table={labTestsTable}
-                    loading={loading}
-                    tableHeadStyle={tableHead}
-                    cellStyle={tableItem}
-                    noDataMessage="No lab tests found"
-                  />
+          <h1 className={pageListTitle}>Add Lab Test Result</h1>
+          <button
+            className={tableDeleteButton + " mb-2"}
+            onClick={() => setShowTestsTable(false)}
+          >
+            Close
+          </button>
+          <GenericTable
+            table={labTestsTable}
+            loading={loading}
+            tableHeadStyle={tableHead}
+            cellStyle={tableItem}
+            noDataMessage="No lab tests found"
+          />
 
-                  <Pagination
-                    TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
-                    currentPage={pagination.pageIndex + 1}
-                    totalPages={totalPages}
-                    setCurrentPage={handleSetPage}
-                    pageSize={pagination.pageSize}
-                    setPageSize={handleSetPageSize}
-                  />
-                </>
-              )}
-              {/* {showPanelsTable && (
+          <Pagination
+            TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
+            currentPage={pagination.pageIndex + 1}
+            totalPages={totalPages}
+            setCurrentPage={handleSetPage}
+            pageSize={pagination.pageSize}
+            setPageSize={handleSetPageSize}
+          />
+          {/* {showPanelsTable && (
         <GenericTable
           table={labPanelsTable}
           loading={loading}
@@ -237,11 +238,9 @@ const AddTestResultTable: React.FC<TestsList> = ({
           noDataMessage="No lab tests found"
         />
       )} */}
-            </div>
-          </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 
