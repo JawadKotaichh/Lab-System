@@ -122,19 +122,6 @@ export const styles = StyleSheet.create({
   },
   tableCellText: {
     fontSize: 10,
-  },
-  tableCloseLineContainer: {
-    position: "absolute",
-    left: 50,
-    right: 50,
-    bottom: 90,
-    height: 1,
-  },
-  tableCloseLine: {
-    width: "100%",
-    height: 1,
-    borderTopWidth: 1,
-    borderColor: "#000000",
   }, footer: {
     position: "absolute",
     bottom: 20,         
