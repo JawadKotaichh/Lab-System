@@ -283,7 +283,7 @@ const fetchPatientsPaginated = async (
   page_size: number,
   filters: patientsFilters = {},
 ): Promise<paginatedPatientInfo> => {
-  console.log("Fetching patients.....");
+  console.log("Fetching patients....");
   const url = `${PatientsApiURL}page/${page_size}/${page_number}`;
   const response = await api.get(url, { params: filters });
   console.log("response: ", response);
