@@ -27,9 +27,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             styles.tableRow,
             {
               borderTopWidth: 1,
-              borderBottomWidth: 0.1,
               borderTopColor: "#000000",
-              borderBottomColor: "#000000",
             },
           ]}
         >
@@ -58,7 +56,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             <View
               style={[
                 styles.tableRow,
-                { borderBottomWidth: 0.1, borderBottomColor: "#000000" },
+                { borderBottomWidth: 0.5, borderBottomColor: "#000000" },
               ]}
               wrap={false}
               key={rowIdx}
