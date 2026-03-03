@@ -3,7 +3,7 @@ import { Document, Page, Image, View, Text } from "@react-pdf/renderer";
 import type { visitResultData } from "../types";
 import { styles } from "./ResultStyle";
 import TestsTableResults from "./TestsTableResults";
-import ResponsivePdf from "src/ResponsivePdf";
+import ResponsivePdf from "../../ResponsivePdf";
 
 const ResultPdf: React.FC<visitResultData> = ({
   patient,
