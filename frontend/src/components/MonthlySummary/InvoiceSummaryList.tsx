@@ -70,23 +70,6 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
         showSignature={showSignature}
       />
 
-      <View
-        style={styles.tableCloseLineContainer}
-        fixed
-        render={({
-          pageNumber,
-          totalPages,
-        }: {
-          pageNumber: number;
-          totalPages?: number;
-        }) => {
-          if (totalPages && pageNumber === totalPages) {
-            return null;
-          }
-          return <View style={styles.tableCloseLine} />;
-        }}
-      />
-
       <View style={[{ textAlign: "right", paddingTop: 15 }]} wrap={false}>
         {showSignature && (
           <Image

@@ -25,7 +25,12 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
         <View
           style={[
             styles.tableRow,
-            { borderTopWidth: 1, borderBottomWidth: 0.1 },
+            {
+              borderTopWidth: 1,
+              borderBottomWidth: 0.1,
+              borderTopColor: "#000000",
+              borderBottomColor: "#000000",
+            },
           ]}
         >
           {headers.map((h) => (
@@ -51,7 +56,10 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
 
           return (
             <View
-              style={[styles.tableRow, { borderBottomWidth: 0.1 }]}
+              style={[
+                styles.tableRow,
+                { borderBottomWidth: 0.1, borderBottomColor: "#000000" },
+              ]}
               wrap={false}
               key={rowIdx}
             >
