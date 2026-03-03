@@ -125,7 +125,6 @@ const EditVisitPage: React.FC = () => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
   const refreshResults = useCallback(async () => {
-    setLoading(true);
     setError("");
     try {
       if (!visit_id) return;
@@ -157,8 +156,6 @@ const EditVisitPage: React.FC = () => {
       setReportDate(res1.report_date);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
-    } finally {
-      setLoading(false);
     }
   }, [
     visit_id,
