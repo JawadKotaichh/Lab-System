@@ -70,7 +70,7 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
         showSignature={showSignature}
       />
 
-      <View style={[{ textAlign: "right", paddingTop: 15 }]}>
+      <View style={[{ textAlign: "right", paddingTop: 15 }]} wrap={false}>
         {showSignature && (
           <Image
             src={`${baseURLL}/branding/lab_signature`}
@@ -81,7 +81,7 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
         <Text style={[{ top: 20 }]}>2009/37</Text>
       </View>
 
-      <View style={styles.footer} fixed>
+      <View style={styles.footer} fixed wrap={false}>
         <Image
           src={`${baseURLL}/branding/lab_address`}
           style={styles.footerImage}
