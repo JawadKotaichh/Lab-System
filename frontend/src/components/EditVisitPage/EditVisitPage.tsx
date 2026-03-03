@@ -288,27 +288,25 @@ const EditVisitPage: React.FC = () => {
           markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
         />
       )}
-      {showTestsTable && (
-        <AddTestResultTable
-          refreshResults={refreshResults}
-          showAdd={showAdd}
-          addError={addError}
-          visit_id={visit_id}
-          showTestsTable={showTestsTable}
-          panelResults={panelResults}
-          setPanelResults={setPanelResults}
-          setStandAloneTestResults={setStandAloneTestResults}
-          standAloneTestResults={standAloneTestResults}
-          existingLabTestTypeIds={existingLabTestTypeIds}
-          setAddError={setAddError}
-          setShowTestsTable={setShowTestsTable}
-          error={error}
-          setError={setError}
-          markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
-          setUpdatedInvoiceData={setUpdatedInvoiceData}
-          setCurrency={setCurrency}
-        />
-      )}
+      <AddTestResultTable
+        refreshResults={refreshResults}
+        showAdd={showAdd}
+        addError={addError}
+        visit_id={visit_id}
+        showTestsTable={showTestsTable}
+        panelResults={panelResults}
+        setPanelResults={setPanelResults}
+        setStandAloneTestResults={setStandAloneTestResults}
+        standAloneTestResults={standAloneTestResults}
+        existingLabTestTypeIds={existingLabTestTypeIds}
+        setAddError={setAddError}
+        setShowTestsTable={setShowTestsTable}
+        error={error}
+        setError={setError}
+        markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
+        setUpdatedInvoiceData={setUpdatedInvoiceData}
+        setCurrency={setCurrency}
+      />
 
       {showPanelsTable && (
         <LabPanelsTable
