@@ -150,6 +150,10 @@ const AddTestResultTable: React.FC<TestsList> = ({
   });
 
   useEffect(() => {
+    if (!showTestsTable) {
+      return;
+    }
+
     const loadPage = async () => {
       setLoading(true);
       setError("");
@@ -175,6 +179,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
     pagination.pageIndex,
     pagination.pageSize,
     columnFilters,
+    showTestsTable,
     setError,
     setTotalPages,
   ]);
