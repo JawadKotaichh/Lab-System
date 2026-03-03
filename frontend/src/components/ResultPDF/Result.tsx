@@ -1,15 +1,9 @@
 import { baseURLL } from "../../api";
-import {
-  Document,
-  Page,
-  Image,
-  View,
-  Text,
-  PDFViewer,
-} from "@react-pdf/renderer";
+import { Document, Page, Image, View, Text } from "@react-pdf/renderer";
 import type { visitResultData } from "../types";
 import { styles } from "./ResultStyle";
 import TestsTableResults from "./TestsTableResults";
+import ResponsivePdf from "src/ResponsivePdf";
 
 const ResultPdf: React.FC<visitResultData> = ({
   patient,
@@ -71,12 +65,18 @@ const ResultPdf: React.FC<visitResultData> = ({
         <Text style={styles.labTitle}>Lab Results</Text>
       </View>
 
-      <View 
+      <View
         fixed
-        render={({ pageNumber }: { pageNumber: number; totalPages?: number }) => {
-          const headerStyle = pageNumber === 1 
-            ? styles.tableHeaderRow 
-            : styles.tableHeaderRowWithBottomBorder;
+        render={({
+          pageNumber,
+        }: {
+          pageNumber: number;
+          totalPages?: number;
+        }) => {
+          const headerStyle =
+            pageNumber === 1
+              ? styles.tableHeaderRow
+              : styles.tableHeaderRowWithBottomBorder;
           return (
             <View style={headerStyle}>
               <Text style={styles.thTest}>Test</Text>
@@ -98,10 +98,16 @@ const ResultPdf: React.FC<visitResultData> = ({
         patient={patient!}
       />
 
-      <View 
-        style={styles.tableCloseLineContainer} 
+      <View
+        style={styles.tableCloseLineContainer}
         fixed
-        render={({ pageNumber, totalPages }: { pageNumber: number; totalPages?: number }) => {
+        render={({
+          pageNumber,
+          totalPages,
+        }: {
+          pageNumber: number;
+          totalPages?: number;
+        }) => {
           if (totalPages && pageNumber === totalPages) {
             return null;
           }
@@ -131,8 +137,9 @@ const ResultPdf: React.FC<visitResultData> = ({
 );
 export default function ResultList(props: visitResultData) {
   return (
-    <PDFViewer width="100%" height="100%">
-      <ResultPdf key={props.patient.patient_id} {...props} />
-    </PDFViewer>
+    <ResponsivePdf
+      document={<ResultPdf key={props.patient.patient_id} {...props} />}
+      fileName={`result-${props.patient.patient_id}.pdf`}
+    />
   );
 }
