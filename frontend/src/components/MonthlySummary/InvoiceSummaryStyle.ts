@@ -15,7 +15,8 @@ export const styles = StyleSheet.create({
     color:'#262626',
     fontFamily:'Helvetica',
     fontSize:12,
-    padding:"30px 50px"
+    padding:"30px 50px",
+    paddingBottom: 90,
   },
   section: {
     margin: 10,
@@ -98,14 +99,15 @@ export const styles = StyleSheet.create({
   },
   tableRow:{
     flexDirection: 'row',
-  },
-  tableWrapper: {
-    width: '100%', 
-    borderWidth:1,        
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     borderColor: '#262626',
   },
+  tableWrapper: {
+    width: '100%',
+  },
   tableColHeader: {
-    width: '33.33%',             
+    width: '25%',
     borderStyle: 'solid',
     borderColor: '#262626',
     backgroundColor: '#f0f0f0',
@@ -123,12 +125,12 @@ export const styles = StyleSheet.create({
   }, footer: {
     position: "absolute",
     bottom: 20,         
-    left: 40,
-    right: 40,
+    left: 50,
+    right: 50,
     textAlign: "center",
   },
   footerImage: {
-    width: 500,         
+    width: "100%",
     height: 30,
     objectFit: "contain",
   },
@@ -141,7 +143,7 @@ export const styles = StyleSheet.create({
     textAlign: 'right',
   },
   subTotalCol: {
-  width: "75.155%",
+  width: "75%",
   padding: 4,
   borderRightWidth: 1,
 },
