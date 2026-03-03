@@ -22,7 +22,12 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
   return (
     <View>
       <View style={styles.tableWrapper}>
-        <View style={[styles.tableRow, { borderBottomWidth: 0.1 }]}>
+        <View
+          style={[
+            styles.tableRow,
+            { borderTopWidth: 1, borderBottomWidth: 0.1 },
+          ]}
+        >
           {headers.map((h) => (
             <View style={styles.tableColHeader} key={h}>
               <Text
@@ -47,6 +52,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
           return (
             <View
               style={[styles.tableRow, { borderBottomWidth: 0.1 }]}
+              wrap={false}
               key={rowIdx}
             >
               <View style={styles.tableCol}>
@@ -77,7 +83,10 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             </View>
           );
         })}
-        <View style={[styles.tableRow, styles.subTotal]}>
+        <View
+          style={[styles.tableRow, styles.subTotal, { borderBottomWidth: 1 }]}
+          wrap={false}
+        >
           <View style={styles.subTotalCol}>
             <Text style={[styles.subtotalCellText, { fontWeight: "9000" }]}>
               Subtotal
@@ -99,7 +108,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
         </View>
       </View>
 
-      <View style={[{ textAlign: "center" }, styles.AmountBox]}>
+      <View style={[{ textAlign: "center" }, styles.AmountBox]} wrap={false}>
         <Text>{amountToWords(totalPrice, currency)}</Text>
       </View>
     </View>
