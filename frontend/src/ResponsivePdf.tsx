@@ -27,18 +27,21 @@ export default function ResponsivePdf({
             return <div style={{ padding: 16 }}>Failed to generate PDF.</div>;
 
           return (
-            <div
-              style={{
-                padding: 16,
-                display: "flex",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
-              <a href={url} target="_blank" rel="noreferrer">
+            <div className="p-4 flex flex-wrap gap-3 items-center justify-center">
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 active:scale-[0.98] transition"
+              >
                 Open PDF
               </a>
-              <a href={url} download={fileName}>
+
+              <a
+                href={url}
+                download={fileName}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 active:scale-[0.98] transition"
+              >
                 Download PDF
               </a>
             </div>
