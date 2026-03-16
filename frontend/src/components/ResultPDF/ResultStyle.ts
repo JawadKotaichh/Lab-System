@@ -23,14 +23,20 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingBottom: 80,
   },
-  pageBackground: {
+  pageBackgroundLayer: {
     position: "absolute",
-    left: 80,
-    right: 80,
-    top: 130,
-    bottom: 130,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pageBackground: {
+    width: 420,
+    height: 560,
     objectFit: "contain",
-    opacity: 0.08,
+    opacity: 0.14,
   },
   tableHeaderRow: {
     flexDirection: "row",
