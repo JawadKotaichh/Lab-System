@@ -66,7 +66,7 @@ const ITEM_PRIORITY: Record<string, PriorityEntry[]> = {
   chemistry: [
     "glucose(fbs)",
     "hba1c",
-    "bloo urea nitrogen(bun)",
+    "blood urea nitrogen(bun)",
     "creatinine",
     { name: "electrolyte(na-k-cl-co2)", type: "panel" },
     "uric acid",
