@@ -30,6 +30,6 @@ def get_address():
 @router.get("/branding/result_background")
 def get_result_background():
     return FileResponse(
-        BRANDING_DIR / "background result.png",
+        BRANDING_DIR / "background_result_flat.png",
         media_type="image/png",
     )
