@@ -15,6 +15,11 @@ const ResultPdf: React.FC<visitResultData> = ({
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
+      <Image
+        fixed
+        src={`${baseURLL}/branding/result_background`}
+        style={styles.pageBackground}
+      />
       <View style={styles.fixedHeader} fixed>
         <Image
           src={`${baseURLL}/branding/lab_header`}
