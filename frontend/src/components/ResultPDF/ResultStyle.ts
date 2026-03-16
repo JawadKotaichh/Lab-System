@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
   page: {
     backgroundColor: '#fff',
     color: '#262626',
-    fontFamily: 'Helvetica',
+    fontFamily: 'Times-Roman',
     fontSize: 12,
     padding: "30px 50px",
     paddingTop: 240,
@@ -112,7 +112,7 @@ export const styles = StyleSheet.create({
     fontSize: 24,
   },
   textBold: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Times-Bold",
   },
   spaceY: {
     display: "flex",
