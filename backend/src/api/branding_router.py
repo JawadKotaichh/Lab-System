@@ -25,3 +25,11 @@ def get_signature():
 @router.get("/branding/lab_address")
 def get_address():
     return FileResponse(BRANDING_DIR / "lab_address.png", media_type="image/png")
+
+
+@router.get("/branding/result_background")
+def get_result_background():
+    return FileResponse(
+        BRANDING_DIR / "background result.png",
+        media_type="image/png",
+    )
