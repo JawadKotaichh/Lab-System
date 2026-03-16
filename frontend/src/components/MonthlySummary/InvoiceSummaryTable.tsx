@@ -6,7 +6,18 @@ import amountToWords from "../Invoice/amountToWords";
 
 const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
   const headers = ["Date", "Patient Name", "Insurance Company", "Total Price"];
-  const totalPrice = summaryData.reduce((sum, currentInvoice) => {
+  const filteredSummaryData = summaryData.filter((currentInvoice) => {
+    const d = currentInvoice.invoice_data;
+    const rowTotal = getTotalPrice(
+      d.patient_insurance_company_rate,
+      d.list_of_tests,
+      d.list_of_lab_panels,
+      d.list_of_lab_tests_ids_changed,
+      d.list_of_lab_panels_ids_changed,
+    );
+    return rowTotal !== 0;
+  });
+  const totalPrice = filteredSummaryData.reduce((sum, currentInvoice) => {
     const d = currentInvoice.invoice_data;
     return (
       sum +
@@ -15,10 +26,11 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
         d.list_of_tests,
         d.list_of_lab_panels,
         d.list_of_lab_tests_ids_changed,
-        d.list_of_lab_panels_ids_changed
+        d.list_of_lab_panels_ids_changed,
       )
     );
   }, 0);
+
   return (
     <View>
       <View style={styles.tableWrapper}>
@@ -41,7 +53,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             </View>
           ))}
         </View>
-        {summaryData.map((currentInvoice, rowIdx) => {
+        {filteredSummaryData.map((currentInvoice, rowIdx) => {
           const current_invoice_data = currentInvoice.invoice_data;
           const cuurent_patient = currentInvoice.patient;
           const rowTotal = getTotalPrice(
@@ -49,9 +61,8 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             current_invoice_data.list_of_tests,
             current_invoice_data.list_of_lab_panels,
             current_invoice_data.list_of_lab_tests_ids_changed,
-            current_invoice_data.list_of_lab_panels_ids_changed
+            current_invoice_data.list_of_lab_panels_ids_changed,
           );
-
           return (
             <View
               style={[
