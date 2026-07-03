@@ -70,14 +70,14 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
         showSignature={showSignature}
       />
 
-      <View style={[{ textAlign: "right", paddingTop: 15 }]} wrap={false}>
+      <View style={styles.signatureBlock} wrap={false}>
         {showSignature && (
           <Image
             src={`${baseURLL}/branding/lab_signature`}
             style={styles.lab_signature}
           />
         )}
-        <Text>Signature</Text>
+        <Text style={styles.signatureLabel}>Signature</Text>
       </View>
 
       <View style={styles.footer} fixed wrap={false}>

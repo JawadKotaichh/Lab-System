@@ -80,12 +80,17 @@ export const styles = StyleSheet.create({
     objectFit: "contain",
   },
   lab_signature: {
-    position: 'absolute',
-    marginTop: -20,
-    marginRight: -25,
-    right: 0,
-    width: 120,
-    height: 100,
+    width: 110,
+    height: 110,
+    objectFit: "contain",
+  },
+  signatureBlock: {
+    alignItems: "flex-end",
+    minHeight: 125,
+    paddingTop: 15,
+  },
+  signatureLabel: {
+    marginTop: 4,
   },
   logo: {
     position: 'absolute',

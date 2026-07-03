@@ -90,14 +90,14 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         patient_insurance_company_rate={patient_insurance_company_rate}
         currency={currency}
       />
-      <View style={[{ textAlign: "right" }]}>
+      <View style={styles.signatureBlock}>
         {showSignature && (
           <Image
             src={`${baseURLL}/branding/lab_signature`}
             style={styles.lab_signature}
           />
         )}
-        <Text>Signature</Text>
+        <Text style={styles.signatureLabel}>Signature</Text>
       </View>
       <View style={styles.footer} fixed wrap={false}>
         <Image
