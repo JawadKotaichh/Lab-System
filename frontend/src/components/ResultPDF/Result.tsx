@@ -115,14 +115,14 @@ const ResultPdf: React.FC<visitResultData> = ({
         }}
       />
 
-      <View style={[{ textAlign: "right", paddingTop: 15 }]}>
+      <View style={styles.signatureBlock}>
         {showSignature && (
           <Image
             src={`${baseURLL}/branding/lab_signature`}
             style={styles.lab_signature}
           />
         )}
-        <Text>Signature</Text>
+        <Text style={styles.signatureLabel}>Signature</Text>
       </View>
 
       <View style={styles.footer} fixed>

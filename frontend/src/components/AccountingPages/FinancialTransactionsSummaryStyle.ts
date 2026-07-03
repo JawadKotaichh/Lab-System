@@ -31,13 +31,18 @@ export const styles = StyleSheet.create({
     width:"100%",
     objectFit: "cover",
   },
+  signatureBlock: {
+    alignItems: "flex-end",
+    minHeight: 125,
+    paddingTop: 15,
+  },
   lab_signature:{
-    position: 'absolute',
-    marginTop: - 40, 
-    marginRight:-30,
-    right: 0, 
-    width: 120,
-    height: 100,
+    width: 110,
+    height: 110,
+    objectFit: "contain",
+  },
+  signatureLabel: {
+    marginTop: 4,
   },
   logo: {
     position: 'absolute',
