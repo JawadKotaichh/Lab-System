@@ -78,7 +78,6 @@ const InvoiceSummaryPDF: React.FC<SummaryInvoice> = ({
           />
         )}
         <Text>Signature</Text>
-        <Text style={[{ top: 20 }]}>2009/37</Text>
       </View>
 
       <View style={styles.footer} fixed wrap={false}>
