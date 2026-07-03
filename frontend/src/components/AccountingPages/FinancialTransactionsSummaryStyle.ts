@@ -32,17 +32,22 @@ export const styles = StyleSheet.create({
     objectFit: "cover",
   },
   signatureBlock: {
+    position: "relative",
     alignItems: "flex-end",
-    minHeight: 125,
-    paddingTop: 15,
+    height: 125,
+    paddingTop: 78,
   },
   lab_signature:{
+    position: "absolute",
+    top: 0,
+    right: 0,
     width: 110,
     height: 110,
     objectFit: "contain",
   },
   signatureLabel: {
-    marginTop: 4,
+    width: 110,
+    textAlign: "center",
   },
   logo: {
     position: 'absolute',

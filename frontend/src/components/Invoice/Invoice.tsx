@@ -91,13 +91,13 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         currency={currency}
       />
       <View style={styles.signatureBlock}>
+        <Text style={styles.signatureLabel}>Signature</Text>
         {showSignature && (
           <Image
             src={`${baseURLL}/branding/lab_signature`}
             style={styles.lab_signature}
           />
         )}
-        <Text style={styles.signatureLabel}>Signature</Text>
       </View>
       <View style={styles.footer} fixed wrap={false}>
         <Image
