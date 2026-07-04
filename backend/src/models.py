@@ -34,6 +34,14 @@ class Visit(Document):
 
     class Settings:
         name = "visits"
+        indexes = [
+            IndexModel([("patient_id", ASCENDING)], name="idx_visit_patient_id"),
+            IndexModel([("visit_date", ASCENDING)], name="idx_visit_date"),
+            IndexModel(
+                [("patient_id", ASCENDING), ("visit_date", ASCENDING)],
+                name="idx_visit_patient_id_visit_date",
+            ),
+        ]
 
 
 class Patient(Document):
@@ -45,6 +53,14 @@ class Patient(Document):
 
     class Settings:
         name = "patients"
+        indexes = [
+            IndexModel([("name", ASCENDING)], name="idx_patient_name"),
+            IndexModel([("phone_number", ASCENDING)], name="idx_patient_phone_number"),
+            IndexModel(
+                [("insurance_company_id", ASCENDING)],
+                name="idx_patient_insurance_company_id",
+            ),
+        ]
 
 
 class Admin(Document):
@@ -112,6 +128,17 @@ class lab_test_result(Document):
 
     class Settings:
         name = "lab_tests_results"
+        indexes = [
+            IndexModel([("visit_id", ASCENDING)], name="idx_lab_result_visit_id"),
+            IndexModel(
+                [("lab_test_type_id", ASCENDING)],
+                name="idx_lab_result_lab_test_type_id",
+            ),
+            IndexModel(
+                [("visit_id", ASCENDING), ("lab_test_type_id", ASCENDING)],
+                name="idx_lab_result_visit_id_lab_test_type_id",
+            ),
+        ]
 
 
 class insurance_company(Document):
@@ -121,6 +148,12 @@ class insurance_company(Document):
 
     class Settings:
         name = "insurance_company"
+        indexes = [
+            IndexModel(
+                [("insurance_company_name", ASCENDING)],
+                name="idx_insurance_company_name",
+            ),
+        ]
 
 
 class lab_test_category(Document):
@@ -161,6 +194,21 @@ class Invoice(Document):
     total_paid: float = Field(default=0.0)
     list_of_lab_tests_ids_changed: List[LabTestChanged] = Field(default=[])
     list_of_lab_panels_ids_changed: List[LabPanelChanged] = Field(default=[])
+
+    class Settings:
+        name = "Invoice"
+        indexes = [
+            IndexModel([("visit_id", ASCENDING)], name="idx_invoice_visit_id"),
+            IndexModel(
+                [("insurance_company_id", ASCENDING)],
+                name="idx_invoice_insurance_company_id",
+            ),
+            IndexModel([("visit_date", ASCENDING)], name="idx_invoice_visit_date"),
+            IndexModel(
+                [("insurance_company_id", ASCENDING), ("visit_date", ASCENDING)],
+                name="idx_invoice_insurance_company_id_visit_date",
+            ),
+        ]
 
 
 class Financial_transaction(Document):

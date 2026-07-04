@@ -24,6 +24,29 @@ router = APIRouter(
 )
 
 
+async def validate_lab_test_type_ids(test_type_ids: List[PydanticObjectId]) -> None:
+    for test_type_id in test_type_ids:
+        if not PydanticObjectId.is_valid(str(test_type_id)):
+            raise HTTPException(400, "Invalid lab_test_type ID")
+        db_lab_test_type = await DBLab_test_type.find_one(
+            DBLab_test_type.id == PydanticObjectId(str(test_type_id))
+        )
+        if db_lab_test_type is None:
+            raise HTTPException(400, "Invalid lab_test_type ID")
+
+
+async def validate_lab_panel_category_id(category_id: str) -> PydanticObjectId:
+    if not PydanticObjectId.is_valid(str(category_id)):
+        raise HTTPException(400, "Invalid lab_panel_category ID")
+    category_oid = PydanticObjectId(str(category_id))
+    db_category = await DBLab_test_category.find_one(
+        DBLab_test_category.id == category_oid
+    )
+    if db_category is None:
+        raise HTTPException(400, "Invalid lab_panel_category ID")
+    return category_oid
+
+
 @router.post(
     "/",
     response_model=DBLab_panel,
@@ -31,20 +54,14 @@ router = APIRouter(
     summary="Create a new lab panel",
 )
 async def create_lab_panel(data: Lab_Panel):
-    for lab_test_type_id in data.list_of_test_type_ids:
-        if (
-            DBLab_test_type.find_one(
-                DBLab_test_type.id == PydanticObjectId(lab_test_type_id)
-            )
-            is None
-        ):
-            raise HTTPException(400, "Invalid lab_test_type ID")
+    await validate_lab_test_type_ids(data.list_of_test_type_ids)
+    category_oid = await validate_lab_panel_category_id(data.lab_panel_category_id)
     db_Lab_panel = DBLab_panel(
         panel_name=data.panel_name,
         list_of_test_type_ids=data.list_of_test_type_ids,
         nssf_id=data.nssf_id,
         lab_panel_price=data.lab_panel_price,
-        lab_panel_category_id=data.lab_panel_category_id,
+        lab_panel_category_id=category_oid,
     )
     db_Lab_panel = await db_Lab_panel.insert()
     return db_Lab_panel
@@ -327,11 +344,16 @@ async def update_lab_panel(lab_panel_id: str, update_data: update_Lab_Panel_mode
     if update_data.panel_name is not None:
         existing_Lab_panel.panel_name = update_data.panel_name
     if update_data.list_of_test_type_ids is not None:
+        await validate_lab_test_type_ids(update_data.list_of_test_type_ids)
         existing_Lab_panel.list_of_test_type_ids = update_data.list_of_test_type_ids
     if update_data.lab_panel_price is not None:
         existing_Lab_panel.lab_panel_price = update_data.lab_panel_price
     if update_data.nssf_id is not None:
         existing_Lab_panel.nssf_id = update_data.nssf_id
+    if update_data.lab_panel_category_id is not None:
+        existing_Lab_panel.lab_panel_category_id = await validate_lab_panel_category_id(
+            update_data.lab_panel_category_id
+        )
 
     await existing_Lab_panel.replace()
 
