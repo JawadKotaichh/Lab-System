@@ -300,9 +300,9 @@ async def rebuild_invoice(visit_id: str):
     if not db_visit:
         raise HTTPException(status_code=400, detail=f"Visit Id:{visit_id} not found!")
 
-    db_list_of_lab_tests_results = DBLab_test_result.find(
+    db_list_of_lab_tests_results = await DBLab_test_result.find(
         DBLab_test_result.visit_id == PydanticObjectId(visit_id)
-    )
+    ).to_list()
     if not db_list_of_lab_tests_results:
         raise HTTPException(
             status_code=400,
@@ -341,18 +341,55 @@ async def rebuild_invoice(visit_id: str):
     list_of_individual_test_results: List[Lab_test_result] = []
     panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
 
-    async for lab_result in db_list_of_lab_tests_results:
-        db_lab_test_type = await DBLab_test_type.find_one(
-            DBLab_test_type.id == lab_result.lab_test_type_id
+    lab_test_type_ids = list(
+        dict.fromkeys(
+            lab_result.lab_test_type_id
+            for lab_result in db_list_of_lab_tests_results
         )
+    )
+    lab_test_types = (
+        await DBLab_test_type.find({"_id": {"$in": lab_test_type_ids}}).to_list()
+        if lab_test_type_ids
+        else []
+    )
+    lab_test_types_by_id = {
+        lab_test_type.id: lab_test_type for lab_test_type in lab_test_types
+    }
+
+    category_ids = list(
+        dict.fromkeys(
+            lab_test_type.lab_test_category_id for lab_test_type in lab_test_types
+        )
+    )
+    categories = (
+        await DBLab_test_category.find({"_id": {"$in": category_ids}}).to_list()
+        if category_ids
+        else []
+    )
+    categories_by_id = {category.id: category for category in categories}
+
+    lab_panel_ids = list(
+        dict.fromkeys(
+            lab_result.lab_panel_id
+            for lab_result in db_list_of_lab_tests_results
+            if lab_result.lab_panel_id
+        )
+    )
+    lab_panels = (
+        await DBLab_panel.find({"_id": {"$in": lab_panel_ids}}).to_list()
+        if lab_panel_ids
+        else []
+    )
+    lab_panels_by_id = {lab_panel.id: lab_panel for lab_panel in lab_panels}
+
+    for lab_result in db_list_of_lab_tests_results:
+        db_lab_test_type = lab_test_types_by_id.get(lab_result.lab_test_type_id)
         if not db_lab_test_type:
             raise HTTPException(
                 status_code=400,
                 detail=f"Lab test type: {lab_result.lab_test_type_id} not found!",
             )
-        category = await DBLab_test_category.find_one(
-            DBLab_test_category.id == db_lab_test_type.lab_test_category_id
-        )
+        category = categories_by_id.get(db_lab_test_type.lab_test_category_id)
         if not category:
             raise HTTPException(
                 status_code=400,
@@ -374,23 +411,19 @@ async def rebuild_invoice(visit_id: str):
             )
             listOfTests.append(currentLabTest)
 
-    lab_tests: List[Lab_test_type] = []
     for panel_id in panel_to_list_of_tests:
+        lab_tests: List[Lab_test_type] = []
         current_list_of_lab_results: List[Lab_test_result] = panel_to_list_of_tests[
             panel_id
         ]
         for lab_result in current_list_of_lab_results:
-            db_lab_test_type = await DBLab_test_type.find_one(
-                DBLab_test_type.id == lab_result.lab_test_type_id
-            )
+            db_lab_test_type = lab_test_types_by_id.get(lab_result.lab_test_type_id)
             if not db_lab_test_type:
                 raise HTTPException(
                     status_code=400,
                     detail=f"Lab test type: {lab_result.lab_test_type_id} not found!",
                 )
-            category = await DBLab_test_category.find_one(
-                DBLab_test_category.id == db_lab_test_type.lab_test_category_id
-            )
+            category = categories_by_id.get(db_lab_test_type.lab_test_category_id)
             if not category:
                 raise HTTPException(
                     status_code=400,
@@ -408,7 +441,7 @@ async def rebuild_invoice(visit_id: str):
             )
             lab_tests.append(currentLabTest)
 
-        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.id == panel_id)
+        db_lab_panel = lab_panels_by_id.get(panel_id)
         if not db_lab_panel:
             raise HTTPException(
                 status_code=400, detail=f"Invalid lab panel id: {panel_id}"
