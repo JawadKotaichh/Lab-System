@@ -61,31 +61,48 @@ async def get_Lab_panel_with_page_size(
 
     total_number_of_lab_panel = await DBLab_panel.find(mongo_filter).count()
 
-    cursor = DBLab_panel.find(mongo_filter).skip(offset).limit(page_size)
+    page_panels = await (
+        DBLab_panel.find(mongo_filter).skip(offset).limit(page_size).to_list()
+    )
     listOfpanels: List[LabPanelResponse] = []
 
-    async for panel in cursor:
-        db_lab_panel = await DBLab_panel.find_one(
-            DBLab_panel.id == PydanticObjectId(panel.id)
+    lab_test_ids = list(
+        dict.fromkeys(
+            test_id for panel in page_panels for test_id in panel.list_of_test_type_ids
         )
-        if not db_lab_panel:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Panel {panel.id} not found",
-            )
+    )
+    lab_tests = (
+        await DBLab_test_type.find({"_id": {"$in": lab_test_ids}}).to_list()
+        if lab_test_ids
+        else []
+    )
+    lab_tests_by_id = {lab_test.id: lab_test for lab_test in lab_tests}
+
+    lab_test_category_ids = list(
+        dict.fromkeys(lab_test.lab_test_category_id for lab_test in lab_tests)
+    )
+    lab_test_categories = (
+        await DBLab_test_category.find(
+            {"_id": {"$in": lab_test_category_ids}}
+        ).to_list()
+        if lab_test_category_ids
+        else []
+    )
+    lab_test_categories_by_id = {
+        category.id: category for category in lab_test_categories
+    }
+
+    for db_lab_panel in page_panels:
         listOfLabTest: List[Lab_test_type] = []
         for test_id in db_lab_panel.list_of_test_type_ids:
-            db_lab_test = await DBLab_test_type.find_one(
-                DBLab_test_type.id == PydanticObjectId(test_id)
-            )
+            db_lab_test = lab_tests_by_id.get(test_id)
             if db_lab_test is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"lab test {test_id} not found!",
                 )
-            db_lab_test_category = await DBLab_test_category.find_one(
-                DBLab_test_category.id
-                == PydanticObjectId(db_lab_test.lab_test_category_id)
+            db_lab_test_category = lab_test_categories_by_id.get(
+                db_lab_test.lab_test_category_id
             )
             if db_lab_test_category is None:
                 raise HTTPException(

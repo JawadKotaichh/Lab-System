@@ -252,22 +252,63 @@ async def get_result_list(
                 "date": doc["prev_date"],
             }
 
+    completed_results = [
+        test_result
+        for test_result in current_results
+        if test_result.result and test_result.result.strip()
+    ]
+    lab_test_type_ids = list(
+        dict.fromkeys(
+            test_result.lab_test_type_id for test_result in completed_results
+        )
+    )
+    lab_test_types = (
+        await DBLab_test_type.find({"_id": {"$in": lab_test_type_ids}}).to_list()
+        if lab_test_type_ids
+        else []
+    )
+    lab_test_types_by_id = {
+        lab_test_type.id: lab_test_type for lab_test_type in lab_test_types
+    }
+
+    panel_ids = list(
+        dict.fromkeys(
+            test_result.lab_panel_id
+            for test_result in completed_results
+            if test_result.lab_panel_id
+        )
+    )
+    lab_panels = (
+        await DBLab_panel.find({"_id": {"$in": panel_ids}}).to_list()
+        if panel_ids
+        else []
+    )
+    lab_panels_by_id = {lab_panel.id: lab_panel for lab_panel in lab_panels}
+
+    category_ids = list(
+        dict.fromkeys(
+            [lab_test_type.lab_test_category_id for lab_test_type in lab_test_types]
+            + [lab_panel.lab_panel_category_id for lab_panel in lab_panels]
+        )
+    )
+    categories = (
+        await DBLab_test_category.find({"_id": {"$in": category_ids}}).to_list()
+        if category_ids
+        else []
+    )
+    categories_by_id = {category.id: category for category in categories}
+
     list_of_standalone_test_results = []
     panels_to_list_of_tests = defaultdict(list)
 
-    for test_result in current_results:
-        if not test_result.result or not test_result.result.strip():
-            continue
-
-        db_lab_test_type = await DBLab_test_type.find_one(
-            DBLab_test_type.id == test_result.lab_test_type_id
-        )
+    for test_result in completed_results:
+        db_lab_test_type = lab_test_types_by_id.get(test_result.lab_test_type_id)
         if not db_lab_test_type:
             raise HTTPException(
                 400, detail=f"Invalid lab test type ID {test_result.lab_test_type_id}"
             )
-        lab_test_type_category = await DBLab_test_category.find_one(
-            DBLab_test_category.id == db_lab_test_type.lab_test_category_id
+        lab_test_type_category = categories_by_id.get(
+            db_lab_test_type.lab_test_category_id
         )
         if not lab_test_type_category:
             raise HTTPException(
@@ -308,13 +349,11 @@ async def get_result_list(
 
     list_of_panel_results = []
     for panel_id, test_results in panels_to_list_of_tests.items():
-        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.id == panel_id)
+        db_lab_panel = lab_panels_by_id.get(panel_id)
         if not db_lab_panel:
             raise HTTPException(404, detail=f"Panel not found: {panel_id}")
 
-        db_category = await DBLab_test_category.find_one(
-            DBLab_test_category.id == db_lab_panel.lab_panel_category_id
-        )
+        db_category = categories_by_id.get(db_lab_panel.lab_panel_category_id)
         if not db_category:
             raise HTTPException(404, detail="Panel category not found")
 
