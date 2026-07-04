@@ -263,22 +263,91 @@ async def get_visits_with_page_size(
         }
 
     total_number_of_visits = await DBVisit.find(mongo_filter_visits).count()
-    cursor = (
+    page_visits = await (
         DBVisit.find(mongo_filter_visits)
         .sort([("visit_date", SortDirection.DESCENDING)])
         .skip(offset)
         .limit(page_size)
+    ).to_list()
+
+    visit_ids = [visit.id for visit in page_visits]
+    patient_ids = list(dict.fromkeys(visit.patient_id for visit in page_visits))
+
+    patients = (
+        await DBPatient.find({"_id": {"$in": patient_ids}}).to_list()
+        if patient_ids
+        else []
     )
+    patients_by_id = {patient.id: patient for patient in patients}
+
+    insurance_company_ids = list(
+        dict.fromkeys(patient.insurance_company_id for patient in patients)
+    )
+    insurance_companies = (
+        await DBInsurance_company.find(
+            {"_id": {"$in": insurance_company_ids}}
+        ).to_list()
+        if insurance_company_ids
+        else []
+    )
+    insurance_companies_by_id = {
+        insurance_company.id: insurance_company
+        for insurance_company in insurance_companies
+    }
+
+    lab_results = (
+        await DBLab_test_result.find({"visit_id": {"$in": visit_ids}}).to_list()
+        if visit_ids
+        else []
+    )
+    lab_results_by_visit_id: Dict[
+        PydanticObjectId, List[DBLab_test_result]
+    ] = defaultdict(list)
+    individual_lab_test_type_ids = []
+    lab_panel_ids = []
+    for lab_result in lab_results:
+        lab_results_by_visit_id[lab_result.visit_id].append(lab_result)
+        if lab_result.lab_panel_id is not None:
+            lab_panel_ids.append(lab_result.lab_panel_id)
+        else:
+            individual_lab_test_type_ids.append(lab_result.lab_test_type_id)
+
+    individual_lab_test_type_ids = list(dict.fromkeys(individual_lab_test_type_ids))
+    lab_test_types = (
+        await DBLab_test_type.find(
+            {"_id": {"$in": individual_lab_test_type_ids}}
+        ).to_list()
+        if individual_lab_test_type_ids
+        else []
+    )
+    lab_test_types_by_id = {
+        lab_test_type.id: lab_test_type for lab_test_type in lab_test_types
+    }
+
+    lab_panel_ids = list(dict.fromkeys(lab_panel_ids))
+    lab_panels = (
+        await DBLab_panel.find({"_id": {"$in": lab_panel_ids}}).to_list()
+        if lab_panel_ids
+        else []
+    )
+    lab_panels_by_id = {lab_panel.id: lab_panel for lab_panel in lab_panels}
+
+    invoices = (
+        await DBInvoice.find({"visit_id": {"$in": visit_ids}}).to_list()
+        if visit_ids
+        else []
+    )
+    invoices_by_visit_id = {invoice.visit_id: invoice for invoice in invoices}
 
     visits: List[VisitData] = []
-    async for visit in cursor:
-        if not PydanticObjectId.is_valid(visit.id):
-            raise HTTPException(status_code=400, detail=f"Invalid Visit ID: {visit.id}")
-        db_visit = await DBVisit.get(PydanticObjectId(visit.id))
-        if not db_visit:
-            raise HTTPException(status_code=404, detail=f"Visit {visit.id} not found")
+    for db_visit in page_visits:
+        visit_id = db_visit.id
+        if not PydanticObjectId.is_valid(str(visit_id)):
+            raise HTTPException(
+                status_code=400, detail=f"Invalid Visit ID: {visit_id}"
+            )
 
-        db_patient = await DBPatient.get(PydanticObjectId(db_visit.patient_id))
+        db_patient = patients_by_id.get(db_visit.patient_id)
         if not db_patient:
             raise HTTPException(
                 status_code=404, detail=f"Patient {db_visit.patient_id} not found"
@@ -292,45 +361,34 @@ async def get_visits_with_page_size(
             insurance_company_id=str(db_patient.insurance_company_id),
             patient_id=str(db_patient.id),
         )
-        all_test_results = DBLab_test_result.find(
-            DBLab_test_result.visit_id == PydanticObjectId(visit.id)
-        )
-        list_of_individual_test_results: List[Lab_test_result] = []
-        panel_to_list_of_tests: Dict[str, List[Lab_test_result]] = defaultdict(list)
 
-        async for test_result in all_test_results:
-            if test_result.lab_panel_id is not None:
-                panel_to_list_of_tests[test_result.lab_panel_id].append(test_result)
-            else:
-                list_of_individual_test_results.append(test_result)
-
+        visit_lab_results = lab_results_by_visit_id.get(visit_id, [])
         total_tests_results = 0
         completed_tests_results = 0
         total_price = 0.0
-        for individual_test in list_of_individual_test_results:
+        panel_ids_for_visit = set()
+        for lab_result in visit_lab_results:
             total_tests_results += 1
-            lab_test = await DBLab_test_type.get(
-                PydanticObjectId(individual_test.lab_test_type_id)
-            )
-            if lab_test:
-                total_price += lab_test.price
-            if individual_test.result != "":
+            if lab_result.result != "":
                 completed_tests_results += 1
 
-        for panel_id in panel_to_list_of_tests:
-            total_tests_results += len(panel_to_list_of_tests[panel_id])
-            for test_result in panel_to_list_of_tests[panel_id]:
-                if test_result.result != "":
-                    completed_tests_results += 1
+            if lab_result.lab_panel_id is not None:
+                panel_ids_for_visit.add(lab_result.lab_panel_id)
+                continue
 
-            db_lab_panel = await DBLab_panel.find_one(DBLab_panel.id == panel_id)
+            lab_test = lab_test_types_by_id.get(lab_result.lab_test_type_id)
+            if lab_test:
+                total_price += lab_test.price
+
+        for panel_id in panel_ids_for_visit:
+            db_lab_panel = lab_panels_by_id.get(panel_id)
             if not db_lab_panel:
                 raise HTTPException(
                     status_code=400, detail=f"Invalid lab panel id: {panel_id}"
                 )
             total_price += db_lab_panel.lab_panel_price
 
-        insurance_company = await DBInsurance_company.get(
+        insurance_company = insurance_companies_by_id.get(
             db_patient.insurance_company_id
         )
         if not insurance_company:
@@ -339,11 +397,11 @@ async def get_visits_with_page_size(
                 detail=f"Insurance Company {db_patient.insurance_company_id} not found",
             )
         total_price_with_insurance = total_price * insurance_company.rate
-        db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == visit.id)
+        db_invoice = invoices_by_visit_id.get(visit_id)
         if not db_invoice:
             raise HTTPException(
                 status_code=404,
-                detail=f"Invoice with visit id: {visit.id} not found",
+                detail=f"Invoice with visit id: {visit_id} not found",
             )
         visits.append(
             VisitData(
@@ -353,7 +411,7 @@ async def get_visits_with_page_size(
                 total_price_with_insurance=total_price_with_insurance
                 + db_invoice.adjustment_minor,
                 patient=patient,
-                visit_id=str(visit.id),
+                visit_id=str(visit_id),
                 visit_date=db_visit.visit_date,
                 completed_tests_results=completed_tests_results,
                 total_tests_results=total_tests_results,
