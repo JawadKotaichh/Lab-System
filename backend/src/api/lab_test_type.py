@@ -19,6 +19,18 @@ router = APIRouter(
 )
 
 
+async def validate_lab_test_category_id(category_id: str) -> PydanticObjectId:
+    if not PydanticObjectId.is_valid(str(category_id)):
+        raise HTTPException(400, "Invalid lab_test_category ID")
+    category_oid = PydanticObjectId(str(category_id))
+    db_category = await DBlab_test_category.find_one(
+        DBlab_test_category.id == category_oid
+    )
+    if db_category is None:
+        raise HTTPException(400, "Invalid lab_test_category ID")
+    return category_oid
+
+
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
 async def get_Lab_test_type_with_page_size(
     page_number: int,
@@ -178,16 +190,10 @@ async def getLabTestType(lab_test_type_id: str):
     summary="Create a new lab test type",
 )
 async def create_lab_test_type(data: Lab_test_type):
-    if (
-        DBlab_test_category.find_one(
-            DBlab_test_category.id == PydanticObjectId(data.lab_test_category_id)
-        )
-        is None
-    ):
-        raise HTTPException(400, "Invalid lab_test_category ID")
+    category_oid = await validate_lab_test_category_id(data.lab_test_category_id)
     db_Lab_test_type = DBLab_test_type(
         nssf_id=data.nssf_id,
-        lab_test_category_id=str(data.lab_test_category_id),
+        lab_test_category_id=category_oid,
         name=data.name,
         unit=data.unit,
         price=data.price,
@@ -238,7 +244,9 @@ async def update_lab_test_type(
     if update_data.normal_value_list is not None:
         existing_Lab_test_type.normal_value_list = update_data.normal_value_list
     if update_data.lab_test_category_id is not None:
-        existing_Lab_test_type.lab_test_category_id = update_data.lab_test_category_id
+        existing_Lab_test_type.lab_test_category_id = (
+            await validate_lab_test_category_id(update_data.lab_test_category_id)
+        )
 
     await existing_Lab_test_type.replace()
 

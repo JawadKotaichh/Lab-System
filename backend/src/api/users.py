@@ -51,7 +51,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 #     async for user in cursor:
 #         users.append(
 #             {
-#                 "role": user.role,
+#                 "role": "patient",
 #                 "username": user.username,
 #             }
 #         )
@@ -72,7 +72,7 @@ async def getAllUsers() -> List[Dict[str, Any]]:
     async for user in cursor:
         all_users.append(
             {
-                "role": user.role,
+                "role": "patient",
                 "username": user.username,
             }
         )
