@@ -61,9 +61,6 @@ export default function ResultContainer() {
     version.current += 1;
   }, [visit_id]);
 
-  // console.log("listOfStandAloneTestResults: ", listOfStandAloneTestResults);
-  // console.log("listOfPanelResults: ", listOfPanelResults);
-
   if (loading) return <LoadingPage title="Loading results ..." />;
   if (error) return <div>Error: {error}</div>;
 

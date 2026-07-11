@@ -51,7 +51,6 @@ export default function InvoiceContainer() {
   useEffect(() => {
     fetchInvoice(visit_id!)
       .then((data) => {
-        console.log("Fetched data: ", data);
         setInvoiceData(data.invoice_data);
         setPatient(data.patient);
         setListOfTests(data.invoice_data.list_of_tests);
@@ -116,13 +115,6 @@ export default function InvoiceContainer() {
 
     setTotalPrice(testsTotal + panelsTotal * rate);
   }, [invoiceData, priceEdits, listOfTests, listOfPanels]);
-  // console.log("patient: ", patient);
-  // console.log("visisDate: ", visitDate);
-  // console.log("totalPrice: ", totalPrice);
-  // console.log("===================TESTING CURRENCY=====================");
-  // console.log(currency);
-  // console.log("===================TESTING CURRENCY=====================");
-
   if (loading) return <LoadingPage title="Loading invoice ..." />;
   if (error) return <div>Error: {error}</div>;
   return (

@@ -73,15 +73,26 @@ async def get_patients_with_page_size(
     offset = (page_number - 1) * page_size
     total_number_of_patients = await DBPatient.find(mongo_filter).count()
     cursor = DBPatient.find(mongo_filter).skip(offset).limit(page_size)
+    page_patients = await cursor.to_list()
+
+    insurance_ids = list(
+        dict.fromkeys(patient.insurance_company_id for patient in page_patients)
+    )
+    insurance_companies = (
+        await DBInsurance_company.find({"_id": {"$in": insurance_ids}}).to_list()
+        if insurance_ids
+        else []
+    )
+    insurance_names_by_id = {
+        company.id: company.insurance_company_name
+        for company in insurance_companies
+    }
 
     patients: List[Dict[str, Any]] = []
 
-    async for patient in cursor:
-        insuranceCompany = await DBInsurance_company.find_one(
-            DBInsurance_company.id == PydanticObjectId(patient.insurance_company_id)
-        )
-        insurance_name = (
-            insuranceCompany.insurance_company_name if insuranceCompany else "Unknown"
+    for patient in page_patients:
+        insurance_name = insurance_names_by_id.get(
+            patient.insurance_company_id, "Unknown"
         )
         patients.append(
             {
@@ -146,7 +157,6 @@ async def getAllPatients() -> List[Dict[str, Any]]:
     summary="Create a new Patient",
 )
 async def create_patient(data: Patient):
-    print("Creation started")
     db_patient = DBPatient(
         name=data.name,
         gender=data.gender,

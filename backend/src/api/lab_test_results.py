@@ -17,7 +17,6 @@ from ..schemas.schema_Lab_Test_Result import (
     patientPanelResult,
     patientTestResult,
     resultListData,
-    update_lab_test_result_model,
 )
 from fastapi.responses import Response
 from fastapi_pagination import Page
@@ -421,22 +420,58 @@ async def get_Lab_test_results_with_page_size(
         .skip(offset)
         .limit(page_size)
     )
+    page_results = await cursor.to_list()
+
+    lab_test_type_ids = list(
+        dict.fromkeys(result.lab_test_type_id for result in page_results)
+    )
+    lab_test_types = (
+        await DBLab_test_type.find({"_id": {"$in": lab_test_type_ids}}).to_list()
+        if lab_test_type_ids
+        else []
+    )
+    lab_test_types_by_id = {
+        lab_test_type.id: lab_test_type for lab_test_type in lab_test_types
+    }
+
+    panel_ids = list(
+        dict.fromkeys(
+            result.lab_panel_id for result in page_results if result.lab_panel_id
+        )
+    )
+    lab_panels = (
+        await DBLab_panel.find({"_id": {"$in": panel_ids}}).to_list()
+        if panel_ids
+        else []
+    )
+    lab_panels_by_id = {panel.id: panel for panel in lab_panels}
+
+    category_ids = list(
+        dict.fromkeys(
+            [test_type.lab_test_category_id for test_type in lab_test_types]
+            + [panel.lab_panel_category_id for panel in lab_panels]
+        )
+    )
+    categories = (
+        await DBLab_test_category.find({"_id": {"$in": category_ids}}).to_list()
+        if category_ids
+        else []
+    )
+    categories_by_id = {category.id: category for category in categories}
 
     list_of_standalone_test_results: List[patientTestResult] = []
     list_of_panel_results: List[patientPanelResult] = []
     panels_to_list_of_tests: dict[PydanticObjectId, List[patientTestResult]] = {}
 
-    async for test_result in cursor:
-        db_lab_test_type = await DBLab_test_type.find_one(
-            DBLab_test_type.id == PydanticObjectId(test_result.lab_test_type_id)
-        )
+    for test_result in page_results:
+        db_lab_test_type = lab_test_types_by_id.get(test_result.lab_test_type_id)
         if db_lab_test_type is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid lab test type ID {test_result.lab_test_type_id}",
             )
-        lab_test_type_category = await DBLab_test_category.find_one(
-            DBLab_test_category.id == db_lab_test_type.lab_test_category_id
+        lab_test_type_category = categories_by_id.get(
+            db_lab_test_type.lab_test_category_id
         )
         if lab_test_type_category is None:
             raise HTTPException(
@@ -462,9 +497,7 @@ async def get_Lab_test_results_with_page_size(
 
         if test_result.lab_panel_id is not None:
             panel_id = test_result.lab_panel_id
-            db_lab_panel = await DBLab_panel.find_one(
-                DBLab_panel.id == test_result.lab_panel_id
-            )
+            db_lab_panel = lab_panels_by_id.get(panel_id)
             if db_lab_panel is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -478,15 +511,13 @@ async def get_Lab_test_results_with_page_size(
             list_of_standalone_test_results.append(current_test_result)
 
     for panel_id, test_results in panels_to_list_of_tests.items():
-        db_lab_panel = await DBLab_panel.find_one(DBLab_panel.id == panel_id)
+        db_lab_panel = lab_panels_by_id.get(panel_id)
         if db_lab_panel is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Panel {panel_id} not found",
             )
-        db_category = await DBLab_test_category.find_one(
-            DBLab_test_category.id == db_lab_panel.lab_panel_category_id
-        )
+        db_category = categories_by_id.get(db_lab_panel.lab_panel_category_id)
         if db_category is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -543,31 +574,6 @@ async def get_all_lab_test_results(visit_id: str):
     return await apaginate(all_items)
 
 
-@router.put("/{lab_test_result_id}", response_model=DBLab_test_result)
-async def update_lab_test_result(
-    lab_test_result_id: str, update_data: update_lab_test_result_model
-):
-    if not PydanticObjectId.is_valid(lab_test_result_id):
-        raise HTTPException(400, "Invalid lab_test_result ID")
-
-    existing_lab_test_result = await DBLab_test_result.find_one(
-        DBLab_test_result.id == PydanticObjectId(lab_test_result_id)
-    )
-    if existing_lab_test_result is None:
-        raise HTTPException(404, f"Lab_test_result {lab_test_result_id} not found")
-
-    if update_data.lab_test_type_id is not None:
-        existing_lab_test_result.lab_test_type_id = update_data.lab_test_type_id
-
-    if update_data.visit_id is not None:
-        existing_lab_test_result.visit_id = update_data.visit_id
-
-    if update_data.result is not None:
-        existing_lab_test_result.result = update_data.result
-
-    await existing_lab_test_result.replace()
-
-    return existing_lab_test_result
 
 
 @router.delete("/delete_panels/{visit_id}/{lab_panel_id}", response_class=Response)

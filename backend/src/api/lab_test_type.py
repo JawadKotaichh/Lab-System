@@ -101,10 +101,6 @@ async def get_Lab_test_type_with_page_size(
         db_category = await DBlab_test_category.find_one(
             DBlab_test_category.id == test.lab_test_category_id
         )
-        print(f"lab test id: {test.id}")
-        print(f"lab test: {test.name}")
-        print(f"lab test category id: {test.lab_test_category_id}")
-
         if db_category is None:
             raise HTTPException(
                 status_code=404,
@@ -203,16 +199,6 @@ async def create_lab_test_type(data: Lab_test_type):
     return new_Lab_test_type
 
 
-@router.get("/{lab_test_type_id}", response_model=DBLab_test_type)
-async def get_lab_test_type(lab_test_type_id: str):
-    if not PydanticObjectId.is_valid(lab_test_type_id):
-        raise HTTPException(400, "Invalid lab_test_type ID")
-    Lab_test_type = await DBLab_test_type.get(PydanticObjectId(lab_test_type_id))
-    if not Lab_test_type:
-        raise HTTPException(404, f"Lab_test_type {lab_test_type_id} not found")
-    return Lab_test_type
-
-
 @router.get("/", response_model=Page[DBLab_test_type])
 async def get_all_lab_test_type():
     all_items = DBLab_test_type.find()
@@ -223,7 +209,6 @@ async def get_all_lab_test_type():
 async def update_lab_test_type(
     lab_test_type_id: str, update_data: update_Lab_test_type_model
 ):
-    print("Iwas called")
     if not PydanticObjectId.is_valid(lab_test_type_id):
         raise HTTPException(400, "Invalid lab_test_type ID")
 

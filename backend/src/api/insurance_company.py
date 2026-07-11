@@ -30,16 +30,8 @@ async def get_insurance_company_with_page_size(
             "$options": "i",
         }
 
-    if rate:
-        expr = {
-            "$expr": {
-                "$regexMatch": {
-                    "input": {"$toString": "$price"},
-                    "regex": str(rate),
-                }
-            }
-        }
-        mongo_filter = {"$and": [mongo_filter, expr]}
+    if rate is not None:
+        mongo_filter["rate"] = rate
 
     total_number_of_insurance_companies = await DBInsurance_company.find(
         mongo_filter

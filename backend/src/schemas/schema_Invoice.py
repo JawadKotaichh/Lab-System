@@ -36,6 +36,12 @@ class invoiceData(BaseModel):
     currency: str
 
 
+class PaginatedInvoices(BaseModel):
+    TotalNumberOfInvoices: int
+    total_pages: int
+    invoices: List[Invoice]
+
+
 class monthlySummaryInvoicesParams(BaseModel):
     insurance_company_id: str
     start_date: datetime

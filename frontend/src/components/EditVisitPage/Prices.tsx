@@ -61,11 +61,6 @@ const Prices: React.FC<PricesParams> = ({
   const gross = roundMoney(totalPrice * patientInsuranceCompanyRate);
 
   const netTotal = roundMoney(gross + draftAdjustment);
-  console.log("netTotal: ", netTotal);
-  console.log("gross: ", gross);
-  console.log("patientInsuranceCompanyRate: ", patientInsuranceCompanyRate);
-  console.log("totalPrice: ", totalPrice);
-
   const safePaid = roundMoney(Math.max(0, draftTotalPaid));
   const remaining = roundMoney(Math.max(0, netTotal - safePaid));
 

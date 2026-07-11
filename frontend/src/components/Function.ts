@@ -274,8 +274,6 @@ export const handleAddLabTest = async ({
   }
 
 export const handleAdd = async ({lab_test_id,lab_test,data,setAddError,setShowAddForLabPanels,setData}: addLabTestToPanelParams) => {
-  console.log("hi");
-
   try {
     if (data.list_of_lab_test_ids.some((id) => id === lab_test_id)) {
       setAddError("This test already exists.");

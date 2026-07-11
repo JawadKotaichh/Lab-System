@@ -102,10 +102,6 @@ const FinancialTransactionsTable: React.FC = () => {
           pagination.pageSize,
           filters
         );
-        console.log(
-          "Financial transactions Data : ",
-          res.financial_transactions
-        );
         setData(res.financial_transactions);
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfFinancialTransactions);

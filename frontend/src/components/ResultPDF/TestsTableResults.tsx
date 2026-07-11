@@ -27,8 +27,6 @@ const TestsTableResults = ({
     list_of_standalone_test_results,
     list_of_panel_results
   );
-  // console.log("Grouped data: ", groupedData);
-
   return (
     <View>
       <View style={styles.tableWrapper}>

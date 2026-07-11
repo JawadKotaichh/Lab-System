@@ -26,7 +26,6 @@ const LoginPage = ({
         const resp = await fetchUser(patient_id);
         if (!cancelled) setUsername(resp.username ?? "");
       } catch {
-        console.log("Error loading user");
         if (!cancelled) setUsername("");
       }
     }
