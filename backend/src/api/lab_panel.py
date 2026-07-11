@@ -314,16 +314,6 @@ async def getLabPanelWithListOfTests(lab_panel_id: str):
     return output
 
 
-@router.get("/{lab_panel_id}", response_model=DBLab_panel)
-async def get_lab_panel(lab_panel_id: str):
-    if not PydanticObjectId.is_valid(lab_panel_id):
-        raise HTTPException(400, "Invalid lab_panel_id ID")
-    Lab_panel = await DBLab_panel.get(PydanticObjectId(lab_panel_id))
-    if not Lab_panel:
-        raise HTTPException(404, f"Lab_panel {lab_panel_id} not found")
-    return Lab_panel
-
-
 @router.get("/", response_model=Page[DBLab_panel])
 async def get_all_lab_panels():
     all_items = DBLab_panel.find()

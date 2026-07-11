@@ -7,6 +7,7 @@ from ..models import Financial_transaction as DBFinancial_transaction
 from ..schemas.schema_Invoice import (
     Invoice,
     LabTestChanged,
+    PaginatedInvoices,
     invoiceData,
     update_invoice,
 )
@@ -65,10 +66,8 @@ async def get_monthly_summary_invoice(
         "visit_date": {"$gte": start_date, "$lte": end_date},
     }
     all_invoices = DBInvoice.find(filters)
-    # print(all_invoices)
     listOfInvoices: List[invoiceData] = []
     async for invoice in all_invoices:
-        # print("\n current invoice is: ", invoice)
         db_visit = await DBVisit.get(invoice.visit_id)
         if not db_visit:
             raise HTTPException(
@@ -626,7 +625,7 @@ async def get_invoice(visit_id: str):
     return output_invoice_data
 
 
-@router.get("/page/{page_size}/{page_number}", response_model=List[Invoice])
+@router.get("/page/{page_size}/{page_number}", response_model=PaginatedInvoices)
 async def get_invoices_with_page_size(
     page_number: int,
     page_size: int,
@@ -690,7 +689,7 @@ async def get_invoices_with_page_size(
             invoice_number=invoice.invoice_number,
             total_paid=invoice.total_paid,
             list_of_lab_panels_ids_changed=invoice.list_of_lab_panels_ids_changed,
-            list_of_lab_tests_ids_changed=invoice.list_of_lab_panels_ids_changed,
+            list_of_lab_tests_ids_changed=invoice.list_of_lab_tests_ids_changed,
         )
         allInvoices.append(currentInvoice)
 

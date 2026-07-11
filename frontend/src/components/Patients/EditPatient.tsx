@@ -107,11 +107,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
       window.dispatchEvent(new Event("patients:changed"));
 
       navigate(PatientsMainPageURL);
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log(err.message);
-      }
-    }
+    } catch {}
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {

@@ -468,7 +468,7 @@ async def get_visits_by_date_range(
             date_filter["$gte"] = start_date
         if end_date:
             date_filter["$lte"] = end_date
-        query["date"] = date_filter
+        query["visit_date"] = date_filter
 
     cursor = DBVisit.find(query)
     return await apaginate(cursor)
@@ -603,12 +603,6 @@ async def get_visit(visit_id: PydanticObjectId):
         total_paid=db_invoice.total_paid,
     )
     return visit_data
-
-
-@router.get("/", response_model=Page[DBVisit])
-async def get_all_visits():
-    all_items = DBVisit.find()
-    return await apaginate(all_items)
 
 
 @router.put("/{visit_id}", response_model=DBVisit)

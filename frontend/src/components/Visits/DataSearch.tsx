@@ -1,7 +1,4 @@
 // const DateSearch = useCallback(async () => {
-    //     // console.log(`status : ${status}`);
-    //     // console.log(`start_date: ${startDate}`)
-    //     // console.log(`end_date: ${endDate}`)
         
     //     try {
     //     setStatus("Fetching visits within this date range…");

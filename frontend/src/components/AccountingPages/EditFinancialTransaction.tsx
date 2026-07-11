@@ -131,11 +131,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
       window.dispatchEvent(new Event("transactions:changed"));
 
       navigate(FinancialTransactionsMainPageURL);
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log(err.message);
-      }
-    }
+    } catch {}
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {

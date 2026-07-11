@@ -96,11 +96,6 @@ const FinancialTransactionsSummary = () => {
       ...prev,
       [attributeName]: value,
     }));
-    console.log(`start_date: ${data.start_date}`);
-    console.log(`end_date: ${data.end_date}`);
-    console.log(`currency: ${data.currency}`);
-    console.log(`category: ${data.category}`);
-    console.log(`type: ${data.type}`);
   };
 
   const handleSave = async () => {
