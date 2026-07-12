@@ -2,6 +2,26 @@
 
 A comprehensive laboratory management system for managing patients, visits, lab tests, results, and invoicing. Built with FastAPI backend and React frontend, fully containerized with Docker.
 
+## Deployment and Database
+
+Production is hosted on Azure:
+
+- Frontend: Azure Static Web App
+- Backend: Azure Container App
+- Database: Azure Cosmos DB for MongoDB API
+
+The backend reads the MongoDB connection string from `MONGODB_URL`. Keep `MONGODB_URI` set to the same value for compatibility with existing settings code.
+
+For Cosmos DB, the connection string must include:
+
+```text
+retryWrites=false
+```
+
+Cosmos DB for MongoDB does not support retryable writes. If this option is missing, read requests may work but write requests such as `POST /patients/` can fail with `500 Internal Server Error`.
+
+Do not commit real database connection strings, Cosmos keys, Atlas credentials, JWT secrets, or refresh peppers. Store production values in Azure Container App secrets.
+
 ## Features
 
 - **Patient Management**: Create, edit, and search patients with insurance information
