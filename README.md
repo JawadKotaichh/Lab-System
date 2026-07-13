@@ -20,8 +20,6 @@ retryWrites=false
 
 Cosmos DB for MongoDB does not support retryable writes. If this option is missing, read requests may work but write requests such as `POST /patients/` can fail with `500 Internal Server Error`.
 
-Do not commit real database connection strings, Cosmos keys, Atlas credentials, JWT secrets, or refresh peppers. Store production values in Azure Container App secrets.
-
 The backend requires separate `JWT_SECRET` and `REFRESH_PEPPER` values of at least 32 non-whitespace characters. Generate each independently with a cryptographically secure generator, for example:
 
 ```bash
