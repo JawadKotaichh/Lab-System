@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Response, Cookie
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from beanie import PydanticObjectId
 from datetime import datetime, timezone
 from .tokens import (
     create_access_token,
@@ -10,6 +11,8 @@ from .tokens import (
 from ..models import Session as DBSession
 from ..models import Admin as DBAdmin
 from ..models import User as DBUser
+from ..schemas.schema_users import self_update_user
+from .deps import get_current_principal
 from passlib.context import CryptContext
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -49,6 +52,42 @@ async def verify_admin_or_user(username: str, password):
         }
 
     raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
+@router.put("/me")
+async def update_own_account(
+    data: self_update_user,
+    principal: dict = Depends(get_current_principal),
+):
+    if principal.get("role") != "patient":
+        raise HTTPException(status_code=403, detail="Patient access required")
+
+    username = data.username.strip().lower()
+    password = data.password.strip()
+    if not username or not password:
+        raise HTTPException(
+            status_code=422,
+            detail="Username and password cannot be blank",
+        )
+
+    principal_id = PydanticObjectId(principal["id"])
+    user = await DBUser.find_one({"user_id": principal_id})
+    if user is None:
+        raise HTTPException(status_code=404, detail="User account not found")
+
+    username_owner = await DBUser.find_one({"username": username})
+    admin_owner = await DBAdmin.find_one({"username": username})
+    username_taken_by_another_patient = (
+        username_owner is not None
+        and username_owner.user_id != principal_id
+    )
+    if username_taken_by_another_patient or admin_owner is not None:
+        raise HTTPException(status_code=409, detail="Username is already in use")
+
+    user.username = username
+    user.password_hashed = pwd_context.hash(password)
+    await user.replace()
+    return {"ok": True, "username": user.username}
 
 
 @router.post("/login")

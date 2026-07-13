@@ -13,7 +13,7 @@ const formatYMDLocal = (value: unknown) => {
 };
 
 function formatMoney(amount: number, currency: string) {
-  if (currency === "USD") return `${amount.toFixed(2)} $`;
+  if (currency === "USD") return `${amount.toFixed(3)} $`;
   return `${amount.toLocaleString("en-US")} LBP`;
 }
 

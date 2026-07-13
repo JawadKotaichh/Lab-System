@@ -1,5 +1,5 @@
 from datetime import datetime, time
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from ..models import Patient as DBPatient
 from ..models import insurance_company as DBInsurance_company
 from ..models import Visit as DBVisit
@@ -16,8 +16,13 @@ from fastapi import Query
 from enum import Enum
 from beanie import PydanticObjectId
 from passlib.context import CryptContext
+from .deps import require_admin
 
-router = APIRouter(prefix="/patients", tags=["patients"])
+router = APIRouter(
+    prefix="/patients",
+    tags=["patients"],
+    dependencies=[Depends(require_admin)],
+)
 pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
 
 
@@ -36,8 +41,8 @@ class GenderEnum(str, Enum):
 
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
 async def get_patients_with_page_size(
-    page_number: int,
-    page_size: int,
+    page_number: int = Path(..., ge=1),
+    page_size: int = Path(..., ge=1, le=100),
     DOB: str | None = Query(None),
     name: str | None = Query(None),
     phone_number: str | None = Query(None),
@@ -133,8 +138,11 @@ async def get_patient_insurance_company_rate(patient_id: str):
 
 
 @router.get("/all", response_model=List[Dict[str, Any]])
-async def getAllPatients() -> List[Dict[str, Any]]:
-    cursor = DBPatient.find()
+async def getAllPatients(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
+    cursor = DBPatient.find().sort("_id").skip(offset).limit(limit)
     patients: List[Dict[str, Any]] = []
     async for patient in cursor:
         patients.append(

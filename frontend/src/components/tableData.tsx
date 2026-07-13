@@ -960,7 +960,7 @@ export function getVisitsColumns(
         const raw = row.original.total_price_with_insurance ?? 0;
         const value =
           currency === "USD"
-            ? `${raw.toFixed(2)} $`
+            ? `${raw.toFixed(3)} $`
             : `${raw.toLocaleString("en-US")} LBP`;
         return (
           <button
@@ -994,7 +994,7 @@ export function getVisitsColumns(
       cell: ({ row }) => {
         const currency = row.original.currency ?? "$";
         if (currency === "USD")
-          return `${row.original.total_paid.toFixed(2)} $`;
+          return `${row.original.total_paid.toFixed(3)} $`;
         else return `${row.original.total_paid.toLocaleString("en-US")} LBP`;
       },
       header: ({ column }) => (
@@ -1034,7 +1034,7 @@ export function getVisitsColumns(
         const remaining = Math.max(0, net - paid);
         const value =
           currency === "USD"
-            ? `${remaining.toFixed(2)} $`
+            ? `${remaining.toFixed(3)} $`
             : `${remaining.toLocaleString("en-US")} LBP`;
 
         return (
@@ -1270,7 +1270,7 @@ export function getFinancialTransactionColumns(
 
         const amountText =
           currency === "USD"
-            ? `${row.original.amount.toFixed(2)} $`
+            ? `${row.original.amount.toFixed(3)} $`
             : `${row.original.amount.toLocaleString("en-US")} LBP`;
 
         const amountClass =
@@ -1454,7 +1454,7 @@ export function getVisitsColumnsUser(
       cell: ({ row }) => {
         const currency = row.original.currency ?? "$";
         if (currency === "USD")
-          return `${row.original.total_price_with_insurance.toFixed(2)} $`;
+          return `${row.original.total_price_with_insurance.toFixed(3)} $`;
         else
           return `${row.original.total_price_with_insurance.toLocaleString(
             "en-US"

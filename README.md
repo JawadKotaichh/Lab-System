@@ -10,7 +10,7 @@ Production is hosted on Azure:
 - Backend: Azure Container App
 - Database: Azure Cosmos DB for MongoDB API
 
-The backend reads the MongoDB connection string from `MONGODB_URL`. Keep `MONGODB_URI` set to the same value for compatibility with existing settings code.
+The backend reads the MongoDB connection string from `MONGODB_URL`. Local Docker development defaults to `mongodb://mongo:27017` when the variable is not set.
 
 For Cosmos DB, the connection string must include:
 
@@ -21,6 +21,14 @@ retryWrites=false
 Cosmos DB for MongoDB does not support retryable writes. If this option is missing, read requests may work but write requests such as `POST /patients/` can fail with `500 Internal Server Error`.
 
 Do not commit real database connection strings, Cosmos keys, Atlas credentials, JWT secrets, or refresh peppers. Store production values in Azure Container App secrets.
+
+The backend requires separate `JWT_SECRET` and `REFRESH_PEPPER` values of at least 32 non-whitespace characters. Generate each independently with a cryptographically secure generator, for example:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+Store the two generated values in the local `.env` file or the deployment secret store. The backend and Docker Compose fail fast when either value is missing or empty.
 
 ## Features
 

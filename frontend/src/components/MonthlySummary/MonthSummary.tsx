@@ -19,6 +19,7 @@ import type {
 import { fetchAllInsuranceCompanies, getMonthlyInvoiceSummary } from "../utils";
 import { useNavigate } from "react-router-dom";
 import LoadingPage from "../LoadingPage/LoadingPage";
+import { getApiErrorMessage } from "../../api";
 
 const MonthSummary = () => {
   const [state, setState] = useState<string>("");
@@ -106,7 +107,9 @@ const MonthSummary = () => {
           currency: data.currency,
         },
       });
-    } catch {}
+    } catch (err: unknown) {
+      setState(getApiErrorMessage(err, "Failed to generate monthly summary"));
+    }
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {

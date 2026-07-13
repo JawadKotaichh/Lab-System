@@ -1,6 +1,6 @@
 import re
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, status, Query
 from ..models import lab_test_type as DBLab_test_type
 from ..models import lab_test_category as DBlab_test_category
 from ..models import lab_panel as DBLab_panel
@@ -11,11 +11,13 @@ from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
 from typing import Any, Dict, List
 from ..models import Result_suggestions as DBResult_suggestions
+from .deps import require_admin
 
 
 router = APIRouter(
     prefix="/lab_test_type",
     tags=["lab_test_type"],
+    dependencies=[Depends(require_admin)],
 )
 
 
@@ -33,8 +35,8 @@ async def validate_lab_test_category_id(category_id: str) -> PydanticObjectId:
 
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
 async def get_Lab_test_type_with_page_size(
-    page_number: int,
-    page_size: int,
+    page_number: int = Path(..., ge=1),
+    page_size: int = Path(..., ge=1, le=100),
     name: str | None = Query(None),
     price: int | None = Query(None),
     unit: str | None = Query(None),
@@ -129,8 +131,11 @@ async def get_Lab_test_type_with_page_size(
 
 
 @router.get("/all", response_model=List[Lab_test_type])
-async def getAllTestTypes() -> List[Lab_test_type]:
-    cursor = DBLab_test_type.find()
+async def getAllTestTypes(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Lab_test_type]:
+    cursor = DBLab_test_type.find().sort("_id").skip(offset).limit(limit)
     lab_tests: List[Lab_test_type] = []
     async for test in cursor:
         db_category = await DBlab_test_category.find_one(

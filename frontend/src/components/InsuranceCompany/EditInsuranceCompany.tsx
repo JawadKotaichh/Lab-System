@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api";
+import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   iconStyle,
@@ -76,12 +76,14 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
     }
     try {
       if (insurance_company_id) {
-        api.put(InsuranceApiURL + insurance_company_id, data);
+        await api.put(InsuranceApiURL + insurance_company_id, data);
       } else {
-        api.post(InsuranceApiURL, data);
+        await api.post(InsuranceApiURL, data);
       }
       navigate(InsuranceMainPageURL);
-    } catch {}
+    } catch (err: unknown) {
+      setState(getApiErrorMessage(err, "Failed to save insurance company"));
+    }
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {

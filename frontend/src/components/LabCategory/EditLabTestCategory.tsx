@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api";
+import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   iconStyle,
@@ -63,12 +63,14 @@ const EditLabTestCategory = ({ title }: PageTitle) => {
     }
     try {
       if (lab_test_category_id) {
-        api.put(labTestCategoryApiURL + lab_test_category_id, data);
+        await api.put(labTestCategoryApiURL + lab_test_category_id, data);
       } else {
-        api.post(labTestCategoryApiURL, data);
+        await api.post(labTestCategoryApiURL, data);
       }
       navigate(labTestCategoryMainPageURL);
-    } catch {}
+    } catch (err: unknown) {
+      setState(getApiErrorMessage(err, "Failed to save lab test category"));
+    }
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from ..models import insurance_company as DBInsurance_company
 from ..schemas.schema_Insurance_Company import (
     Insurance_company,
@@ -11,14 +11,19 @@ from typing import Any, Dict, List
 from math import ceil
 from fastapi import Query
 from beanie import PydanticObjectId
+from .deps import require_admin
 
-router = APIRouter(prefix="/insurance_company", tags=["insurance_company"])
+router = APIRouter(
+    prefix="/insurance_company",
+    tags=["insurance_company"],
+    dependencies=[Depends(require_admin)],
+)
 
 
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
 async def get_insurance_company_with_page_size(
-    page_number: int,
-    page_size: int,
+    page_number: int = Path(..., ge=1),
+    page_size: int = Path(..., ge=1, le=100),
     insurance_company_name: str | None = Query(None),
     rate: float | None = Query(None),
 ):
@@ -58,17 +63,21 @@ async def get_insurance_company_with_page_size(
 
 
 @router.get("/get_currencies", response_model=List[str])
-async def get_currencies() -> List[str]:
-    cursor = DBInsurance_company.find()
-    currencies: set[str] = set()
-    async for insurance_company in cursor:
-        currencies.add(insurance_company.currency)
-    return list(currencies)
+async def get_currencies(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[str]:
+    currencies = await DBInsurance_company.get_motor_collection().distinct("currency")
+    sorted_currencies = sorted(currency for currency in currencies if currency)
+    return sorted_currencies[offset : offset + limit]
 
 
 @router.get("/all", response_model=List[Dict[str, Any]])
-async def getAllInsuranceCompany() -> List[Dict[str, Any]]:
-    cursor = DBInsurance_company.find()
+async def getAllInsuranceCompany(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
+    cursor = DBInsurance_company.find().sort("_id").skip(offset).limit(limit)
     all_insurance_companies: List[Dict[str, Any]] = []
     async for insurance_company in cursor:
         all_insurance_companies.append(

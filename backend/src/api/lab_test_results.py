@@ -1,6 +1,6 @@
 from collections import defaultdict
 from math import ceil
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from ..schemas.schema_Patient import Patient
 from ..models import lab_test_result as DBLab_test_result
@@ -23,6 +23,8 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from typing import Any, Dict, List
 from beanie import PydanticObjectId
+from .deps import require_admin, require_visit_access
+from ..schemas.financial_types import round_money
 
 router = APIRouter(
     prefix="/lab_tests_results",
@@ -34,6 +36,7 @@ router = APIRouter(
     "/{visit_id}/{lab_panel_id}",
     status_code=status.HTTP_201_CREATED,
     summary="Create a new lab test result panel for a patient in a visit",
+    dependencies=[Depends(require_admin)],
 )
 async def create_lab_panel_result(visit_id: str, lab_panel_id: str):
     if not PydanticObjectId.is_valid(visit_id):
@@ -94,6 +97,7 @@ async def create_lab_panel_result(visit_id: str, lab_panel_id: str):
     response_model=DBLab_test_result,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new lab test result for a patient in a visit",
+    dependencies=[Depends(require_admin)],
 )
 async def create_lab_test_result(visit_id: str, data: Lab_test_result):
     if not PydanticObjectId.is_valid(visit_id):
@@ -135,19 +139,20 @@ async def create_lab_test_result(visit_id: str, data: Lab_test_result):
     return new_lab_test_result
 
 
-@router.get("/completed/{visit_id}", response_model=Dict[str, Any])
+@router.get(
+    "/completed/{visit_id}",
+    response_model=Dict[str, Any],
+    dependencies=[Depends(require_admin)],
+)
 async def get_completed_and_total_results(visit_id: str):
-    mongo_filter_lab_test_results: dict[str, Any] = {}
-    if visit_id:
-        mongo_filter_lab_test_results["visit_id"] = PydanticObjectId(visit_id)
-    all_items = DBLab_test_result.find(
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(status_code=400, detail="Invalid visit ID")
+    all_items = await DBLab_test_result.find(
         DBLab_test_result.visit_id == PydanticObjectId(visit_id)
-    )
-    total_number_of_lab_test_results = await DBLab_test_result.find(
-        mongo_filter_lab_test_results
-    ).count()
+    ).to_list()
+    total_number_of_lab_test_results = len(all_items)
     completed = 0
-    totalPrice = 0.0
+    totalPrice = 0
     visit = await DBVisit.find_one(DBVisit.id == PydanticObjectId(visit_id))
     if not visit:
         raise HTTPException(
@@ -170,20 +175,28 @@ async def get_completed_and_total_results(visit_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Insurance Company {patient.insurance_company_id} not found",
         )
-    async for item in all_items:
-        lab_test = await DBLab_test_type.find_one(
-            DBLab_test_type.id == PydanticObjectId(item.lab_test_type_id)
-        )
+    lab_test_type_ids = list(
+        dict.fromkeys(item.lab_test_type_id for item in all_items)
+    )
+    lab_test_types = (
+        await DBLab_test_type.find({"_id": {"$in": lab_test_type_ids}}).to_list()
+        if lab_test_type_ids
+        else []
+    )
+    lab_test_types_by_id = {lab_test.id: lab_test for lab_test in lab_test_types}
+
+    for item in all_items:
+        lab_test = lab_test_types_by_id.get(item.lab_test_type_id)
         if lab_test is not None:
             totalPrice += lab_test.price
         if item.result != "":
             completed += 1
-    FinalTotalPrice = totalPrice * (insurance_company.rate)
+    FinalTotalPrice = round_money(totalPrice * insurance_company.rate)
     output: Dict[str, Any] = {
         "visit_id": str(visit_id),
         "countOfCompletedResults": completed,
         "totalNumberOfTests": total_number_of_lab_test_results,
-        "totalPrice": round(FinalTotalPrice, 2),
+        "totalPrice": FinalTotalPrice,
     }
     return output
 
@@ -194,12 +207,9 @@ async def get_completed_and_total_results(visit_id: str):
 )
 async def get_result_list(
     visit_id: str,
+    db_visit: DBVisit = Depends(require_visit_access),
 ):
-    visit_oid = PydanticObjectId(visit_id)
-
-    db_visit = await DBVisit.find_one(DBVisit.id == visit_oid)
-    if not db_visit:
-        raise HTTPException(400, detail=f"Invalid visit ID: {visit_id}")
+    visit_oid = db_visit.id
 
     db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
     if not db_patient:
@@ -396,14 +406,17 @@ async def get_result_list(
 @router.get(
     "/page/{visit_id}/{page_size}/{page_number}",
     response_model=paginatedMixedVisitResults,
+    dependencies=[Depends(require_admin)],
 )
 async def get_Lab_test_results_with_page_size(
     visit_id: str,
-    page_size: int,
-    page_number: int,
+    page_size: int = Path(..., ge=1, le=100),
+    page_number: int = Path(..., ge=1),
     # result: str | None = Query(None),
     # lab_test_type_id: str | None = Query(None),
 ):
+    if not PydanticObjectId.is_valid(visit_id):
+        raise HTTPException(status_code=400, detail="Invalid visit ID")
     offset = (page_number - 1) * page_size
     mongo_filter_lab_test_results: dict[str, Any] = {}
     if visit_id:
@@ -545,7 +558,10 @@ async def get_Lab_test_results_with_page_size(
     return output
 
 
-@router.put("/{lab_test_result_id}")
+@router.put(
+    "/{lab_test_result_id}",
+    dependencies=[Depends(require_admin)],
+)
 async def set_result(lab_test_result_id: str, result: str):
     if not PydanticObjectId.is_valid(lab_test_result_id):
         raise HTTPException(
@@ -558,7 +574,11 @@ async def set_result(lab_test_result_id: str, result: str):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/{lab_test_result_id}", response_model=DBLab_test_result)
+@router.get(
+    "/{lab_test_result_id}",
+    response_model=DBLab_test_result,
+    dependencies=[Depends(require_admin)],
+)
 async def get_lab_test_result(lab_test_result_id: str):
     lab_test_result = await DBLab_test_result.get(PydanticObjectId(lab_test_result_id))
     if not lab_test_result:
@@ -566,7 +586,11 @@ async def get_lab_test_result(lab_test_result_id: str):
     return lab_test_result
 
 
-@router.get("/", response_model=Page[DBLab_test_result])
+@router.get(
+    "/",
+    response_model=Page[DBLab_test_result],
+    dependencies=[Depends(require_admin)],
+)
 async def get_all_lab_test_results(visit_id: str):
     all_items = DBLab_test_result.find(
         DBLab_test_result.visit_id == PydanticObjectId(visit_id)
@@ -576,7 +600,11 @@ async def get_all_lab_test_results(visit_id: str):
 
 
 
-@router.delete("/delete_panels/{visit_id}/{lab_panel_id}", response_class=Response)
+@router.delete(
+    "/delete_panels/{visit_id}/{lab_panel_id}",
+    response_class=Response,
+    dependencies=[Depends(require_admin)],
+)
 async def delete_lab_panel_result(visit_id: str, lab_panel_id: str):
     lab_panel_to_be_deleted = await DBLab_panel.find_one(
         DBLab_panel.id == PydanticObjectId(lab_panel_id)
@@ -594,7 +622,11 @@ async def delete_lab_panel_result(visit_id: str, lab_panel_id: str):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.delete("/{lab_test_result_id}", response_class=Response)
+@router.delete(
+    "/{lab_test_result_id}",
+    response_class=Response,
+    dependencies=[Depends(require_admin)],
+)
 async def delete_lab_test_result(lab_test_result_id: str):
     if not PydanticObjectId.is_valid(lab_test_result_id):
         raise HTTPException(400, "Invalid lab_test_result ID")

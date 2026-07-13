@@ -1,5 +1,5 @@
 from datetime import datetime, time, timezone
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from ..models import Financial_transaction as DBfinancial_transaction
 from ..models import Invoice as DBInvoice
 from ..models import Patient as DBPatient
@@ -16,9 +16,15 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence
 from math import ceil
 from fastapi import Query
 from beanie import PydanticObjectId
+from .deps import require_admin
+from ..schemas.financial_types import round_money
 from zoneinfo import ZoneInfo
 
-router = APIRouter(prefix="/financial_transaction", tags=["financial_transactions"])
+router = APIRouter(
+    prefix="/financial_transaction",
+    tags=["financial_transactions"],
+    dependencies=[Depends(require_admin)],
+)
 TZ = ZoneInfo("Asia/Beirut")
 
 
@@ -111,8 +117,8 @@ async def get_financial_transactions_summary(
 
 @router.get("/page/{page_size}/{page_number}", response_model=Dict[str, Any])
 async def get_financial_transaction_with_page_size(
-    page_number: int,
-    page_size: int,
+    page_number: int = Path(..., ge=1),
+    page_size: int = Path(..., ge=1, le=100),
     type: str | None = Query(None),
     category: str | None = Query(None),
     currency: str | None = Query(None),
@@ -203,11 +209,17 @@ async def get_financial_transaction_with_page_size(
 
 
 @router.get("/get_all_currencies", response_model=List[Dict[str, Any]])
-async def getAllFinancialTransactionsCurrencies() -> List[Dict[str, Any]]:
+async def getAllFinancialTransactionsCurrencies(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
     pipeline: Sequence[Mapping[str, Any]] = [
         {"$sort": {"date": -1}},
         {"$group": {"_id": "$currency", "doc": {"$first": "$$ROOT"}}},
         {"$replaceRoot": {"newRoot": "$doc"}},
+        {"$sort": {"currency": 1}},
+        {"$skip": offset},
+        {"$limit": limit},
     ]
     cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
     all_financial_transactions_currencies: List[Dict[str, Any]] = []
@@ -223,11 +235,17 @@ async def getAllFinancialTransactionsCurrencies() -> List[Dict[str, Any]]:
 
 
 @router.get("/get_all_categories", response_model=List[Dict[str, Any]])
-async def getAllFinancialTransactionsCategories() -> List[Dict[str, Any]]:
+async def getAllFinancialTransactionsCategories(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
     pipeline: Sequence[Mapping[str, Any]] = [
         {"$sort": {"date": -1}},
         {"$group": {"_id": "$category", "doc": {"$first": "$$ROOT"}}},
         {"$replaceRoot": {"newRoot": "$doc"}},
+        {"$sort": {"category": 1}},
+        {"$skip": offset},
+        {"$limit": limit},
     ]
     cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
     all_financial_transactions_categories: List[Dict[str, Any]] = []
@@ -243,11 +261,17 @@ async def getAllFinancialTransactionsCategories() -> List[Dict[str, Any]]:
 
 
 @router.get("/get_all_types", response_model=List[Dict[str, Any]])
-async def getAllFinancialTransactionsTypes() -> List[Dict[str, Any]]:
+async def getAllFinancialTransactionsTypes(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
     pipeline: Sequence[Mapping[str, Any]] = [
         {"$sort": {"date": -1}},
         {"$group": {"_id": "$type", "doc": {"$first": "$$ROOT"}}},
         {"$replaceRoot": {"newRoot": "$doc"}},
+        {"$sort": {"type": 1}},
+        {"$skip": offset},
+        {"$limit": limit},
     ]
     cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
     all_financial_transactions_types: List[Dict[str, Any]] = []
@@ -263,28 +287,34 @@ async def getAllFinancialTransactionsTypes() -> List[Dict[str, Any]]:
 
 
 @router.get("/all", response_model=List[Dict[str, Any]])
-async def get_unique_category_financial_transactions() -> List[Dict[str, Any]]:
+async def get_unique_category_financial_transactions(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
     pipeline: Sequence[Mapping[str, Any]] = [
+        {"$match": {"category": {"$ne": "Visit By System"}}},
         {"$sort": {"date": -1}},
         {"$group": {"_id": "$category", "doc": {"$first": "$$ROOT"}}},
         {"$replaceRoot": {"newRoot": "$doc"}},
+        {"$sort": {"category": 1}},
+        {"$skip": offset},
+        {"$limit": limit},
     ]
 
     cursor = DBfinancial_transaction.get_motor_collection().aggregate(pipeline)
 
     results: List[Dict[str, Any]] = []
     async for element in cursor:
-        if element.get("category") != "Visit By System":
-            results.append(
-                {
-                    "type": element.get("type"),
-                    "date": element.get("date"),
-                    "amount": element.get("amount"),
-                    "currency": element.get("currency"),
-                    "description": element.get("description"),
-                    "category": element.get("category"),
-                }
-            )
+        results.append(
+            {
+                "type": element.get("type"),
+                "date": element.get("date"),
+                "amount": element.get("amount"),
+                "currency": element.get("currency"),
+                "description": element.get("description"),
+                "category": element.get("category"),
+            }
+        )
     return results
 
 
@@ -405,13 +435,15 @@ async def update_the_financial_transaction(
                     DBInsurance_company.id == db_patient.insurance_company_id
                 )
             if db_insurance_company:
-                total_price = 0.0
+                total_price = 0
                 for test in db_invoice.list_of_tests:
                     total_price += test.price
                 for panel in db_invoice.list_of_lab_panels:
                     total_price += panel.lab_panel_price
-                total_price *= db_insurance_company.rate
-                total_price += db_invoice.adjustment_minor
+                total_price = round_money(
+                    total_price * db_insurance_company.rate
+                    + db_invoice.adjustment_minor
+                )
                 db_visit.posted = db_invoice.total_paid >= total_price
                 await db_visit.replace()
             await db_invoice.replace()

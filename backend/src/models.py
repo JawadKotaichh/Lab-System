@@ -9,6 +9,7 @@ from typing import Union
 from pymongo import ASCENDING, IndexModel
 
 from .schemas.schema_Invoice import LabPanelChanged, LabTestChanged
+from .schemas.financial_types import Money, Rate, SignedMoney
 
 from .schemas.schema_Lab_Test_Type import (
     NormalValueByGender,
@@ -102,7 +103,7 @@ class lab_test_type(Document):
     lab_test_category_id: PydanticObjectId = Field(...)
     name: str = Field(...)
     unit: str = Field(...)
-    price: int = Field(...)
+    price: Money = Field(...)
     normal_value_list: List[
         Union[
             DescriptionOnly,
@@ -143,7 +144,7 @@ class lab_test_result(Document):
 
 class insurance_company(Document):
     insurance_company_name: str = Field(...)
-    rate: float = Field(...)
+    rate: Rate = Field(...)
     currency: str = Field(...)
 
     class Settings:
@@ -166,7 +167,7 @@ class lab_test_category(Document):
 class lab_panel(Document):
     nssf_id: int = Field(...)
     panel_name: str = Field(...)
-    lab_panel_price: float = Field(...)
+    lab_panel_price: Money = Field(...)
     lab_panel_category_id: PydanticObjectId = Field(...)
     list_of_test_type_ids: List[PydanticObjectId] = Field(...)
 
@@ -181,6 +182,25 @@ class Result_suggestions(Document):
 
     class Settings:
         name = "result_suggestions"
+        indexes = [
+            IndexModel(
+                [("lab_test_type_id", ASCENDING)],
+                name="idx_result_suggestion_lab_test_type_id",
+            ),
+            IndexModel([("value", ASCENDING)], name="idx_result_suggestion_value"),
+            IndexModel(
+                [("use_count", ASCENDING)],
+                name="idx_result_suggestion_use_count",
+            ),
+            IndexModel(
+                [
+                    ("lab_test_type_id", ASCENDING),
+                    ("value", ASCENDING),
+                    ("use_count", ASCENDING),
+                ],
+                name="idx_result_suggestion_lookup",
+            ),
+        ]
 
 
 class Invoice(Document):
@@ -189,16 +209,20 @@ class Invoice(Document):
     list_of_lab_panels: List[LabPanelResponse] = Field(...)
     visit_id: PydanticObjectId = Field(...)
     visit_date: datetime = Field(...)
-    adjustment_minor: float = Field(default=0.0)
+    adjustment_minor: SignedMoney = Field(default=0)
     insurance_company_id: PydanticObjectId = Field(...)
-    total_paid: float = Field(default=0.0)
+    total_paid: Money = Field(default=0)
     list_of_lab_tests_ids_changed: List[LabTestChanged] = Field(default=[])
     list_of_lab_panels_ids_changed: List[LabPanelChanged] = Field(default=[])
 
     class Settings:
         name = "Invoice"
         indexes = [
-            IndexModel([("visit_id", ASCENDING)], name="idx_invoice_visit_id"),
+            IndexModel(
+                [("visit_id", ASCENDING)],
+                name="uniq_invoice_visit_id",
+                unique=True,
+            ),
             IndexModel(
                 [("insurance_company_id", ASCENDING)],
                 name="idx_invoice_insurance_company_id",
@@ -214,7 +238,7 @@ class Invoice(Document):
 class Financial_transaction(Document):
     type: str = Field(...)
     date: datetime = Field(...)
-    amount: float = Field(...)
+    amount: Money = Field(...)
     currency: str = Field(...)
     description: str = Field(default="")
     category: str = Field(...)

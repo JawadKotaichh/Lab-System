@@ -32,7 +32,7 @@ import {
   loginUser,
   refreshSession,
   logoutUser,
-  createPatientAccount,
+  updateOwnAccount,
 } from "./components/utils";
 import { AuthUser, Role } from "./components/types";
 import UnauthorizedPage from "./components/UnauthorizedPage/UnauthorizedPage";
@@ -114,13 +114,12 @@ function LoginRoute({
   );
 }
 
-function EditPatientAccountRoute({ user }: { user: AuthUser }) {
-  const patient_id = user.user_id;
+function EditPatientAccountRoute({
+  onAccountUpdated,
+}: {
+  onAccountUpdated: (username: string) => void;
+}) {
   const navigate = useNavigate();
-  if (!patient_id) {
-    alert("Missing patient_id. Please try again.");
-    return <Navigate to="/my-visits" replace />;
-  }
   return (
     <LoginPage
       title="Profile"
@@ -131,8 +130,9 @@ function EditPatientAccountRoute({ user }: { user: AuthUser }) {
           return;
         }
         try {
-          await createPatientAccount(patient_id, username, password);
-          alert("Patient account created ✅");
+          const updated = await updateOwnAccount(username, password);
+          onAccountUpdated(updated.username);
+          alert("Profile updated ✅");
           navigate("/my-visits", { replace: true });
         } catch {
           alert("Failed to update patient account.");
@@ -202,6 +202,15 @@ const App: React.FC = () => {
   const handleLoginSuccess = (nextUser: AuthUser) => {
     setUser(nextUser);
     localStorage.setItem("auth_user", JSON.stringify(nextUser));
+  };
+
+  const handleAccountUpdated = (username: string) => {
+    setUser((currentUser) => {
+      if (!currentUser) return currentUser;
+      const updatedUser = { ...currentUser, username };
+      localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+      return updatedUser;
+    });
   };
 
   const handleLogout = async () => {
@@ -287,7 +296,9 @@ const App: React.FC = () => {
             path="/my-profile"
             element={
               <RequireAuth user={user} allowedRoles={["patient"]}>
-                <EditPatientAccountRoute user={user!} />
+                <EditPatientAccountRoute
+                  onAccountUpdated={handleAccountUpdated}
+                />
               </RequireAuth>
             }
           />

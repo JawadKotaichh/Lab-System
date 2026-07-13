@@ -6,7 +6,9 @@ services:
     #language: python
     #host: containerapp
     environment:
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongo:27017}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - REFRESH_PEPPER=${REFRESH_PEPPER:?REFRESH_PEPPER must be set}
     image: labsystemreg.azurecr.io/lab_system_backend:latest
     build:
       context: ./backend

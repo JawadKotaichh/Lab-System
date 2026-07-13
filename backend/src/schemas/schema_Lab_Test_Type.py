@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import ConfigDict, BaseModel, Field
 from typing import Union
+from .financial_types import Money
 
 
 class DescriptionOnly(BaseModel):
@@ -45,7 +46,7 @@ class Lab_test_type(BaseModel):
     lab_test_category_name: Optional[str] = Field(default=None)
     name: str = Field(...)
     unit: str = Field(...)
-    price: int = Field(...)
+    price: Money = Field(...)
     normal_value_list: List[
         Union[
             DescriptionOnly,
@@ -78,7 +79,7 @@ class update_Lab_test_type_model(BaseModel):
     lab_test_category_name: Optional[str] = Field(default=None)
     name: Optional[str] = None
     unit: Optional[str] = None
-    price: Optional[int] = None
+    price: Optional[Money] = None
     normal_value_list: Optional[
         List[
             Union[

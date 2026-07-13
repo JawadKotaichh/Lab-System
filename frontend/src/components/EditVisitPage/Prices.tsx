@@ -55,7 +55,7 @@ const Prices: React.FC<PricesParams> = ({
 
   const roundTo = (value: number, decimals: number) =>
     Number(value.toFixed(decimals));
-  const moneyDecimals = currency === "USD" ? 2 : 0;
+  const moneyDecimals = 3;
   const roundMoney = (value: number) => roundTo(value, moneyDecimals);
 
   const gross = roundMoney(totalPrice * patientInsuranceCompanyRate);
@@ -65,8 +65,11 @@ const Prices: React.FC<PricesParams> = ({
   const remaining = roundMoney(Math.max(0, netTotal - safePaid));
 
   const formatMoney = (value: number) => {
-    if (currency === "USD") return `${roundMoney(value)} $`;
-    return `${Math.round(value).toLocaleString("en-US")} LBP`;
+    if (currency === "USD") return `${roundMoney(value).toFixed(3)} $`;
+    return `${roundMoney(value).toLocaleString("en-US", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    })} LBP`;
   };
 
   useEffect(() => {

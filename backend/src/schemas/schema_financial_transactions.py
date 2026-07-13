@@ -1,12 +1,13 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
+from .financial_types import Money
 
 
 class financial_transaction(BaseModel):
     type: str = Field(...)
     date: datetime = Field(...)
-    amount: float = Field(...)
+    amount: Money = Field(...)
     currency: str = Field(...)
     description: str = Field(default="")
     category: str = Field(...)
@@ -16,7 +17,7 @@ class financial_transaction(BaseModel):
 class update_financial_transaction(BaseModel):
     type: Optional[str] = None
     date: Optional[datetime] = None
-    amount: Optional[float] = None
+    amount: Optional[Money] = None
     currency: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
@@ -27,7 +28,7 @@ class financial_transaction_with_id(BaseModel):
     id: str = Field(...)
     type: str = Field(...)
     date: datetime = Field(...)
-    amount: float = Field(...)
+    amount: Money = Field(...)
     currency: str = Field(...)
     description: str = Field(default="")
     category: str = Field(...)
