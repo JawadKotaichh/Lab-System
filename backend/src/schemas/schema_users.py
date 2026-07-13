@@ -18,6 +18,11 @@ class update_user(BaseModel):
     password: Optional[str] = None
 
 
+class self_update_user(BaseModel):
+    username: str = Field(..., min_length=1, max_length=128)
+    password: str = Field(..., min_length=1, max_length=256)
+
+
 class LoginResponse(BaseModel):
     ok: bool
     user_id: str

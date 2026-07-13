@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from ..models import lab_test_type as DBLab_test_type
 from ..models import lab_panel as DBLab_panel
 from ..models import lab_test_category as DBLab_test_category
@@ -16,11 +16,13 @@ from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
+from .deps import require_admin
 from typing import Any, Dict, List
 
 router = APIRouter(
     prefix="/lab_panel",
     tags=["lab_panel"],
+    dependencies=[Depends(require_admin)],
 )
 
 
@@ -69,7 +71,9 @@ async def create_lab_panel(data: Lab_Panel):
 
 @router.get("/page/{page_size}/{page_number}", response_model=LabPanelPaginatedResponse)
 async def get_Lab_panel_with_page_size(
-    page_size: int, page_number: int, panel_name: str | None = Query(None)
+    page_size: int = Path(..., ge=1, le=100),
+    page_number: int = Path(..., ge=1),
+    panel_name: str | None = Query(None),
 ):
     offset = (page_number - 1) * page_size
     mongo_filter = {}
@@ -157,8 +161,11 @@ async def get_Lab_panel_with_page_size(
 
 
 @router.get("/all", response_model=List[Dict[str, Any]])
-async def getAllLabPanels() -> List[Dict[str, Any]]:
-    cursor = DBLab_panel.find()
+async def getAllLabPanels(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
+    cursor = DBLab_panel.find().sort("_id").skip(offset).limit(limit)
     panels: List[Dict[str, Any]] = []
     async for panel in cursor:
         panels.append(

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { fetchVisitsPaginated } from "../utils";
-import { AuthUser, type visitData } from "../types";
+import type { visitData } from "../types";
 import Pagination from "../Pagination";
 import { pageListTitle, tableHead, tableItem } from "../../style";
 import { getVisitsColumnsUser } from "../tableData";
@@ -31,9 +31,6 @@ const UserVisitsPage: React.FC = () => {
     pageSize: 50,
   });
   const currentPage = pagination.pageIndex + 1;
-  const stored = localStorage.getItem("auth_user");
-  const user: AuthUser | null = stored ? JSON.parse(stored) : null;
-  const patientId = user?.user_id;
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -82,7 +79,6 @@ const UserVisitsPage: React.FC = () => {
           },
           {}
         );
-        if (patientId) filters["patient_id"] = patientId;
         const res = await fetchVisitsPaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
@@ -99,7 +95,7 @@ const UserVisitsPage: React.FC = () => {
     };
 
     loadPage();
-  }, [pagination.pageIndex, pagination.pageSize, columnFilters, patientId]);
+  }, [pagination.pageIndex, pagination.pageSize, columnFilters]);
 
   useEffect(() => {
     setPagination((old) =>

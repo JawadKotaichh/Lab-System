@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from ..models import lab_test_category as DBlab_test_category
 from ..schemas.schema_lab_test_category import lab_test_category, update_lab_test_category
 from beanie import PydanticObjectId
@@ -8,11 +8,20 @@ from fastapi_pagination.ext.beanie import apaginate
 from math import ceil
 from typing import Any, Dict, List
 from fastapi import Query
+from .deps import require_admin
 
-router = APIRouter(prefix="/lab_test_category", tags=["lab_test_category"])
+router = APIRouter(
+    prefix="/lab_test_category",
+    tags=["lab_test_category"],
+    dependencies=[Depends(require_admin)],
+)
 
 @router.get("/page/{page_size}/{page_number}",response_model=Dict[str, Any])
-async def get_lab_test_category_with_page_size(page_number:int,page_size:int,lab_test_category_name:str | None = Query(None)):
+async def get_lab_test_category_with_page_size(
+    page_number: int = Path(..., ge=1),
+    page_size: int = Path(..., ge=1, le=100),
+    lab_test_category_name: str | None = Query(None),
+):
     offset = (page_number - 1) * page_size
     insurance_companies: List[Dict[str, Any]] = []
     
@@ -38,8 +47,11 @@ async def get_lab_test_category_with_page_size(page_number:int,page_size:int,lab
     return result
 
 @router.get("/all",response_model= List[Dict[str, Any]])
-async def getAllTestTypeCategories() -> List[Dict[str, Any]]:
-    cursor = DBlab_test_category.find()
+async def getAllTestTypeCategories(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
+    cursor = DBlab_test_category.find().sort("_id").skip(offset).limit(limit)
     lab_test_categories: List[Dict[str, Any]] = []
     async for category in cursor:
         lab_test_categories.append({

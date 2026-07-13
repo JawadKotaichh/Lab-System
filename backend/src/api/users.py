@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from ..models import User as DBUser
 
 # from ..models import Admin as DBAdmin
@@ -16,9 +16,14 @@ from typing import Any, Dict, List
 # from fastapi import Query
 from beanie import PydanticObjectId
 from passlib.context import CryptContext
+from .deps import require_admin
 
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(
+    prefix="/users",
+    tags=["users"],
+    dependencies=[Depends(require_admin)],
+)
 
 pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
 
@@ -66,8 +71,11 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 @router.get("/all", response_model=List[Dict[str, Any]])
-async def getAllUsers() -> List[Dict[str, Any]]:
-    cursor = DBUser.find()
+async def getAllUsers(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
+    cursor = DBUser.find().sort("_id").skip(offset).limit(limit)
     all_users: List[Dict[str, Any]] = []
     async for user in cursor:
         all_users.append(

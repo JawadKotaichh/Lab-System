@@ -51,6 +51,22 @@ import {
   visitsApiURL,
 } from "./data.js";
 
+const BOUNDED_LIST_PAGE_SIZE = 100;
+
+const fetchAllBoundedPages = async <T,>(url: string): Promise<T[]> => {
+  const items: T[] = [];
+
+  for (let offset = 0; ; offset += BOUNDED_LIST_PAGE_SIZE) {
+    const response = await api.get<T[]>(url, {
+      params: { limit: BOUNDED_LIST_PAGE_SIZE, offset },
+    });
+    const page = response.data;
+    items.push(...page);
+
+    if (page.length < BOUNDED_LIST_PAGE_SIZE) return items;
+  }
+};
+
 const fetchVisit = async (visit_id: string): Promise<visitData> => {
   const url = `${visitsApiURL}${visit_id}`;
   const response = await api.get(url);
@@ -107,8 +123,7 @@ const getInsuranceCompanyRate = async (patient_id: string): Promise<number> => {
 };
 const fetchCurrencies = async (): Promise<string[]> => {
   const url = `${InsuranceApiURL}get_currencies`;
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<string>(url);
 };
 
 export async function fetchResultSuggestions(
@@ -158,8 +173,7 @@ const fetchLabTestResultsPaginated = async (
 
 const fetchAllLabTest = async (): Promise<labTest[]> => {
   const url = "/lab_test_type/all";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<labTest>(url);
 };
 const fetchLabTest = async (
   lab_test_type_id: string,
@@ -205,15 +219,13 @@ const fetchInsuranceCompaniesPaginated = async (
 
 const fetchAllPatients = async (): Promise<patientInfo[]> => {
   const url = "/patients/all";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<patientInfo>(url);
 };
 const fetchAllInsuranceCompanies = async (): Promise<
   insuranceCompanyParams[]
 > => {
   const url = "/insurance_company/all";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<insuranceCompanyParams>(url);
 };
 const fetchPatient = async (patient_id: string): Promise<patientInfo> => {
   const response = await api.get(`/patients/${patient_id}`);
@@ -252,30 +264,26 @@ const fetchAllLabTestTypeCategories = async (): Promise<
   labTestCategoryParams[]
 > => {
   const url = "/lab_test_category/all";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<labTestCategoryParams>(url);
 };
 
 const fetchAllfinancialTransactionsCategories = async (): Promise<
   transactionCategory[]
 > => {
   const url = "/financial_transaction/get_all_categories";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<transactionCategory>(url);
 };
 const fetchAllfinancialTransactionsCurrencies = async (): Promise<
   transactionCurrency[]
 > => {
   const url = "/financial_transaction/get_all_currencies";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<transactionCurrency>(url);
 };
 const fetchAllfinancialTransactionsTypes = async (): Promise<
   transactionType[]
 > => {
   const url = "/financial_transaction/get_all_types";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<transactionType>(url);
 };
 
 const fetchPatientsPaginated = async (
@@ -310,8 +318,7 @@ const fetchLabTestTypePaginated = async (
 
 const fetchAllVisits = async (): Promise<VisitsInfo[]> => {
   const url = `/visits/all`;
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<VisitsInfo>(url);
 };
 
 const fetchVisitsPaginated = async (
@@ -323,13 +330,11 @@ const fetchVisitsPaginated = async (
   const response = await api.get(url, { params: filters });
   return response.data;
 };
-const createPatientAccount = async (
-  user_id: string,
+const updateOwnAccount = async (
   username: string,
   password: string,
-): Promise<CreatePatientAccountProps> => {
-  const url = `/users/create_user/${user_id}`;
-  const response = await api.post(url, { user_id, username, password });
+): Promise<Pick<CreatePatientAccountProps, "username"> & { ok: boolean }> => {
+  const response = await api.put("/auth/me", { username, password });
   return response.data;
 };
 const loginUser = async (
@@ -392,8 +397,7 @@ const fetchAllFinancialTransactions = async (): Promise<
   financialTransaction[]
 > => {
   const url = "/financial_transaction/all";
-  const response = await api.get(url);
-  return response.data;
+  return fetchAllBoundedPages<financialTransaction>(url);
 };
 const getFinancialTransactionsSummary = async (
   searchData: financialTransactionsSummaryParams,
@@ -444,4 +448,4 @@ export { create_invoice };
 export { getMonthlyInvoiceSummary };
 export { fetchCurrencies };
 export { trackResultSuggestionUse };
-export { createPatientAccount };
+export { updateOwnAccount };

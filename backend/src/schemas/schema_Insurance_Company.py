@@ -1,10 +1,11 @@
 from typing import Optional
 from pydantic import ConfigDict, BaseModel, Field
+from .financial_types import Rate
 
 
 class Insurance_company(BaseModel):
     insurance_company_name: str = Field(...)
-    rate: float = Field(...)
+    rate: Rate = Field(...)
     currency: str = Field(...)
 
     model_config = ConfigDict(
@@ -25,7 +26,7 @@ class update_insurance_company(BaseModel):
     """
 
     insurance_company_name: Optional[str] = None
-    rate: Optional[float] = None
+    rate: Optional[Rate] = None
     currency: str = Field(...)
 
     model_config = ConfigDict(

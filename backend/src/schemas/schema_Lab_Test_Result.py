@@ -3,6 +3,7 @@ from pydantic import ConfigDict, BaseModel, Field
 from datetime import datetime
 from ..schemas.schema_Patient import Patient
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
+from .financial_types import Money
 
 
 class Lab_test_result(BaseModel):
@@ -38,7 +39,7 @@ class patientTestResult(BaseModel):
 class patientPanelResult(BaseModel):
     lab_panel_id: str
     lab_panel_name: str
-    lab_panel_price: float
+    lab_panel_price: Money
     list_of_test_results: List[patientTestResult]
     lab_panel_category_id: str
     lab_panel_category_name: str

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api";
+import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   iconStyle,
@@ -107,7 +107,9 @@ const EditPatientPage = ({ title }: PageTitle) => {
       window.dispatchEvent(new Event("patients:changed"));
 
       navigate(PatientsMainPageURL);
-    } catch {}
+    } catch (err: unknown) {
+      setState(getApiErrorMessage(err, "Failed to save patient"));
+    }
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {

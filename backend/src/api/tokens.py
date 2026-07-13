@@ -1,14 +1,14 @@
-import os
 import secrets
 import hashlib
 from datetime import datetime, timedelta, timezone
 from jose import jwt
+from ..settings import settings
 
-JWT_SECRET = os.getenv("JWT_SECRET", "")
+JWT_SECRET = settings.JWT_SECRET.get_secret_value()
 JWT_ALG = "HS256"
-ACCESS_MINUTES = int(os.getenv("ACCESS_MINUTES", "15"))
-REFRESH_DAYS = int(os.getenv("REFRESH_DAYS", "30"))
-REFRESH_PEPPER = os.getenv("REFRESH_PEPPER", "")
+ACCESS_MINUTES = settings.ACCESS_MINUTES
+REFRESH_DAYS = settings.REFRESH_DAYS
+REFRESH_PEPPER = settings.REFRESH_PEPPER.get_secret_value()
 
 
 def create_access_token(subject_id: str, role: str) -> str:

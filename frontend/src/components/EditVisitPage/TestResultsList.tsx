@@ -316,7 +316,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   value={getDisplayedPrice(
                     r.lab_test_type.lab_test_id,
                     r.lab_test_type.price,
-                  ).toFixed(2)}
+                  ).toFixed(3)}
                   onChange={(e) => {
                     const labTestTypeId = r.lab_test_type.lab_test_id;
                     setPriceEdits((prev) => ({

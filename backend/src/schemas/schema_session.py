@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
+from .financial_types import Rate
 
 
 def utcnow() -> datetime:
@@ -18,5 +19,5 @@ class Session(BaseModel):
 
 class update_session(BaseModel):
     insurance_company_name: Optional[str] = None
-    rate: Optional[float] = None
+    rate: Optional[Rate] = None
     currency: str = Field(...)

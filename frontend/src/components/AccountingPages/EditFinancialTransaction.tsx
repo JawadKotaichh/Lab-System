@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api";
+import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   iconStyle,
@@ -131,7 +131,9 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
       window.dispatchEvent(new Event("transactions:changed"));
 
       navigate(FinancialTransactionsMainPageURL);
-    } catch {}
+    } catch (err: unknown) {
+      setState(getApiErrorMessage(err, "Failed to save financial transaction"));
+    }
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {

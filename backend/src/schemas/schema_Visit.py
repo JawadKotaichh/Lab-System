@@ -5,6 +5,7 @@ from ..schemas.schema_Patient import Patient
 from typing import List
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
 from ..schemas.schema_Lab_Panel import Lab_Panel
+from .financial_types import Money, Rate
 
 
 class Visit(BaseModel):
@@ -39,21 +40,21 @@ class VisitData(BaseModel):
     patient: Patient
     completed_tests_results: int
     total_tests_results: int
-    total_price: float
-    total_price_with_insurance: float
+    total_price: Money
+    total_price_with_insurance: Money
     insurance_company_name: str
     currency: str
-    total_paid: float
+    total_paid: Money
 
 
 class visitInvoice(BaseModel):
     invoice_number: int
     listOfTests: List[Lab_test_type]
     listOfPanels: List[Lab_Panel]
-    totalPrice: float
+    totalPrice: Money
     patient: Patient
     visit_date: datetime
-    patient_insurance_company_rate: float
+    patient_insurance_company_rate: Rate
 
 
 class PaginatedVisitDataList(BaseModel):

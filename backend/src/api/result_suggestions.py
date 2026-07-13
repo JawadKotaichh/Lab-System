@@ -2,7 +2,7 @@ import re
 from typing import Any, Dict, List, Optional
 from beanie import SortDirection
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 
 from ..models import Result_suggestions as DBResult_suggestions
@@ -10,8 +10,13 @@ from ..schemas.schema_result_suggestions import (
     Result_suggestions,
     update_result_suggestions,
 )
+from .deps import require_admin
 
-router = APIRouter(prefix="/result_suggestions", tags=["result_suggestions"])
+router = APIRouter(
+    prefix="/result_suggestions",
+    tags=["result_suggestions"],
+    dependencies=[Depends(require_admin)],
+)
 
 
 def normalize(s: str) -> str:

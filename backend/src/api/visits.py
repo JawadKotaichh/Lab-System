@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, status, Query
 from datetime import date, datetime, time
 from typing import Optional
 from ..models import Visit as DBVisit
@@ -20,6 +20,7 @@ from ..schemas.schema_Visit import (
 )
 from collections import defaultdict
 from beanie import PydanticObjectId, SortDirection
+from .deps import get_current_principal, require_admin
 from fastapi.responses import Response
 from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
@@ -28,12 +29,17 @@ from typing import Any, Dict, List
 from ..schemas.schema_Patient import Patient
 from ..models import lab_test_type as DBLab_test_type
 from ..models import insurance_company as DBInsurance_company
+from ..schemas.financial_types import round_money
 
 
 router = APIRouter(prefix="/visits", tags=["visits"])
 
 
-@router.get("/{visit_id}/invoice", response_model=visitInvoice)
+@router.get(
+    "/{visit_id}/invoice",
+    response_model=visitInvoice,
+    dependencies=[Depends(require_admin)],
+)
 async def get_invoice(visit_id: str):
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(status_code=400, detail="Invalid Visit ID")
@@ -126,7 +132,7 @@ async def get_invoice(visit_id: str):
             )
             listOfTests.append(currentLabTest)
 
-    totalPrice = 0.0
+    totalPrice = 0
 
     for individual_test in list_of_individual_test_results:
         lab_test = await DBLab_test_type.get(
@@ -165,8 +171,8 @@ async def get_invoice(visit_id: str):
 
 @router.get("/page/{page_size}/{page_number}", response_model=PaginatedVisitDataList)
 async def get_visits_with_page_size(
-    page_number: int,
-    page_size: int,
+    page_number: int = Path(..., ge=1),
+    page_size: int = Path(..., ge=1, le=100),
     start_date: Optional[str] = Query(
         None, description="Filter visits by date prefix YYYY-MM-DD"
     ),
@@ -183,10 +189,17 @@ async def get_visits_with_page_size(
         None, description="Filter by insurance company name substring"
     ),
     patient_id: Optional[str] = Query(None, description="Filter by patient_id"),
+    principal: dict = Depends(get_current_principal),
 ):
     offset = (page_number - 1) * page_size
     mongo_filter_visits: Dict[str, Any] = {}
     mongo_filter_patients: Dict[str, Any] = {}
+
+    is_patient = principal.get("role") == "patient"
+    if principal.get("role") not in {"admin", "patient"}:
+        raise HTTPException(status_code=403, detail="Access denied")
+    if is_patient:
+        patient_id = principal["id"]
 
     if patient_id:
         if not PydanticObjectId.is_valid(patient_id):
@@ -194,7 +207,8 @@ async def get_visits_with_page_size(
                 status_code=400, detail=f"Invalid patient ID: {patient_id}"
             )
         mongo_filter_visits["patient_id"] = PydanticObjectId(patient_id)
-        mongo_filter_visits["posted"] = True
+        if is_patient:
+            mongo_filter_visits["posted"] = True
     else:
         if patient_name:
             mongo_filter_patients["name"] = {"$regex": patient_name, "$options": "i"}
@@ -367,7 +381,7 @@ async def get_visits_with_page_size(
         visit_lab_results = lab_results_by_visit_id.get(visit_id, [])
         total_tests_results = 0
         completed_tests_results = 0
-        total_price = 0.0
+        total_price = 0
         panel_ids_for_visit = set()
         for lab_result in visit_lab_results:
             total_tests_results += 1
@@ -398,20 +412,21 @@ async def get_visits_with_page_size(
                 status_code=404,
                 detail=f"Insurance Company {db_patient.insurance_company_id} not found",
             )
-        total_price_with_insurance = total_price * insurance_company.rate
         db_invoice = invoices_by_visit_id.get(visit_id)
         if not db_invoice:
             raise HTTPException(
                 status_code=404,
                 detail=f"Invoice with visit id: {visit_id} not found",
             )
+        total_price_with_insurance = round_money(
+            total_price * insurance_company.rate + db_invoice.adjustment_minor
+        )
         visits.append(
             VisitData(
                 posted=db_visit.posted,
                 total_price=total_price,
                 report_date=db_visit.report_date,
-                total_price_with_insurance=total_price_with_insurance
-                + db_invoice.adjustment_minor,
+                total_price_with_insurance=total_price_with_insurance,
                 patient=patient,
                 visit_id=str(visit_id),
                 visit_date=db_visit.visit_date,
@@ -431,9 +446,16 @@ async def get_visits_with_page_size(
     )
 
 
-@router.get("/all", response_model=List[Dict[str, Any]])
-async def getAllVisits() -> List[Dict[str, Any]]:
-    cursor = DBVisit.find()
+@router.get(
+    "/all",
+    response_model=List[Dict[str, Any]],
+    dependencies=[Depends(require_admin)],
+)
+async def getAllVisits(
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> List[Dict[str, Any]]:
+    cursor = DBVisit.find().sort("_id").skip(offset).limit(limit)
     visits: List[Dict[str, Any]] = []
     async for visit in cursor:
         visits.append(
@@ -446,7 +468,11 @@ async def getAllVisits() -> List[Dict[str, Any]]:
     return visits
 
 
-@router.get("/", response_model=Page[DBVisit])
+@router.get(
+    "/",
+    response_model=Page[DBVisit],
+    dependencies=[Depends(require_admin)],
+)
 async def get_visits_by_date_range(
     start_date: Optional[date] = Query(
         None, description="Include visits with date >= this (YYYY-MM-DD)"
@@ -479,6 +505,7 @@ async def get_visits_by_date_range(
     response_model=DBVisit,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new visit",
+    dependencies=[Depends(require_admin)],
 )
 async def create_visit(patient_id: PydanticObjectId, data: Visit):
     if not PydanticObjectId.is_valid(patient_id):
@@ -519,7 +546,7 @@ async def create_visit(patient_id: PydanticObjectId, data: Visit):
         type="Income",
         currency=db_insurance_company.currency,
         date=db_visit.visit_date,
-        amount=0.0,
+        amount=0,
         description=f"Paid by: {patient.name}",
         category="Visit By System",
         visit_id=new_visit.id,
@@ -532,7 +559,11 @@ async def create_visit(patient_id: PydanticObjectId, data: Visit):
     return new_visit
 
 
-@router.get("/{visit_id}", response_model=VisitData)
+@router.get(
+    "/{visit_id}",
+    response_model=VisitData,
+    dependencies=[Depends(require_admin)],
+)
 async def get_visit(visit_id: PydanticObjectId):
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
@@ -586,7 +617,9 @@ async def get_visit(visit_id: PydanticObjectId):
             status_code=404,
             detail=f"Invoice with visit id: {db_visit.id} not found",
         )
-    total_price_with_insurance = total_price * insurance_company.rate
+    total_price_with_insurance = round_money(
+        total_price * insurance_company.rate + db_invoice.adjustment_minor
+    )
     insurance_company_name = insurance_company.insurance_company_name
     visit_data = VisitData(
         posted=db_visit.posted,
@@ -605,7 +638,11 @@ async def get_visit(visit_id: PydanticObjectId):
     return visit_data
 
 
-@router.put("/{visit_id}", response_model=DBVisit)
+@router.put(
+    "/{visit_id}",
+    response_model=DBVisit,
+    dependencies=[Depends(require_admin)],
+)
 async def update_visit(visit_id: PydanticObjectId, update_data: update_visit_model):
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
@@ -629,7 +666,11 @@ async def update_visit(visit_id: PydanticObjectId, update_data: update_visit_mod
     return existing_visit
 
 
-@router.delete("/{visit_id}", response_class=Response)
+@router.delete(
+    "/{visit_id}",
+    response_class=Response,
+    dependencies=[Depends(require_admin)],
+)
 async def delete_visit(visit_id: PydanticObjectId):
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(400, "Invalid Visit ID")
