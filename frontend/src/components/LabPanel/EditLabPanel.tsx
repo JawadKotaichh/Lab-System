@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { labPanelsWithIdsList, labTestCategoryParams } from "../types";
 import {
   fetchAllLabTestTypeCategories,
@@ -16,7 +16,7 @@ import {
   tableItemPanel,
 } from "../../style";
 import { useNavigate, useParams } from "react-router-dom";
-import api from "../../api";
+import api, { getApiErrorMessage } from "../../api";
 import {
   labPanelApiURL,
   labPanelMainPageURL,
@@ -38,6 +38,8 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const [show, setShow] = useState<boolean>(false);
   const [addError, setAddError] = useState<string>("");
   const [state, setState] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -157,6 +159,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   const handleAddButton = () => setShow(true);
 
   const handleSave = async () => {
+    if (savingRef.current) return;
     if (
       !data.lab_panel.panel_name ||
       data.list_of_lab_test_ids.length === 0 ||
@@ -167,6 +170,9 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       setState("Please insert all the required fields!");
       return;
     }
+    setState("");
+    savingRef.current = true;
+    setSaving(true);
     try {
       if (lab_panel_id) {
         await api.put(`${labPanelApiURL}/${lab_panel_id}`, {
@@ -188,6 +194,10 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       navigate(labPanelMainPageURL);
     } catch (err) {
       console.error(err);
+      setState(getApiErrorMessage(err, "Could not save lab panel. Your edits are kept."));
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   };
   if (loading) return <LoadingPage title="Loading lab categories ..." />;
@@ -341,11 +351,11 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       />
 
       <div className="flex justify-end">
-        <button type="button" className={inputFormSave} onClick={handleSave}>
-          Save
+        <button type="button" disabled={saving} aria-busy={saving} className={`${inputFormSave} disabled:opacity-60 disabled:cursor-wait`} onClick={handleSave}>
+          {saving ? "Saving…" : "Save"}
         </button>
       </div>
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
       <span>
         {data.list_of_lab_test_ids.length === 0
           ? "No tests in this panel yet."

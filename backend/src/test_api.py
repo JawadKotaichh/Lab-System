@@ -5,6 +5,8 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from beanie import PydanticObjectId
+from beanie.odm.utils.encoder import Encoder
+from bson import Decimal128
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from pydantic import TypeAdapter
@@ -17,7 +19,8 @@ from src.models import Admin as DBAdmin
 from src.models import Invoice as DBInvoice
 from src.models import User as DBUser
 from src.models import Visit as DBVisit
-from src.schemas.financial_types import Money, Rate, round_money
+from src.models import lab_panel as DBLabPanel
+from src.schemas.financial_types import Money, Rate, SignedMoney, round_money
 from src.schemas.schema_Invoice import LabTestChanged
 from src.schemas.schema_Invoice import PaginatedInvoices
 from src.schemas.schema_users import self_update_user
@@ -123,6 +126,41 @@ class ApiContractTests(unittest.TestCase):
 
 
 class RegressionTests(unittest.IsolatedAsyncioTestCase):
+    def test_financial_values_round_trip_through_beanie_bson_encoding(self):
+        for field_type, value in (
+            (Money, Decimal("45.125")),
+            (SignedMoney, Decimal("-10.250")),
+            (Rate, Decimal("0.07")),
+            (Rate, Decimal("8500")),
+        ):
+            with self.subTest(value=value):
+                stored = Encoder(to_db=True).encode({"value": value})["value"]
+                self.assertIsInstance(stored, Decimal128)
+                adapter = TypeAdapter(field_type)
+                decoded = adapter.validate_python(stored)
+                self.assertEqual(decoded, value)
+                self.assertEqual(adapter.dump_python(decoded, mode="json"), float(value))
+
+    def test_saved_lab_panel_with_bson_price_can_be_loaded(self):
+        with patch.object(DBLabPanel, "get_motor_collection", return_value=object()):
+            panel = DBLabPanel.model_validate({
+                "_id": PydanticObjectId(),
+                "nssf_id": 123,
+                "panel_name": "Example panel",
+                "lab_panel_price": Decimal128("45"),
+                "lab_panel_category_id": PydanticObjectId(),
+                "list_of_test_type_ids": [PydanticObjectId()],
+            })
+        self.assertEqual(panel.lab_panel_price, Decimal("45"))
+        self.assertEqual(panel.model_dump(mode="json")["lab_panel_price"], 45.0)
+
+    def test_bson_money_still_enforces_amount_and_precision_limits(self):
+        adapter = TypeAdapter(Money)
+        for invalid in ("-1", "1.0001", "1000000000001", "NaN", "Infinity"):
+            with self.subTest(value=invalid):
+                with self.assertRaises(ValueError):
+                    adapter.validate_python(Decimal128(invalid))
+
     def test_insurance_rates_support_currency_conversion_multipliers(self):
         adapter = TypeAdapter(Rate)
         for rate in ("0.2", "1", "7200", "90000"):
