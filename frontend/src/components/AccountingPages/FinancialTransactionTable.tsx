@@ -10,9 +10,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnFiltersState,
-  type PaginationState,
-  type SortingState,
 } from "@tanstack/react-table";
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
@@ -22,6 +19,7 @@ import {
   useFinancialTransactionsOptions,
 } from "../../hooks/useLabTestCategoryOptions";
 import { FilePlus } from "lucide-react";
+import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 const FinancialTransactionsTable: React.FC = () => {
   const [data, setData] = useState<financialTransaction[]>([]);
@@ -29,19 +27,22 @@ const FinancialTransactionsTable: React.FC = () => {
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
 
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 50,
-  });
+  const {
+    sorting,
+    setSorting,
+    pagination,
+    setPagination,
+    columnFilters,
+    setColumnFilters,
+    showFilters,
+    setShowFilters,
+  } = usePersistedTableState();
   const currentPage = pagination.pageIndex + 1;
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
-  const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const toggleFilter = (colId: string) =>
     setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
 
@@ -122,12 +123,6 @@ const FinancialTransactionsTable: React.FC = () => {
     return () =>
       window.removeEventListener("financialTransaction-deleted", handleRefresh);
   }, []);
-
-  useEffect(() => {
-    setPagination((old) =>
-      old.pageIndex === 0 ? old : { ...old, pageIndex: 0 }
-    );
-  }, [columnFilters]);
 
   if (loading) return <LoadingPage title="Loading financial transactions..." />;
 

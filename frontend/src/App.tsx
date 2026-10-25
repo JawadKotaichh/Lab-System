@@ -230,12 +230,12 @@ const App: React.FC = () => {
       {user && (
         <nav className="bg-white shadow w-full border-b">
           <div className="flex items-center h-20">
-            <div className="pl-4">
+            <div className="shrink-0 pl-4">
               <Link to="/">
                 <img
                   src={`${baseURLL}/branding/logo`}
                   alt="logo"
-                  className="h-12 w-auto"
+                  className="h-16 w-auto"
                 />
               </Link>
             </div>

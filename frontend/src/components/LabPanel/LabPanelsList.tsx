@@ -21,6 +21,7 @@ import SearchLabPanel from "./SearchLabPanel";
 import renderNormalValue from "../renderNormalValue";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import { ClipboardList } from "lucide-react";
+import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 function useDebounced<T>(value: T, delay = 500) {
   const [v, setV] = useState(value);
@@ -35,13 +36,27 @@ const LabPanelsList = () => {
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(50);
   const [totalNumberOfLabPanels, setTotalNumberOfLabPanels] =
     useState<number>(0);
   const navigate = useNavigate();
-  const [searchInput, setSearchInput] = useState<string>("");
+  const { pagination, setPagination, columnFilters, setColumnFilters } =
+    usePersistedTableState();
+  const currentPage = pagination.pageIndex + 1;
+  const pageSize = pagination.pageSize;
+  const searchInput = String(
+    columnFilters.find((filter) => filter.id === "panel_name")?.value ?? "",
+  );
+  const setSearchInput = (value: string) => {
+    setColumnFilters((current) => [
+      ...current.filter((filter) => filter.id !== "panel_name"),
+      ...(value ? [{ id: "panel_name", value }] : []),
+    ]);
+  };
+  const setCurrentPage = (page: number) =>
+    setPagination((current) => ({ ...current, pageIndex: page - 1 }));
+  const setPageSize = (size: number) =>
+    setPagination((current) => ({ ...current, pageSize: size, pageIndex: 0 }));
 
   const debouncedSearch = useDebounced(searchInput, 500);
 
@@ -65,17 +80,16 @@ const LabPanelsList = () => {
       setTotalNumberOfLabPanels((n) => Math.max(0, n - 1));
       setTimeout(() => {
         if (availableLabPanels.length === 1 && currentPage > 1) {
-          setCurrentPage((p) => p - 1);
+          setPagination((current) => ({
+            ...current,
+            pageIndex: current.pageIndex - 1,
+          }));
         }
       }, 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
   };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
 
   useEffect(() => {
     let canceled = false;

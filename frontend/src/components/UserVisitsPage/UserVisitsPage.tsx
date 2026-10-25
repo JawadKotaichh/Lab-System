@@ -10,12 +10,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnFiltersState,
-  type PaginationState,
-  type SortingState,
 } from "@tanstack/react-table";
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
+import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 const UserVisitsPage: React.FC = () => {
   const [data, setData] = useState<visitData[]>([]);
@@ -23,19 +21,20 @@ const UserVisitsPage: React.FC = () => {
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
 
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "visit_date", desc: true },
-  ]);
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 50,
-  });
+  const {
+    sorting,
+    setSorting,
+    pagination,
+    setPagination,
+    columnFilters,
+    setColumnFilters,
+    showFilters,
+    setShowFilters,
+  } = usePersistedTableState([{ id: "visit_date", desc: true }]);
   const currentPage = pagination.pageIndex + 1;
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
-  const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const toggleFilter = (colId: string) =>
     setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
 
@@ -74,7 +73,14 @@ const UserVisitsPage: React.FC = () => {
       try {
         const filters = columnFilters.reduce<Record<string, string>>(
           (acc, f) => {
-            acc[f.id] = String(f.value);
+            if (f.id === "visit_date") {
+              if (f.value) {
+                acc.start_date = String(f.value);
+                acc.end_date = String(f.value);
+              }
+            } else {
+              acc[f.id] = String(f.value);
+            }
             return acc;
           },
           {}
@@ -96,12 +102,6 @@ const UserVisitsPage: React.FC = () => {
 
     loadPage();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters]);
-
-  useEffect(() => {
-    setPagination((old) =>
-      old.pageIndex === 0 ? old : { ...old, pageIndex: 0 }
-    );
-  }, [columnFilters]);
 
   if (loading) return <LoadingPage title="Loading visits ..." />;
 

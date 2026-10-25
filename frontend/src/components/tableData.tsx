@@ -1,7 +1,7 @@
 import React from "react";
 import { tableHandleButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
-import { ClipboardPlus, RotateCw } from "lucide-react";
+import { ClipboardPlus, FileText, RotateCw } from "lucide-react";
 import type {
   insuranceCompanyParams,
   labPanelsWithIdsList,
@@ -1509,15 +1509,14 @@ export function getVisitsColumnsUser(
         const { visit_id } = row.original;
         return (
           <div className="flex justify-center gap-4">
-            <MeatballsMenu
-              items={[
-                {
-                  label: "Preview Result",
-                  onClick: () => navigate(`/result/${visit_id}`),
-                  className: "text-blue-800",
-                },
-              ]}
-            />
+            <button
+              type="button"
+              onClick={() => navigate(`/result/${visit_id}`)}
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 cursor-pointer"
+            >
+              <FileText className="h-4 w-4" aria-hidden="true" />
+              View results
+            </button>
           </div>
         );
       },
