@@ -120,7 +120,7 @@ const LabTestCategoryTable = () => {
   return (
     <div className="p-8 bg-white">
       {/* <div className="grid grid-cols-2">
-        <h1 className={pageListTitle}>Lab Tests Category List</h1>
+        <h1 className={pageListTitle}>Lab Test Categories</h1>
         <button
           className={`${tableCreateButton} ml-auto text-xl`}
           onClick={() => handleCreateLabTestCategory(navigate)}
@@ -129,7 +129,7 @@ const LabTestCategoryTable = () => {
         </button>
       </div> */}
       <div className="flex items-center justify-between gap-4 mb-4">
-        <h1 className={pageListTitle}>Lab Tests Category List</h1>
+        <h1 className={pageListTitle}>Lab Test Categories</h1>
 
         <button
           type="button"

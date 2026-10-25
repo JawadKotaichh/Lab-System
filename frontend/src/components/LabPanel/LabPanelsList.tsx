@@ -4,7 +4,6 @@ import { fetchLabPanelsPaginated } from "../utils";
 import {
   pageListTitle,
   // tableCreateButton,
-  tableDeleteButton,
   tableHandleButton,
   tableItem,
   tableItemPanel,
@@ -20,7 +19,7 @@ import Pagination from "../Pagination";
 import SearchLabPanel from "./SearchLabPanel";
 import renderNormalValue from "../renderNormalValue";
 import LoadingPage from "../LoadingPage/LoadingPage";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Trash2 } from "lucide-react";
 import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 function useDebounced<T>(value: T, delay = 500) {
@@ -250,7 +249,7 @@ const LabPanelsList = () => {
     // </div>
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between gap-4 mb-4">
-        <h1 className={pageListTitle}>Lab Panels List</h1>
+        <h1 className={pageListTitle}>Lab Panels</h1>
 
         <button
           type="button"
@@ -306,10 +305,13 @@ const LabPanelsList = () => {
                             Edit
                           </button>
                           <button
-                            className={tableDeleteButton}
+                            type="button"
+                            className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+                            title="Delete lab panel"
+                            aria-label={`Delete lab panel ${lp.panel_name}`}
                             onClick={() => handleDeleteLabPanel(lp.id)}
                           >
-                            Delete
+                            <Trash2 className="h-5 w-5" aria-hidden="true" />
                           </button>
                         </div>
                       </div>

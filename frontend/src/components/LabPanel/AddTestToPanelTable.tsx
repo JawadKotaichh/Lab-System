@@ -8,6 +8,8 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import { LoaderCircle, X } from "lucide-react";
 import type { labPanelsWithIdsList, labTest } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
@@ -17,14 +19,8 @@ import {
   useLabTestCategoryOptions,
 } from "../../hooks/useLabTestCategoryOptions";
 import Pagination from "../Pagination";
-import {
-  pageListTitle,
-  tableDeleteButton,
-  tableHead,
-  tableItem,
-} from "../../style";
+import { tableHead, tableItem } from "../../style";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingPage from "../LoadingPage/LoadingPage";
 
 interface TestsList {
   addError: string;
@@ -141,49 +137,63 @@ const AddTestToPanelTable: React.FC<TestsList> = ({
     );
   }, [columnFilters]);
 
-  if (loading) return <LoadingPage title="Loading Lab Tests ..." />;
-
   return (
-    <>
-      {showAddForLabPanels && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded shadow-lg w-fit max-h-[80vh] overflow-y-auto">
-            <div className="p-8 bg-white">
-              {error && <div className="text-red-600">{error}</div>}
-              {addError && <div className="text-red-600">{addError}</div>}
-
-              {showAddForLabPanels && (
-                <>
-                  <h1 className={pageListTitle}>Add Lab Test</h1>
-                  <button
-                    className={tableDeleteButton + " mb-2"}
-                    onClick={() => setShowAddForLabPanels(false)}
-                  >
-                    Close
-                  </button>
-                  <GenericTable
-                    table={labTestsTable}
-                    loading={loading}
-                    tableHeadStyle={tableHead}
-                    cellStyle={tableItem}
-                    noDataMessage="No lab tests found"
-                  />
-
-                  <Pagination
-                    TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
-                    currentPage={pagination.pageIndex + 1}
-                    totalPages={totalPages}
-                    setCurrentPage={handleSetPage}
-                    pageSize={pagination.pageSize}
-                    setPageSize={handleSetPageSize}
-                  />
-                </>
-              )}
+    <Dialog
+      open={showAddForLabPanels}
+      onClose={() => setShowAddForLabPanels(false)}
+      className="relative z-50"
+    >
+      <DialogBackdrop className="fixed inset-0 bg-slate-900/45 backdrop-blur-sm" />
+      <div className="fixed inset-0 flex items-center justify-center p-3 sm:p-6">
+        <DialogPanel className="flex max-h-[90dvh] w-full max-w-[96rem] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10">
+          <header className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+            <div>
+              <DialogTitle className="text-xl font-semibold text-slate-900">Add Lab Test</DialogTitle>
+              <p className="mt-1 text-sm text-slate-500">Choose a test to add to this panel.</p>
             </div>
+            <button
+              type="button"
+              data-autofocus
+              onClick={() => setShowAddForLabPanels(false)}
+              aria-label="Close add lab test dialog"
+              className="shrink-0 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 cursor-pointer"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </header>
+
+          <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6" aria-busy={loading}>
+            {error && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+            {addError && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{addError}</div>}
+            {loading ? (
+              <div role="status" className="flex min-h-40 items-center justify-center gap-3 text-slate-500">
+                <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" />
+                Loading lab tests…
+              </div>
+            ) : (
+              <GenericTable
+                table={labTestsTable}
+                loading={loading}
+                tableHeadStyle={tableHead}
+                cellStyle={tableItem}
+                noDataMessage="No lab tests found"
+              />
+            )}
           </div>
-        </div>
-      )}
-    </>
+
+          <footer className="shrink-0 overflow-x-auto border-t border-slate-200 bg-slate-50 px-5 sm:px-6">
+            <Pagination
+              TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
+              currentPage={pagination.pageIndex + 1}
+              totalPages={totalPages}
+              setCurrentPage={handleSetPage}
+              pageSize={pagination.pageSize}
+              setPageSize={handleSetPageSize}
+            />
+          </footer>
+        </DialogPanel>
+      </div>
+    </Dialog>
   );
 };
 

@@ -121,7 +121,7 @@ const LabTestTable = () => {
   return (
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between gap-4 mb-4">
-        <h1 className={pageListTitle}>Lab Test List</h1>
+        <h1 className={pageListTitle}>Lab Tests</h1>
         <button
           type="button"
           onClick={() => handleCreateLabTest(navigate)}

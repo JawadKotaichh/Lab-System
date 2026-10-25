@@ -21,6 +21,7 @@ async def init_db():
     client = AsyncIOMotorClient(settings.MONGODB_URL)
     await init_beanie(
         database=client["lab_system"],
+        skip_indexes=not settings.MANAGE_DB_INDEXES,
         document_models=[
             Visit,
             Patient,
