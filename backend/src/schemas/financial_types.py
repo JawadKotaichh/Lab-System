@@ -1,7 +1,8 @@
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Annotated
 
-from pydantic import Field, PlainSerializer
+from bson import Decimal128
+from pydantic import BeforeValidator, Field, PlainSerializer
 
 
 MAX_MONEY = Decimal("1000000000000")
@@ -20,9 +21,15 @@ def _as_json_number(value: Decimal) -> float:
     return float(value)
 
 
+def _from_bson_decimal(value: object) -> object:
+    """Decode Beanie's BSON decimal storage before applying numeric validation."""
+    return value.to_decimal() if isinstance(value, Decimal128) else value
+
+
 Money = Annotated[
     Decimal,
     Field(ge=Decimal("0"), le=MAX_MONEY, max_digits=16, decimal_places=3),
+    BeforeValidator(_from_bson_decimal),
     PlainSerializer(_as_json_number, return_type=float, when_used="json"),
 ]
 
@@ -34,6 +41,7 @@ SignedMoney = Annotated[
         max_digits=16,
         decimal_places=3,
     ),
+    BeforeValidator(_from_bson_decimal),
     PlainSerializer(_as_json_number, return_type=float, when_used="json"),
 ]
 
@@ -41,5 +49,6 @@ Rate = Annotated[
     Decimal,
     # Insurance pricing rates also convert currencies, so they may exceed one.
     Field(ge=Decimal("0"), le=MAX_MONEY, max_digits=17, decimal_places=4),
+    BeforeValidator(_from_bson_decimal),
     PlainSerializer(_as_json_number, return_type=float, when_used="json"),
 ]
