@@ -33,6 +33,10 @@ export function DateRangeFilter<TData>({
   const toId = `${column.id}-to`;
 
   useEffect(() => {
+    setDraft({ start: initial?.start ?? "", end: initial?.end ?? "" });
+  }, [initial?.start, initial?.end]);
+
+  useEffect(() => {
     const current = column.getFilterValue() as DateRangeValue | undefined;
     const currentStart = current?.start ?? "";
     const currentEnd = current?.end ?? "";

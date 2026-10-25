@@ -1,10 +1,7 @@
 import {
   useReactTable,
-  type ColumnFiltersState,
   getCoreRowModel,
   getPaginationRowModel,
-  type PaginationState,
-  type SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
@@ -23,6 +20,7 @@ import { getInsuranceCompanyColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import { Building2 } from "lucide-react";
+import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 const InsuranceCompanyTable = () => {
   const [data, setData] = useState<insuranceCompanyParams[]>([]);
@@ -30,20 +28,23 @@ const InsuranceCompanyTable = () => {
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
 
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 50,
-  });
+  const {
+    sorting,
+    setSorting,
+    pagination,
+    setPagination,
+    columnFilters,
+    setColumnFilters,
+    showFilters,
+    setShowFilters,
+  } = usePersistedTableState();
   const currentPage = pagination.pageIndex + 1;
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
 
-  const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const toggleFilter = (colId: string) =>
     setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
 
@@ -106,12 +107,6 @@ const InsuranceCompanyTable = () => {
 
     loadPage();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
-
-  useEffect(() => {
-    setPagination((old) =>
-      old.pageIndex === 0 ? old : { ...old, pageIndex: 0 }
-    );
-  }, [columnFilters]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

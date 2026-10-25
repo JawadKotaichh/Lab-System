@@ -12,12 +12,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnFiltersState,
-  type PaginationState,
-  type SortingState,
 } from "@tanstack/react-table";
 import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
+import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 const VisitsTable: React.FC = () => {
   const [data, setData] = useState<visitData[]>([]);
@@ -25,21 +23,22 @@ const VisitsTable: React.FC = () => {
   const [totalNumberOfPaginatedItems, setTotalNumberOfPaginatedItems] =
     useState(0);
 
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "visit_date", desc: true },
-  ]);
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 50,
-  });
+  const {
+    sorting,
+    setSorting,
+    pagination,
+    setPagination,
+    columnFilters,
+    setColumnFilters,
+    showFilters,
+    setShowFilters,
+  } = usePersistedTableState([{ id: "visit_date", desc: true }]);
   const currentPage = pagination.pageIndex + 1;
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
-  const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const toggleFilter = (colId: string) =>
     setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
 
@@ -111,12 +110,6 @@ const VisitsTable: React.FC = () => {
     window.addEventListener("visit-deleted", handleRefresh);
     return () => window.removeEventListener("visit-deleted", handleRefresh);
   }, []);
-
-  useEffect(() => {
-    setPagination((old) =>
-      old.pageIndex === 0 ? old : { ...old, pageIndex: 0 }
-    );
-  }, [columnFilters]);
 
   if (loading) return <LoadingPage title="Loading visits ..." />;
 
