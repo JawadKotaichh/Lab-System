@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import { getApiErrorMessage } from "../../api.js";
+import SaveFeedback, { type SaveState } from "./SaveFeedback.js";
 import {
   type lab_panel_changed,
   type lab_test_changed,
@@ -36,6 +38,9 @@ const Prices: React.FC<PricesParams> = ({
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
     useState<number>(0);
+  const [billingSave, setBillingSave] = useState<SaveState>({ status: "idle" });
+  const [savingBilling, setSavingBilling] = useState(false);
+  const [retrySave, setRetrySave] = useState(0);
 
   const [draftAdjustment, setDraftAdjustment] = useState<number>(
     updatedInvoiceData.adjustment_minor ?? 0
@@ -148,8 +153,15 @@ const Prices: React.FC<PricesParams> = ({
         payload.total_paid = safeDebouncedPaid;
       }
 
-      if (Object.keys(payload).length === 0) return;
+      if (Object.keys(payload).length === 0) {
+        setBillingSave((previous) => previous.status === "saving"
+          ? { status: "saved", message: "Billing is up to date" }
+          : previous);
+        return;
+      }
 
+      setSavingBilling(true);
+      setBillingSave({ status: "saving", message: "Saving billing changes…" });
       try {
         await updateInvoice(visit_id, payload);
         const fetched = await fetchInvoice(visit_id);
@@ -158,9 +170,12 @@ const Prices: React.FC<PricesParams> = ({
         prevSyncedAdjustment.current =
           fetched.invoice_data.adjustment_minor ?? 0;
         prevSyncedTotalPaid.current = fetched.invoice_data.total_paid ?? 0;
+        setBillingSave({ status: "saved", message: "Billing changes saved" });
       } catch (err: unknown) {
         console.error(err);
-        if (err instanceof Error) setError(err.message);
+        setBillingSave({ status: "error", message: getApiErrorMessage(err, "Billing changes could not be saved. Your edits are kept.") });
+      } finally {
+        setSavingBilling(false);
       }
     };
 
@@ -171,23 +186,32 @@ const Prices: React.FC<PricesParams> = ({
     visit_id,
     setError,
     setUpdatedInvoiceData,
+    retrySave,
   ]);
 
   const handleAdjustmentInputChange = (value: string) => {
     const parsed = Number(value);
-    if (Number.isNaN(parsed)) return setDraftAdjustment(0);
-
-    setDraftAdjustment(parsed);
+    const next = Number.isFinite(parsed) ? parsed : 0;
+    setDraftAdjustment(next);
+    setBillingSave(next === prevSyncedAdjustment.current && draftTotalPaid === prevSyncedTotalPaid.current
+      ? { status: "saved", message: "Billing is up to date" }
+      : { status: "saving", message: "Waiting to save billing changes…" });
   };
   const handleTotalPaidChange = (value: string) => {
     const parsed = Number(value);
-    if (Number.isNaN(parsed)) return setDraftTotalPaid(0);
-
-    setDraftTotalPaid(clamp(parsed, 0, netTotal));
+    const next = Number.isFinite(parsed) ? clamp(parsed, 0, netTotal) : 0;
+    setDraftTotalPaid(next);
+    setBillingSave(next === prevSyncedTotalPaid.current && draftAdjustment === prevSyncedAdjustment.current
+      ? { status: "saved", message: "Billing is up to date" }
+      : { status: "saving", message: "Waiting to save billing changes…" });
   };
 
   return (
     <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-10">
+      <caption className="caption-bottom p-3 text-left">
+        <span className="mr-3 text-sm text-gray-500">Adjustment and payment save automatically.</span>
+        <SaveFeedback state={billingSave} onRetry={() => setRetrySave((attempt) => attempt + 1)} />
+      </caption>
       <thead className="bg-gray-300 border-b border-black top-0 z-10">
         <tr>
           <th className="h-8 px-0 py-2">Total Price</th>
@@ -209,6 +233,7 @@ const Prices: React.FC<PricesParams> = ({
                 <input
                   value={draftAdjustment}
                   type="number"
+                  disabled={savingBilling}
                   onChange={(e) => handleAdjustmentInputChange(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                   className="w-16 text-right"
@@ -230,6 +255,7 @@ const Prices: React.FC<PricesParams> = ({
                 <input
                   value={draftTotalPaid}
                   type="number"
+                  disabled={savingBilling}
                   onChange={(e) => handleTotalPaidChange(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                   className="w-24 text-right"

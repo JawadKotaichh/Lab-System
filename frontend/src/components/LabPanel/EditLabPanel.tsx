@@ -340,9 +340,11 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
         setError={setError}
       />
 
-      <button className={inputFormSave} onClick={handleSave}>
-        Save
-      </button>
+      <div className="flex justify-end">
+        <button type="button" className={inputFormSave} onClick={handleSave}>
+          Save
+        </button>
+      </div>
       <h1 className={stateStyle}>{state}</h1>
       <span>
         {data.list_of_lab_test_ids.length === 0

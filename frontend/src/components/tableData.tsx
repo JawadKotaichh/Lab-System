@@ -741,19 +741,21 @@ export function getLabTestColumns(
                   {item.label}
                 </button>
               ))} */}
-              <button
-                type="button"
-                onClick={() =>
-                  handleDeleteLabTest({
-                    elementID: lab_test_id,
-                    setError,
-                  })
-                }
-                className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-                title="Delete lab test"
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
+              {!showAddForLabPanels && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDeleteLabTest({
+                      elementID: lab_test_id,
+                      setError,
+                    })
+                  }
+                  className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
+                  title="Delete lab test"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              )}
             </div>
           );
         } else {
@@ -1475,31 +1477,6 @@ export function getVisitsColumnsUser(
         const b = parseFloat(rowB.getValue(columnId) as string) || 0;
         return a - b;
       },
-    },
-    {
-      accessorKey: "completed_tests_results",
-      cell: ({ row }) =>
-        `${row.original.completed_tests_results} / ${row.original.total_tests_results}`,
-      sortingFn: (rowA, rowB) => {
-        const a =
-          rowA.original.completed_tests_results /
-          rowA.original.total_tests_results;
-        const b =
-          rowB.original.completed_tests_results /
-          rowB.original.total_tests_results;
-        return a - b;
-      },
-      header: ({ column }) => (
-        <ColumnFilter
-          withFilter={false}
-          column={column}
-          inputType="number"
-          placeholder="Search Completed..."
-          label="Completed / Total"
-          showFilter={!!showFilters[column.id]}
-          toggleShowFilter={() => toggleFilter(column.id)}
-        />
-      ),
     },
     {
       id: "actions",

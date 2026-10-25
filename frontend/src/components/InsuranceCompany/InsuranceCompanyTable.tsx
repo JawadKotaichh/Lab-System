@@ -120,7 +120,7 @@ const InsuranceCompanyTable = () => {
   return (
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between gap-4 mb-4">
-        <h1 className={pageListTitle}>Insurance Company List</h1>
+        <h1 className={pageListTitle}>Insurance Companies</h1>
         {/* <button
           className={`${tableCreateButton} ml-auto text-xl`}
           onClick={() => navigate(InsuranceCreatePageURL)}

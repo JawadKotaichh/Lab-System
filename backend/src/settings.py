@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ACCESS_MINUTES: int = 15
     REFRESH_DAYS: int = 30
     DEBUG: bool = False
+    MANAGE_DB_INDEXES: bool = True
 
     @field_validator("JWT_SECRET", "REFRESH_PEPPER", mode="before")
     @classmethod

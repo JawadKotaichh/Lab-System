@@ -12,11 +12,12 @@ from pydantic import TypeAdapter
 from src.api.Invoice import override_test_price
 from src.api.auth import update_own_account
 from src.main_app import app
+from src.db import init_db
 from src.models import Admin as DBAdmin
 from src.models import Invoice as DBInvoice
 from src.models import User as DBUser
 from src.models import Visit as DBVisit
-from src.schemas.financial_types import Money, round_money
+from src.schemas.financial_types import Money, Rate, round_money
 from src.schemas.schema_Invoice import LabTestChanged
 from src.schemas.schema_Invoice import PaginatedInvoices
 from src.schemas.schema_users import self_update_user
@@ -122,6 +123,41 @@ class ApiContractTests(unittest.TestCase):
 
 
 class RegressionTests(unittest.IsolatedAsyncioTestCase):
+    def test_insurance_rates_support_currency_conversion_multipliers(self):
+        adapter = TypeAdapter(Rate)
+        for rate in ("0.2", "1", "7200", "90000"):
+            with self.subTest(rate=rate):
+                value = adapter.validate_python(rate)
+                self.assertEqual(value, Decimal(rate))
+                self.assertEqual(adapter.dump_python(value, mode="json"), float(rate))
+        for rate in ("-1", "NaN", "Infinity", "1000000000001"):
+            with self.subTest(invalid_rate=rate):
+                with self.assertRaises(ValueError):
+                    adapter.validate_python(rate)
+
+    async def test_database_initialization_respects_index_management_setting(self):
+        database = object()
+        for manage_indexes in (True, False):
+            with self.subTest(manage_indexes=manage_indexes):
+                with (
+                    patch("src.db.AsyncIOMotorClient", return_value={"lab_system": database}),
+                    patch("src.db.init_beanie", new_callable=AsyncMock) as initialize,
+                    patch(
+                        "src.db.settings",
+                        SimpleNamespace(
+                            MONGODB_URL="mongodb://localhost:27017",
+                            MANAGE_DB_INDEXES=manage_indexes,
+                        ),
+                    ),
+                ):
+                    await init_db()
+
+                self.assertEqual(initialize.await_count, 1)
+                self.assertIs(initialize.await_args.kwargs["database"], database)
+                self.assertEqual(
+                    initialize.await_args.kwargs["skip_indexes"], not manage_indexes
+                )
+
     async def test_first_invoice_override_uses_validated_model(self):
         visit_id = PydanticObjectId()
         visit = SimpleNamespace(id=visit_id)

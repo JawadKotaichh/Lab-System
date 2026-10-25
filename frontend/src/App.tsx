@@ -235,7 +235,7 @@ const App: React.FC = () => {
                 <img
                   src={`${baseURLL}/branding/logo`}
                   alt="logo"
-                  className="h-16 w-auto"
+                  className="h-18 w-auto"
                 />
               </Link>
             </div>

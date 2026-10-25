@@ -5,7 +5,8 @@ import type {
   result_suggestions,
   updateInvoiceData,
 } from "../types.js";
-import api from "../../api.js";
+import api, { getApiErrorMessage } from "../../api.js";
+import SaveFeedback, { type SaveState } from "./SaveFeedback.js";
 import { labTestResultApiURL } from "../data.js";
 import React, { useEffect, useRef, useState } from "react";
 import renderNormalValue from "../renderNormalValue.js";
@@ -71,6 +72,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     setLoadingSug(false);
   };
   const [priceEdits, setPriceEdits] = useState<Record<string, number>>({});
+  const [priceSaves, setPriceSaves] = useState<Record<string, SaveState>>({});
   useEffect(() => {
     const next: Record<string, number> = {};
     (updatedInvoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
@@ -90,13 +92,18 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   };
   const savePriceOverride = async (labTestTypeId: string, raw: string) => {
     const v = Number(raw);
-    if (!Number.isFinite(v) || v < 0) return;
+    if (!Number.isFinite(v) || v < 0) {
+      setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "error", message: "Enter a valid non-negative price." } }));
+      return;
+    }
 
+    setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "saving", message: "Saving price…" } }));
     try {
       await overrideTestPrice(visit_id, labTestTypeId, v);
       await rebuildInvoice(visit_id);
+      setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "saved", message: "Price saved" } }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load data");
+      setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "error", message: getApiErrorMessage(err, "Price update could not be completed. Your edit is kept.") } }));
     }
   };
   const requestSuggestions = (
@@ -313,12 +320,14 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 <input
                   type="number"
                   className="h-8 text-center w-full"
+                  disabled={priceSaves[r.lab_test_type.lab_test_id]?.status === "saving"}
                   value={getDisplayedPrice(
                     r.lab_test_type.lab_test_id,
                     r.lab_test_type.price,
                   ).toFixed(3)}
                   onChange={(e) => {
                     const labTestTypeId = r.lab_test_type.lab_test_id;
+                    setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "idle", message: "Price saves when you leave this field" } }));
                     setPriceEdits((prev) => ({
                       ...prev,
                       [labTestTypeId]: Number(e.target.value),
@@ -331,6 +340,10 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                       e.currentTarget.value,
                     );
                   }}
+                />
+                <SaveFeedback
+                  state={priceSaves[r.lab_test_type.lab_test_id] ?? { status: "idle" }}
+                  onRetry={() => void savePriceOverride(r.lab_test_type.lab_test_id, String(getDisplayedPrice(r.lab_test_type.lab_test_id, r.lab_test_type.price)))}
                 />
               </td>
 

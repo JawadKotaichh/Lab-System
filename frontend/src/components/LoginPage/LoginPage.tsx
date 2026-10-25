@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { baseURLL } from "../../api";
 import { fetchUser } from "../utils";
 
@@ -17,6 +18,7 @@ const LoginPage = ({
 }: LoginInProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     let cancelled = false;
@@ -41,6 +43,7 @@ const LoginPage = ({
 
     try {
       setLoading(true);
+      setShowPassword(false);
       await onSubmit({ username, password });
     } finally {
       setLoading(false);
@@ -77,19 +80,37 @@ const LoginPage = ({
               required
               disabled={loading}
             />
-            <label className="block text-sm font-medium text-gray-800">
+            <label htmlFor="login-password" className="block text-sm font-medium text-gray-800">
               Password:
             </label>
-            <input
-              type="password"
-              autoComplete="current-password"
-              className=" w-full mt-2 rounded-md border border-gray-300 bg-white focus:ring-indigo-200 px-3 py-2 text-sm text-gray-900 outline-none"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-              disabled={loading}
-            />
+            <div className="relative mt-2">
+              <input
+                id="login-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                className="w-full rounded-md border border-gray-300 bg-white focus:ring-indigo-200 pl-3 pr-12 py-2 text-sm text-gray-900 outline-none"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-controls="login-password"
+                aria-pressed={showPassword}
+                disabled={loading}
+                className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-3 text-gray-500 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 cursor-pointer"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Eye className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
             <button
               type="submit"
               disabled={loading}

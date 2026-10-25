@@ -39,6 +39,7 @@ SignedMoney = Annotated[
 
 Rate = Annotated[
     Decimal,
-    Field(ge=Decimal("0"), le=Decimal("1"), max_digits=5, decimal_places=4),
+    # Insurance pricing rates also convert currencies, so they may exceed one.
+    Field(ge=Decimal("0"), le=MAX_MONEY, max_digits=17, decimal_places=4),
     PlainSerializer(_as_json_number, return_type=float, when_used="json"),
 ]

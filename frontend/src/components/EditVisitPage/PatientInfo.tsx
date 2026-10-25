@@ -1,4 +1,4 @@
-import React, { useState, type Dispatch, type SetStateAction } from "react";
+import React, { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import type { patientInfo } from "../types.js";
 import {
@@ -7,8 +7,9 @@ import {
   patientInfoCard,
   patientInfoCardGrid,
 } from "../../style.js";
-import api from "../../api.js";
+import api, { getApiErrorMessage } from "../../api.js";
 import { visitsApiURL } from "../data.js";
+import SaveFeedback, { type SaveState } from "./SaveFeedback.js";
 
 interface PatientCardParams {
   patientData: patientInfo;
@@ -27,23 +28,33 @@ const PatientInfo: React.FC<PatientCardParams> = ({
   report_date,
   setReportDate,
 }: PatientCardParams) => {
-  const [error, setError] = useState<string | null>(null);
+  const [visitDraft, setVisitDraft] = useState(new Date(visitDate).toISOString().split("T")[0]);
+  const [reportDraft, setReportDraft] = useState(new Date(report_date).toISOString().split("T")[0]);
+  const [visitSave, setVisitSave] = useState<SaveState>({ status: "idle" });
+  const [reportSave, setReportSave] = useState<SaveState>({ status: "idle" });
+  useEffect(() => { setVisitDraft(new Date(visitDate).toISOString().split("T")[0]); }, [visitDate]);
+  useEffect(() => { setReportDraft(new Date(report_date).toISOString().split("T")[0]); }, [report_date]);
 
   const handleVisitDateChange = async (
     newVisitDate: string,
     visit_id: string
   ) => {
+    setVisitDraft(newVisitDate);
+    if (!newVisitDate) {
+      setVisitSave({ status: "error", message: "Choose a visit date to save." });
+      return;
+    }
+    setVisitSave({ status: "saving", message: "Saving visit date…" });
     try {
       const currdate = new Date(newVisitDate);
       await api.put(`${visitsApiURL}${visit_id}`, {
         visit_date: currdate,
       });
       setVisitDate(currdate);
+      setVisitSave({ status: "saved", message: "Visit date saved" });
     } catch (err: unknown) {
       console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+      setVisitSave({ status: "error", message: getApiErrorMessage(err, "Visit date could not be saved") });
     }
   };
 
@@ -51,20 +62,24 @@ const PatientInfo: React.FC<PatientCardParams> = ({
     new_report_date: string,
     visit_id: string
   ) => {
+    setReportDraft(new_report_date);
+    if (!new_report_date) {
+      setReportSave({ status: "error", message: "Choose a report date to save." });
+      return;
+    }
+    setReportSave({ status: "saving", message: "Saving report date…" });
     try {
       const currdate = new Date(new_report_date);
       await api.put(`${visitsApiURL}${visit_id}`, {
         report_date: currdate,
       });
       setReportDate(currdate);
+      setReportSave({ status: "saved", message: "Report date saved" });
     } catch (err: unknown) {
       console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+      setReportSave({ status: "error", message: getApiErrorMessage(err, "Report date could not be saved") });
     }
   };
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   return (
     <div className={patientInfoCard}>
       <div className={patientInfoCardGrid}>
@@ -103,28 +118,34 @@ const PatientInfo: React.FC<PatientCardParams> = ({
             <span className="font-bold">Visit Date:</span>
             <span>
               <input
-                value={new Date(visitDate).toISOString().split("T")[0]}
+                value={visitDraft}
                 type="date"
+                className="min-h-10 px-1 text-base"
+                disabled={visitSave.status === "saving"}
                 onChange={(e) =>
                   handleVisitDateChange(e.target.value, visit_id)
                 }
               />
             </span>
           </label>
+          <SaveFeedback state={visitSave} onRetry={visitDraft ? () => void handleVisitDateChange(visitDraft, visit_id) : undefined} />
         </div>
         <div className={inputFormAttributeListItem}>
           <label className={patientInfoCardItem}>
             <span className="font-bold">Report Date:</span>
             <span>
               <input
-                value={new Date(report_date).toISOString().split("T")[0]}
+                value={reportDraft}
                 type="date"
+                className="min-h-10 px-1 text-base"
+                disabled={reportSave.status === "saving"}
                 onChange={(e) =>
                   handleReportDateChange(e.target.value, visit_id)
                 }
               />
             </span>
           </label>
+          <SaveFeedback state={reportSave} onRetry={reportDraft ? () => void handleReportDateChange(reportDraft, visit_id) : undefined} />
         </div>
       </div>
     </div>

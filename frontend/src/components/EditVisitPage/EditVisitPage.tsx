@@ -6,7 +6,7 @@ import {
   type patientTestResult,
   type updateInvoiceData,
 } from "../types.js";
-import api from "../../api.js";
+import api, { getApiErrorMessage } from "../../api.js";
 import PatientInfo from "./PatientInfo.js";
 import type { PaginationState } from "@tanstack/react-table";
 import { labTestResultApiURL } from "../data.js";
@@ -22,6 +22,7 @@ import AddTestResultTable from "./AddTestResultTable.js";
 import LabPanelsTable from "./LabPanelsTable.js";
 import Prices from "./Prices.js";
 import LoadingPage from "../LoadingPage/LoadingPage.js";
+import SaveFeedback, { type SaveState } from "./SaveFeedback.js";
 
 const EditVisitPage: React.FC = () => {
   const location = useLocation();
@@ -40,9 +41,16 @@ const EditVisitPage: React.FC = () => {
     {},
   );
   const pendingResultsRef = useRef<Record<string, string>>({});
-  useEffect(() => {
-    pendingResultsRef.current = pendingResults;
-  }, [pendingResults]);
+  const [resultSave, setResultSave] = useState<SaveState>({ status: "idle" });
+  const savingResultsRef = useRef(false);
+  const updatePendingResults = useCallback<React.Dispatch<React.SetStateAction<Record<string, string>>>>((update) => {
+    const next = typeof update === "function" ? update(pendingResultsRef.current) : update;
+    pendingResultsRef.current = next;
+    setPendingResults(next);
+    if (!savingResultsRef.current) {
+      setResultSave({ status: "idle", message: "Unsaved result changes" });
+    }
+  }, []);
   const [existingLabTestTypeIds, setExistingLabTestTypeIds] = useState<
     Set<string>
   >(new Set());
@@ -185,9 +193,14 @@ const EditVisitPage: React.FC = () => {
   }, [refreshResults, visit_id]);
 
   const handleSaveAll = async () => {
-    if (!Object.keys(pendingResults).length) {
+    if (savingResultsRef.current) return;
+    const changes = Object.entries(pendingResultsRef.current);
+    if (!changes.length) {
+      setResultSave({ status: "idle", message: "No result changes to save" });
       return;
     }
+    savingResultsRef.current = true;
+    setResultSave({ status: "saving", message: "Saving results…" });
     const resultToTestTypeId = new Map<string, string>();
     standAloneTestResults.forEach((test) => {
       resultToTestTypeId.set(test.lab_test_result_id, test.lab_test_type_id);
@@ -198,14 +211,22 @@ const EditVisitPage: React.FC = () => {
       });
     });
     try {
-      await Promise.all(
-        Object.entries(pendingResults).map(([lab_test_result_id, result]) => {
+      const outcomes = await Promise.allSettled(
+        changes.map(([lab_test_result_id, result]) => {
           const url = `${labTestResultApiURL}/${lab_test_result_id}`;
           return api.put(url, null, { params: { result } });
         }),
       );
-      await Promise.all(
-        Object.entries(pendingResults)
+      const saved = changes.filter((_, index) => outcomes[index].status === "fulfilled");
+      const remaining = { ...pendingResultsRef.current };
+      saved.forEach(([id, value]) => {
+        if (remaining[id] === value) delete remaining[id];
+      });
+      pendingResultsRef.current = remaining;
+      setPendingResults(remaining);
+      // Suggestion tracking must not turn a successful result save into a failure.
+      await Promise.allSettled(
+        saved
           .map(([lab_test_result_id, result]) => {
             const lab_test_type_id = resultToTestTypeId.get(lab_test_result_id);
             const trimmed = result.trim();
@@ -214,27 +235,32 @@ const EditVisitPage: React.FC = () => {
           })
           .filter((request) => request !== null),
       );
-      setPendingResults({});
-      alert("Saved successfully!");
       await refreshResults();
+      const failed = outcomes.filter((outcome) => outcome.status === "rejected");
+      if (failed.length) {
+        setResultSave({ status: "error", message: `${failed.length} result(s) could not be saved. Your unsaved edits are kept; please retry.` });
+      } else {
+        setResultSave({ status: "saved", message: Object.keys(pendingResultsRef.current).length
+          ? "Results saved. New edits still need saving."
+          : "Results saved successfully" });
+      }
     } catch (err: unknown) {
       console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-        alert(`Error: ${err.message}`);
-      }
+      setResultSave({ status: "error", message: getApiErrorMessage(err, "Could not save results. Your unsaved edits are kept.") });
+    } finally {
+      savingResultsRef.current = false;
     }
   };
 
   if (loading) return <LoadingPage title="Loading lab results ..." />;
   // if (loadingTests) return <div className="p-4">Loading lab tests</div>;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   if (!visit_id) {
     return <div className="p-4 text-red-600">Error: no visit selected.</div>;
   }
   return (
     <div className="p-8 bg-white">
       <h1 className="text-2xl font-semibold mb-6">Edit Visit</h1>
+      {error && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">{error}</div>}
       <PatientInfo
         report_date={reportDate}
         setReportDate={setReportDate}
@@ -251,24 +277,41 @@ const EditVisitPage: React.FC = () => {
         updatedInvoiceData={updatedInvoiceData}
         currency={currency}
       />
-      <button
-        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j cursor-pointer"
-        onClick={() => setShowTestsTable(true)}
-      >
-        Add test result
-      </button>
-      <button
-        className="mt-5 mr-3 p-2 h-10 max-w-fit rounded-sm border bg-blue-400 hover:bg-green-500 mt-2j cursor-pointer"
-        onClick={() => setShowPanelsTable(true)}
-      >
-        Add lab panel
-      </button>
-      <button
-        className="p-2 h-10 w-20 rounded-sm border bg-blue-400 hover:bg-green-500 cursor-pointer"
-        onClick={() => handleSaveAll()}
-      >
-        Save
-      </button>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            className="p-2 h-10 rounded-sm border bg-blue-400 hover:bg-green-500 cursor-pointer"
+            onClick={() => setShowTestsTable(true)}
+          >
+            Add test result
+          </button>
+          <button
+            type="button"
+            className="p-2 h-10 rounded-sm border bg-blue-400 hover:bg-green-500 cursor-pointer"
+            onClick={() => setShowPanelsTable(true)}
+          >
+            Add lab panel
+          </button>
+        </div>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+          <div className="text-right">
+            <SaveFeedback state={resultSave} onRetry={() => void handleSaveAll()} />
+            {Object.keys(pendingResults).length > 0 && resultSave.status === "idle" && (
+              <span className="ml-2 text-sm text-gray-500">({Object.keys(pendingResults).length} pending)</span>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={resultSave.status === "saving"}
+            aria-busy={resultSave.status === "saving"}
+            className="shrink-0 p-2 h-10 rounded-sm border bg-blue-400 hover:bg-green-500 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+            onClick={() => handleSaveAll()}
+          >
+            {resultSave.status === "saving" ? "Saving…" : "Save results"}
+          </button>
+        </div>
+      </div>
       {panelResults.length === 0 && standAloneTestResults.length === 0 ? (
         <p> No lab results found for this visit {visit_id}.</p>
       ) : (
@@ -281,7 +324,7 @@ const EditVisitPage: React.FC = () => {
           setPanelResults={setPanelResults}
           setStandAloneTestResults={setStandAloneTestResults}
           standAloneTestResults={standAloneTestResults}
-          setPendingResults={setPendingResults}
+          setPendingResults={updatePendingResults}
           markExistingLabTestIdsDirty={markExistingLabTestIdsDirty}
         />
       )}
