@@ -1,3 +1,4 @@
+import SaveButton from "../SaveButton";
 import { useFormValidation, ValidationSummary, FieldError, required } from "../FormValidation";
 import { FormEvent, useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
@@ -126,20 +127,24 @@ const LoginPage = ({
               </button>
             </div>
             <FieldError validation={validation} name="password" />
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-5 w-full rounded-md text-white bg-indigo-600 px-4 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="inline-flex items-center justify-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  {buttonText == "Sign in" ? "Signing in..." : "Updating..."}
-                </span>
-              ) : (
-                buttonText
-              )}
-            </button>
+            {buttonText === "Sign in" ? (
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-5 w-full rounded-md text-white bg-indigo-600 px-4 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    Signing in…
+                  </span>
+                ) : buttonText}
+              </button>
+            ) : (
+              <SaveButton type="submit" saving={loading} savingLabel="Updating…" className="mt-5 w-full">
+                {buttonText}
+              </SaveButton>
+            )}
           </form>
         </div>
       </div>

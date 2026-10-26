@@ -1,3 +1,4 @@
+import CloseButton from "../CloseButton";
 import { getApiErrorMessage } from "../../api";
 import {
   useReactTable,
@@ -9,6 +10,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
+import { LoaderCircle } from "lucide-react";
 import type {
   labTest,
   patientPanelResult,
@@ -24,13 +26,10 @@ import {
 } from "../../hooks/useLabTestCategoryOptions";
 import Pagination from "../Pagination";
 import {
-  pageListTitle,
-  tableDeleteButton,
   tableHead,
   tableItem,
 } from "../../style";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingPage from "../LoadingPage/LoadingPage";
 
 interface TestsList {
   onSelectTest?: (test: labTest) => void;
@@ -89,7 +88,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
   });
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const toggleFilter = (colId: string) =>
@@ -158,6 +157,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
       return;
     }
 
+    let cancelled = false;
     const loadPage = async () => {
       setLoading(true);
       setError("");
@@ -168,17 +168,19 @@ const AddTestResultTable: React.FC<TestsList> = ({
           pagination.pageSize,
           filters
         );
+        if (cancelled) return;
         setData(res.lab_tests);
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfTests);
       } catch (err) {
-        setError(getApiErrorMessage(err, "Could not load available lab tests"));
+        if (!cancelled) setError(getApiErrorMessage(err, "Could not load available lab tests"));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    loadPage();
+    void loadPage();
+    return () => { cancelled = true; };
   }, [
     pagination.pageIndex,
     pagination.pageSize,
@@ -194,54 +196,51 @@ const AddTestResultTable: React.FC<TestsList> = ({
     );
   }, [columnFilters]);
 
-  if (loading) return <LoadingPage title="Loading lab tests ..." />;
-
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-test-result-title"
       className={
         showTestsTable
-          ? "fixed inset-0 flex items-center justify-center bg-black/50"
+          ? "fixed inset-0 z-50 flex items-center justify-center bg-black/50"
           : "hidden"
       }
       aria-hidden={!showTestsTable}
     >
-      <div className="bg-white p-6 rounded shadow-lg w-fit max-h-[80vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded shadow-lg w-[96vw] max-w-[96rem] max-h-[80vh] overflow-y-auto">
         <div className="p-8 bg-white">
           {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
           {addError && <div className="text-red-600">{addError}</div>}
 
-          <h1 className={pageListTitle}>Add Lab Test Result</h1>
-          <button
-            className={tableDeleteButton + " mb-2"}
-            onClick={() => setShowTestsTable(false)}
-          >
-            Close
-          </button>
-          <GenericTable
-            table={labTestsTable}
-            loading={loading}
-            tableHeadStyle={tableHead}
-            cellStyle={tableItem}
-            noDataMessage="No lab tests found"
-          />
-
-          <Pagination
-            TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
-            currentPage={pagination.pageIndex + 1}
-            totalPages={totalPages}
-            setCurrentPage={handleSetPage}
-            pageSize={pagination.pageSize}
-            setPageSize={handleSetPageSize}
-          />
-          {/* {showPanelsTable && (
-        <GenericTable
-          table={labPanelsTable}
-          loading={loading}
-          tableHeadStyle={tableHead}
-          cellStyle={tableItem}
-          noDataMessage="No lab tests found"
-        />
-      )} */}
+          <header className="mb-5 flex items-start justify-between gap-4">
+            <h1 id="add-test-result-title" className="text-2xl font-semibold">Add Lab Test Result</h1>
+            <CloseButton label="Close add test result dialog" onClick={() => setShowTestsTable(false)} />
+          </header>
+          <div aria-busy={loading}>
+            {loading ? (
+              <div role="status" className="flex min-h-40 items-center justify-center gap-3 text-gray-600">
+                <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" />
+                Loading lab tests…
+              </div>
+            ) : <>
+              <GenericTable
+                table={labTestsTable}
+                loading={loading}
+                tableHeadStyle={tableHead}
+                cellStyle={tableItem}
+                noDataMessage="No lab tests found"
+              />
+              <Pagination
+                TotalNumberOfPaginatedItems={totalNumberOfPaginatedItems}
+                currentPage={pagination.pageIndex + 1}
+                totalPages={totalPages}
+                setCurrentPage={handleSetPage}
+                pageSize={pagination.pageSize}
+                setPageSize={handleSetPageSize}
+              />
+            </>}
+          </div>
         </div>
       </div>
     </div>

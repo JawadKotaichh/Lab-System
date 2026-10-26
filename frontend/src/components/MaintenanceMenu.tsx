@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { Menu, X } from "lucide-react";
 import type { MenuParams, optionsMenuPages } from "./types";
 
 export const maintenanceNavItems: optionsMenuPages[] = [
@@ -46,13 +47,15 @@ const MaintenanceMenu = ({ isMenuOpen, setIsMenuOpen }: MenuParams) => {
     <div ref={wrapperRef} className="relative bg-white">
       <button
         type="button"
-        aria-label="Open maintenance menu"
-        className="bx bx-menu block text-3xl cursor-pointer"
+        aria-label={isMenuOpen ? "Close maintenance menu" : "Open maintenance menu"}
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 cursor-pointer"
         onClick={toggleMenu}
         aria-haspopup="menu"
         aria-expanded={isMenuOpen}
         aria-controls="maintenance-menu"
-      />
+      >
+        {isMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+      </button>
 
       <ul
         id="maintenance-menu"

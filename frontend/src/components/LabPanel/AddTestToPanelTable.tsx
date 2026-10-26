@@ -1,3 +1,4 @@
+import CloseButton from "../CloseButton";
 import { getApiErrorMessage } from "../../api";
 import {
   useReactTable,
@@ -10,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
-import { LoaderCircle, X } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import type { labPanelsWithIdsList, labTest } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import { useNavigate } from "react-router-dom";
@@ -152,15 +153,7 @@ const AddTestToPanelTable: React.FC<TestsList> = ({
               <DialogTitle className="text-xl font-semibold text-slate-900">Add Lab Test</DialogTitle>
               <p className="mt-1 text-sm text-slate-500">Choose a test to add to this panel.</p>
             </div>
-            <button
-              type="button"
-              data-autofocus
-              onClick={() => setShowAddForLabPanels(false)}
-              aria-label="Close add lab test dialog"
-              className="shrink-0 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 cursor-pointer"
-            >
-              <X className="h-5 w-5" aria-hidden="true" />
-            </button>
+            <CloseButton data-autofocus label="Close add lab test dialog" onClick={() => setShowAddForLabPanels(false)} />
           </header>
 
           <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6" aria-busy={loading}>

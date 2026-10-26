@@ -1,3 +1,4 @@
+import SaveButton from "../SaveButton";
 import { useFormValidation, ValidationSummary, FieldError, required, dateError } from "../FormValidation";
 import { useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../api";
@@ -9,7 +10,6 @@ import {
   inputFormAttributeListItem,
   inputFormAttributeListItemInput,
   inputFormAttributeListItemLabel,
-  inputFormSave,
   inputFormTitle,
   stateStyle,
 } from "../../style";
@@ -206,9 +206,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
         ))}
       </div>
 
-      <button className={inputFormSave} onClick={() => handleSave()}>
-        Save
-      </button>
+      <SaveButton className="mt-5" onClick={() => void handleSave()}>Save</SaveButton>
       {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );

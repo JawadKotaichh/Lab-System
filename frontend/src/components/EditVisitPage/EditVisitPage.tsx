@@ -1,8 +1,10 @@
+import SaveButton from "../SaveButton";
+import CloseButton from "../CloseButton";
 import { useFormValidation, ValidationSummary, dateError, moneyError } from "../FormValidation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBlocker, useParams } from "react-router-dom";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
-import { CheckCircle2, Circle, LoaderCircle, Save } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 import api, { getApiErrorMessage } from "../../api";
 import type { fetchedInvoiceData, labPanel, labTest, patientPanelResult, patientTestResult, resultListData, updateInvoiceData } from "../types";
 import { fetchInvoice, fetchResultList } from "../utils";
@@ -212,7 +214,7 @@ export default function EditVisitPage() {
   const pageTests = visible.flatMap(x => "test" in x ? [x.test] : []);
   const pagePanels = visible.flatMap(x => "panel" in x ? [x.panel] : []);
   return <div className="p-4 pb-40 sm:p-8 sm:pb-40 bg-white">
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">Edit Visit</h1><p className="mt-1 text-sm text-gray-500">Changes stay on this page until you save. Saving does not publish results.</p></div>
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">Edit Visit</h1><p className="mt-1 text-sm text-gray-500">Changes stay on this page until you save.</p></div>
       <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${dirty ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>{dirty ? <Circle className="h-3 w-3 fill-current" /> : <CheckCircle2 className="h-4 w-4" />}{dirty ? "Unsaved changes" : "Up to date"}</span>
     </div>
     {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
@@ -235,12 +237,29 @@ export default function EditVisitPage() {
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white px-4 py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-3"><div aria-live="polite"><SaveFeedback state={feedback.message ? feedback : { status: "idle", message: dirty ? "You have unsaved changes" : "No unsaved changes" }} onRetry={!requiresReview ? () => void save() : undefined} /></div>
         <div className="ml-auto flex items-center gap-3"><button type="button" onClick={discard} disabled={!dirty || saving} className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-40 cursor-pointer">Discard changes</button>
-          {requiresReview ? <button type="button" className="rounded-lg bg-blue-700 px-5 py-2 text-white" onClick={() => { if (window.confirm("Reload saved data? Unsaved edits will be discarded.")) void load(); }}>Reload saved visit</button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-5 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-60 cursor-pointer">{saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{saving ? "Saving…" : "Save changes"}</button>}
+          {requiresReview ? <button type="button" className="rounded-lg bg-blue-700 px-5 py-2 text-white" onClick={() => { if (window.confirm("Reload saved data? Unsaved edits will be discarded.")) void load(); }}>Reload saved visit</button> : <SaveButton saving={saving} onClick={() => void save()}>Save changes</SaveButton>}
         </div>
       </div>
     </div>
     <Dialog open={blocker.state === "blocked"} onClose={() => blocker.state === "blocked" && blocker.reset()} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-slate-900/40" /><div className="fixed inset-0 flex items-center justify-center p-4"><DialogPanel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"><DialogTitle className="text-xl font-semibold">Save your changes before leaving?</DialogTitle><p className="mt-3 text-gray-600">This visit has unsaved changes. You can save them, keep editing, or discard them.</p><div className="mt-6 flex flex-wrap justify-end gap-3"><button disabled={saving} onClick={() => blocker.state === "blocked" && blocker.reset()} className="rounded-lg border px-4 py-2">Keep editing</button><button disabled={saving} onClick={() => blocker.state === "blocked" && blocker.proceed()} className="px-3 py-2 text-red-700">Discard and leave</button><button disabled={saving || requiresReview} onClick={async () => { if (await save()) { if (blocker.state === "blocked") blocker.proceed(); } }} className="rounded-lg bg-blue-700 px-4 py-2 text-white">Save and leave</button></div></DialogPanel></div>
+      <DialogBackdrop className="fixed inset-0 bg-slate-900/40" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <DialogPanel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+          <header className="flex items-start justify-between gap-4">
+            <DialogTitle className="text-xl font-semibold">Save your changes before leaving?</DialogTitle>
+            <CloseButton label="Close unsaved changes dialog and keep editing" disabled={saving}
+              onClick={() => blocker.state === "blocked" && blocker.reset()} />
+          </header>
+          <p className="mt-3 text-gray-600">This visit has unsaved changes. You can save them, keep editing, or discard them.</p>
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button disabled={saving} onClick={() => blocker.state === "blocked" && blocker.reset()} className="rounded-lg border px-4 py-2">Keep editing</button>
+            <button disabled={saving} onClick={() => blocker.state === "blocked" && blocker.proceed()} className="px-3 py-2 text-red-700">Discard and leave</button>
+            <SaveButton saving={saving} disabled={requiresReview} onClick={async () => {
+              if (await save()) { if (blocker.state === "blocked") blocker.proceed(); }
+            }}>Save and leave</SaveButton>
+          </div>
+        </DialogPanel>
+      </div>
     </Dialog>
   </div>;
 }
