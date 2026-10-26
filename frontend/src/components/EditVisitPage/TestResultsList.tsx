@@ -1,35 +1,31 @@
+import { FieldError, type FormValidation } from "../FormValidation";
 import type {
-  lab_test_changed,
   patientPanelResult,
   patientTestResult,
   result_suggestions,
   updateInvoiceData,
 } from "../types.js";
-import api, { getApiErrorMessage } from "../../api.js";
-import SaveFeedback, { type SaveState } from "./SaveFeedback.js";
-import { labTestResultApiURL } from "../data.js";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import renderNormalValue from "../renderNormalValue.js";
 import {
   fetchResultSuggestions,
-  overrideTestPrice,
-  rebuildInvoice,
 } from "../utils.js";
 
 interface ShowResultsListParams {
+  validation: FormValidation;
   panelResults: patientPanelResult[];
   setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
   standAloneTestResults: patientTestResult[];
   setStandAloneTestResults: React.Dispatch<
     React.SetStateAction<patientTestResult[]>
   >;
-  visit_id: string;
-  setError: React.Dispatch<React.SetStateAction<string>>;
-  refreshResults: () => Promise<void>;
+  onRemoveTest: (id: string) => void;
+  onRemovePanel: (id: string) => void;
+  onPriceChange: (id: string, value: string) => void;
+  priceDrafts: Record<string, string>;
   setPendingResults: React.Dispatch<
     React.SetStateAction<Record<string, string>>
   >;
-  markExistingLabTestIdsDirty: () => void;
   updatedInvoiceData: updateInvoiceData;
 }
 
@@ -49,15 +45,16 @@ const normalizeResult = (value: string) => {
   return toTitleCase(v);
 };
 const TestResultsList: React.FC<ShowResultsListParams> = ({
+  validation,
   panelResults,
   setPanelResults,
   standAloneTestResults,
   setStandAloneTestResults,
-  setError,
-  visit_id,
-  refreshResults,
+  onRemoveTest,
+  onRemovePanel,
+  onPriceChange,
+  priceDrafts,
   setPendingResults,
-  markExistingLabTestIdsDirty,
   updatedInvoiceData,
 }: ShowResultsListParams) => {
   const [activeInputId, setActiveInputId] = useState<string | null>(null);
@@ -71,40 +68,9 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     setSugError(null);
     setLoadingSug(false);
   };
-  const [priceEdits, setPriceEdits] = useState<Record<string, number>>({});
-  const [priceSaves, setPriceSaves] = useState<Record<string, SaveState>>({});
-  useEffect(() => {
-    const next: Record<string, number> = {};
-    (updatedInvoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
-      (x: lab_test_changed) => {
-        next[String(x.lab_test_id)] = x.new_price;
-      },
-    );
-    setPriceEdits(next);
-  }, [updatedInvoiceData.list_of_lab_tests_ids_changed]);
-
-  const getDisplayedPrice = (labTestTypeId: string, basePrice: number) => {
-    const override = priceEdits[labTestTypeId];
-    if (override !== undefined) return override;
-
-    const rate = updatedInvoiceData.patient_insurance_company_rate ?? 1;
-    return basePrice * rate;
-  };
-  const savePriceOverride = async (labTestTypeId: string, raw: string) => {
-    const v = Number(raw);
-    if (!Number.isFinite(v) || v < 0) {
-      setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "error", message: "Enter a valid non-negative price." } }));
-      return;
-    }
-
-    setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "saving", message: "Saving price…" } }));
-    try {
-      await overrideTestPrice(visit_id, labTestTypeId, v);
-      await rebuildInvoice(visit_id);
-      setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "saved", message: "Price saved" } }));
-    } catch (err) {
-      setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "error", message: getApiErrorMessage(err, "Price update could not be completed. Your edit is kept.") } }));
-    }
+  const getDisplayedPrice = (id: string, base: number) => {
+    const saved = updatedInvoiceData.list_of_lab_tests_ids_changed?.find(x => x.lab_test_id === id);
+    return saved?.new_price ?? base * (updatedInvoiceData.patient_insurance_company_rate ?? 1);
   };
   const requestSuggestions = (
     lab_test_type_id: string,
@@ -168,34 +134,6 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     }));
   };
 
-  const handleDeleteLabResult = async (lab_test_result_id: string) => {
-    const url = `${labTestResultApiURL}/${lab_test_result_id}`;
-    try {
-      await api.delete(url);
-      markExistingLabTestIdsDirty();
-      void refreshResults();
-      rebuildInvoice(visit_id);
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      }
-    }
-  };
-  const handleDeletePanel = async (lab_panel_id: string, visit_id: string) => {
-    const url = `${labTestResultApiURL}/delete_panels/${visit_id}/${lab_panel_id}`;
-    try {
-      await api.delete(url);
-      markExistingLabTestIdsDirty();
-      rebuildInvoice(visit_id);
-      void refreshResults();
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      }
-    }
-  };
   return (
     <table className="border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-10">
       <thead className="bg-gray-300 border-b border-black top-0 z-10">
@@ -318,39 +256,21 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               </td>
               <td className="border rounded-b-sm px-4 py-2">
                 <input
+                  {...validation.field(`price-${r.lab_test_type.lab_test_id}`)}
+                  aria-label={`${r.lab_test_type.name} price`}
                   type="number"
                   className="h-8 text-center w-full"
-                  disabled={priceSaves[r.lab_test_type.lab_test_id]?.status === "saving"}
-                  value={getDisplayedPrice(
-                    r.lab_test_type.lab_test_id,
-                    r.lab_test_type.price,
-                  ).toFixed(3)}
-                  onChange={(e) => {
-                    const labTestTypeId = r.lab_test_type.lab_test_id;
-                    setPriceSaves((previous) => ({ ...previous, [labTestTypeId]: { status: "idle", message: "Price saves when you leave this field" } }));
-                    setPriceEdits((prev) => ({
-                      ...prev,
-                      [labTestTypeId]: Number(e.target.value),
-                    }));
-                  }}
-                  onBlur={(e) => {
-                    const labTestTypeId = r.lab_test_type.lab_test_id;
-                    void savePriceOverride(
-                      labTestTypeId,
-                      e.currentTarget.value,
-                    );
-                  }}
+                  value={priceDrafts[r.lab_test_type.lab_test_id] ?? getDisplayedPrice(r.lab_test_type.lab_test_id, r.lab_test_type.price).toFixed(3)}
+                  onChange={(e) => onPriceChange(r.lab_test_type.lab_test_id, e.target.value)}
                 />
-                <SaveFeedback
-                  state={priceSaves[r.lab_test_type.lab_test_id] ?? { status: "idle" }}
-                  onRetry={() => void savePriceOverride(r.lab_test_type.lab_test_id, String(getDisplayedPrice(r.lab_test_type.lab_test_id, r.lab_test_type.price)))}
-                />
+                <FieldError validation={validation} name={`price-${r.lab_test_type.lab_test_id}`} />
+
               </td>
 
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
-                  onClick={() => handleDeleteLabResult(r.lab_test_result_id)}
+                  onClick={() => onRemoveTest(r.lab_test_result_id)}
                 >
                   Remove
                 </button>
@@ -374,7 +294,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
                   onClick={() =>
-                    handleDeletePanel(panel.lab_panel_id, visit_id)
+                    onRemovePanel(panel.lab_panel_id)
                   }
                 >
                   Remove

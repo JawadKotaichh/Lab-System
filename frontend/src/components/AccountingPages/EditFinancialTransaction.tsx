@@ -1,3 +1,4 @@
+import { useFormValidation, ValidationSummary, FieldError, required, numberError, dateError } from "../FormValidation";
 import { useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -70,7 +71,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || "Failed to load");
+        setError(getApiErrorMessage(err, "Could not load transaction categories"));
         setLoading(false);
       });
   }, []);
@@ -85,7 +86,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
         )
         .catch((err) => {
           console.error("Failed to fetch financial transaction data:", err);
-          setState("Failed to load financial transaction data");
+          setState(getApiErrorMessage(err, "Could not load financial transaction details"));
         });
     }
   }, [transaction_id]);
@@ -107,17 +108,16 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
       [attributeName]: value,
     }));
   };
+  const validation = useFormValidation([
+    { name: "type", label: "Transaction type", error: required(data.type, "Transaction type") },
+    { name: "date", label: "Date", error: dateError(data.date, "Date") },
+    { name: "currency", label: "Currency", error: required(data.currency, "Currency") },
+    { name: "category", label: "Category", error: required(isAddingCategory ? newCategory : data.category, "Category") },
+    { name: "amount", label: "Amount", error: numberError(data.amount, "Amount", true) },
+  ]);
   const handleSave = async () => {
-    if (
-      data.date == "" ||
-      data.category == "" ||
-      data.currency == "" ||
-      data.type.trim() == "" ||
-      data.amount == 0
-    ) {
-      setState("Please insert all the required fields!");
-      return;
-    }
+    if (!validation.validate()) { setState(""); return; }
+    setState("");
     const payload = {
       ...data,
       category: isAddingCategory ? newCategory.trim() : data.category,
@@ -156,15 +156,16 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
 
   if (loading)
     return <LoadingPage title="Loading financial transactions ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
+      <ValidationSummary validation={validation} />
       <div className={inputFormAttributeList}>
         {listOfAttributesFinancialTransaction.map((i) => (
-          <div className={inputFormAttributeListItem}>
-            <label className={inputFormAttributeListItemLabel}>
+          <div key={i.attributeName} className={inputFormAttributeListItem}>
+            <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
@@ -172,6 +173,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
               i.attributeName === "category" ? (
                 <>
                   <select
+                    {...validation.field(i.attributeName)}
                     className={inputFormAttributeListItemInput}
                     value={isAddingCategory ? "__new__" : data.category || ""}
                     onChange={(e) => {
@@ -201,6 +203,9 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
 
                   {isAddingCategory && (
                     <input
+                      {...validation.field(i.attributeName)}
+                      id={`${validation.id(i.attributeName)}-new`}
+                      aria-label="New category name"
                       className={inputFormAttributeListItemInput}
                       type="text"
                       placeholder="Type new category…"
@@ -215,6 +220,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
                 </>
               ) : (
                 <select
+                  {...validation.field(i.attributeName)}
                   className={inputFormAttributeListItemInput}
                   value={String(
                     data[i.attributeName as keyof financialTransaction] ?? ""
@@ -247,6 +253,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
               )
             ) : i.attributeName === "description" ? (
               <textarea
+                {...validation.field(i.attributeName)}
                 className={
                   inputFormAttributeListItemInput + " min-h-[120px] resize-y"
                 }
@@ -266,6 +273,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
               />
             ) : (
               <input
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
                 value={String(
@@ -280,6 +288,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
                 }
               />
             )}
+            <FieldError validation={validation} name={i.attributeName} />
           </div>
         ))}
       </div>
@@ -287,7 +296,7 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
       <button className={inputFormSave} onClick={() => handleSave()}>
         Save
       </button>
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };

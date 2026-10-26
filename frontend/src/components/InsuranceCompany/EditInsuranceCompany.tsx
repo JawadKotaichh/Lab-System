@@ -1,3 +1,4 @@
+import { useFormValidation, ValidationSummary, FieldError, required, numberError } from "../FormValidation";
 import { useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -42,7 +43,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || "Failed to load");
+        setError(getApiErrorMessage(err, "Could not load currencies"));
         setLoading(false);
       });
   }, []);
@@ -52,7 +53,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
         .then((d) => setData(d))
         .catch((err) => {
           console.error("Failed to fetch insurance company data:", err);
-          setState("Failed to load insurance company data");
+          setState(getApiErrorMessage(err, "Could not load insurance company details"));
         });
     }
   }, [insurance_company_id]);
@@ -69,11 +70,14 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
       [attributeName]: value,
     }));
   };
+  const validation = useFormValidation([
+    { name: "insurance_company_name", label: "Insurance company name", error: required(data.insurance_company_name, "Insurance company name") },
+    { name: "currency", label: "Currency", error: required(data.currency, "Currency") },
+    { name: "rate", label: "Rate", error: numberError(data.rate, "Rate", true) },
+  ]);
   const handleSave = async () => {
-    if (data.insurance_company_name == "" || data.rate == 0) {
-      setState("Please insert all the required fields!");
-      return;
-    }
+    if (!validation.validate()) { setState(""); return; }
+    setState("");
     try {
       if (insurance_company_id) {
         await api.put(InsuranceApiURL + insurance_company_id, data);
@@ -97,20 +101,22 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
   };
   if (loading)
     return <div className="p-4">Loading insurance companies currencies…</div>;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
+      <ValidationSummary validation={validation} />
       <div className={inputFormAttributeList}>
         {listOfAttributesInsuranceCompany.map((i) => (
-          <div className={inputFormAttributeListItem}>
-            <label className={inputFormAttributeListItemLabel}>
+          <div key={i.attributeName} className={inputFormAttributeListItem}>
+            <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
             {i.typeOfInput === "Selection" ? (
               <select
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 value={
                   data[i.attributeName as keyof CreateInsuranceCompanyParams]
@@ -135,6 +141,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
               </select>
             ) : (
               <input
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
                 value={
@@ -155,6 +162,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
                 }
               ></input>
             )}
+            <FieldError validation={validation} name={i.attributeName} />
           </div>
         ))}
       </div>
@@ -162,7 +170,7 @@ const EditInsuranceCompany = ({ title }: PageTitle) => {
       <button className={inputFormSave} onClick={() => handleSave()}>
         Save
       </button>
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };

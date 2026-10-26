@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import {
   useReactTable,
   getCoreRowModel,
@@ -98,7 +99,7 @@ const PatientTable = () => {
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfPatients);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
+        setError(getApiErrorMessage(err, "Could not load patients"));
       } finally {
         setLoading(false);
       }
@@ -149,7 +150,7 @@ const PatientTable = () => {
           Create Patient
         </button>
       </div>
-      {error && <div className="text-red-600">{error}</div>}
+      {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
 
       <GenericTable
         table={table}

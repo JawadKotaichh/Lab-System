@@ -82,10 +82,10 @@ async def _calculate_invoice_total(invoice: DBInvoice, visit: DBVisit) -> Decima
     return round_money(total + invoice.adjustment_minor)
 
 
-async def _sync_visit_paid_status(invoice: DBInvoice, visit: DBVisit) -> None:
+async def _validate_invoice_total(invoice: DBInvoice, visit: DBVisit) -> None:
     total = await _calculate_invoice_total(invoice, visit)
-    visit.posted = invoice.total_paid >= total
-    await visit.replace()
+    if total < 0:
+        raise HTTPException(422, "The adjustment makes the net total negative")
 
 
 @router.get(
@@ -264,20 +264,6 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         existing_invoice.list_of_lab_panels = update_data.list_of_lab_panels
     if update_data.insurance_company_id is not None:
         existing_invoice.insurance_company_id = update_data.insurance_company_id
-    if update_data.total_paid is not None:
-        existing_invoice.total_paid = update_data.total_paid
-
-        existing_financial_transacion = await DBFinancial_transaction.find_one(
-            DBFinancial_transaction.visit_id == PydanticObjectId(visit_id)
-        )
-        if existing_financial_transacion is not None:
-            existing_financial_transacion.amount = update_data.total_paid
-            await existing_financial_transacion.replace()
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail=f"No financial_transacion found for visit with id: {visit_id}!",
-            )
     db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
     if db_patient is None:
         raise HTTPException(
@@ -318,8 +304,22 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
             total_price += (panel.lab_panel_price or 0) * insurance_rate
 
     total_price = round_money(total_price + existing_invoice.adjustment_minor)
-    db_visit.posted = existing_invoice.total_paid >= total_price
-    await db_visit.replace()
+    if total_price < 0:
+        raise HTTPException(422, "The adjustment makes the net total negative")
+    if update_data.total_paid is not None:
+        existing_invoice.total_paid = update_data.total_paid
+
+        existing_financial_transacion = await DBFinancial_transaction.find_one(
+            DBFinancial_transaction.visit_id == PydanticObjectId(visit_id)
+        )
+        if existing_financial_transacion is not None:
+            existing_financial_transacion.amount = update_data.total_paid
+            await existing_financial_transacion.replace()
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No financial_transacion found for visit with id: {visit_id}!",
+            )
     await existing_invoice.replace()
 
     return existing_invoice
@@ -358,7 +358,7 @@ async def override_test_price(visit_id: str, body: LabTestChanged):
             )
         )
 
-    await _sync_visit_paid_status(invoice, db_visit)
+    await _validate_invoice_total(invoice, db_visit)
     await invoice.replace()
     return invoice
 
@@ -557,7 +557,7 @@ async def rebuild_invoice(visit_id: str):
     db_invoice.list_of_lab_panels = listOfPanels
     db_invoice.list_of_tests = listOfTests
 
-    await _sync_visit_paid_status(db_invoice, db_visit)
+    await _validate_invoice_total(db_invoice, db_visit)
     await db_invoice.replace()
     output = invoiceData(
         patient=currentPatient,

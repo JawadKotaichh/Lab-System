@@ -1,5 +1,5 @@
 import { type NavigateFunction } from "react-router-dom";
-import api from "../api";
+import api, { getApiErrorMessage } from "../api";
 import { FinancialTransactionsApiURL, InsuranceApiURL, labTestApiURL, labTestCategoryApiURL, labTestCategoryCreatePageURL, labTestCreatePageURL, PatientsApiURL, visitsApiURL } from "./data";
 import type { Dispatch, SetStateAction } from "react"
 import { create_invoice, createVisit, fetchLabTestResultsAndPanelsPaginated, rebuildInvoice, resetPassword } from "./utils";
@@ -28,7 +28,7 @@ const dispatchDeleteEvent = (eventName: string) => {
       dispatchDeleteEvent("insurance-company-deleted");
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -43,7 +43,7 @@ const dispatchDeleteEvent = (eventName: string) => {
       dispatchDeleteEvent("patient-deleted");
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -57,7 +57,7 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
       dispatchDeleteEvent("lab-test-deleted");
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -70,7 +70,7 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
       dispatchDeleteEvent("visit-deleted");
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -83,7 +83,7 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
       window.dispatchEvent(new CustomEvent("financialTransaction-deleted", { detail: { elementID } }));
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -99,7 +99,7 @@ const handleDeleteLabTest = async ({elementID,setError}:deleteElement) => {
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -117,7 +117,7 @@ const handleDeleteLabTestCategory = async({elementID,setError}:deleteElement) =>
       dispatchDeleteEvent("lab-test-category-deleted");
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -141,7 +141,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -152,7 +152,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     }catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -168,7 +168,7 @@ const handleNewVisit = async (insurance_company_name:string,patient: patientInfo
     }catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -229,7 +229,6 @@ export const handleAddLabTest = async ({
     alreadyExistsPanel;
 
   if (alreadyExistsAnywhere) {
-    alert(duplicateMessage);
     setAddError(duplicateMessage);
     return;
   }
@@ -258,7 +257,7 @@ export const handleAddLabTest = async ({
   } catch (err: unknown) {
     console.error(err);
     if (err instanceof Error) {
-      setError(err.message);
+      setError(getApiErrorMessage(err, "Could not complete the request"));
       }
     }
   };
@@ -274,15 +273,11 @@ export const handleAddLabTest = async ({
   }
 
 export const handleAdd = async ({lab_test_id,lab_test,data,setAddError,setShowAddForLabPanels,setData}: addLabTestToPanelParams) => {
+  if (data.list_of_lab_test_ids.some((id) => id === lab_test_id)) {
+    setAddError("This test is already included in the panel.");
+    return;
+  }
   try {
-    if (data.list_of_lab_test_ids.some((id) => id === lab_test_id)) {
-      setAddError("This test already exists.");
-      alert("This test already exists.");
-      setShowAddForLabPanels(false);
-      setAddError("");
-      return;
-    }
-
     setAddError("");
 
     const nextIds = [...data.list_of_lab_test_ids, lab_test_id];
@@ -303,7 +298,7 @@ export const handleAdd = async ({lab_test_id,lab_test,data,setAddError,setShowAd
 
   } catch (err) {
     console.error(err);
-    setAddError(err instanceof Error ? err.message : "Failed to add lab test");
+    setAddError(getApiErrorMessage(err, "Could not add lab test"));
   } finally {
     setShowAddForLabPanels(false);
   }

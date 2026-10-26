@@ -74,8 +74,8 @@ export type GenderType = Exclude<NVType, "normal_value_by_gender">;
 
 export type monthlySummaryInvoicesParams = {
   insurance_company_id: string;
-  start_date: Date;
-  end_date: Date;
+  start_date: Date | string;
+  end_date: Date | string;
   currency?: string;
 };
 export type financialTransactionsSummaryParams = {

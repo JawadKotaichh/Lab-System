@@ -2,16 +2,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import type { MenuParams, optionsMenuPages } from "./types";
 
+export const maintenanceNavItems: optionsMenuPages[] = [
+  { label: "Insurance Companies", path: "/insurance-companies" },
+  { label: "Lab Panels", path: "/lab-panels" },
+  { label: "Lab Tests", path: "/lab-tests" },
+  { label: "Lab Tests Categories", path: "/lab-test-categories" },
+];
+
 const MaintenanceMenu = ({ isMenuOpen, setIsMenuOpen }: MenuParams) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const options: optionsMenuPages[] = [
-    { label: "Insurance Companies", path: "/insurance-companies" },
-    { label: "Lab Panels", path: "/lab-panels" },
-    { label: "Lab Tests", path: "/lab-tests" },
-    { label: "Lab Tests Categories", path: "/lab-test-categories" },
-  ];
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +46,7 @@ const MaintenanceMenu = ({ isMenuOpen, setIsMenuOpen }: MenuParams) => {
     <div ref={wrapperRef} className="relative bg-white">
       <button
         type="button"
+        aria-label="Open maintenance menu"
         className="bx bx-menu block text-3xl cursor-pointer"
         onClick={toggleMenu}
         aria-haspopup="menu"
@@ -65,7 +66,7 @@ const MaintenanceMenu = ({ isMenuOpen, setIsMenuOpen }: MenuParams) => {
           display: isMenuOpen ? "flex" : "none",
         }}
       >
-        {options.map((opt) => (
+        {maintenanceNavItems.map((opt) => (
           <li key={opt.path} role="none" className="list-none w-full">
             <button
               role="menuitem"

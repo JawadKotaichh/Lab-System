@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import ShowWithSignature from "../ShowWithSignature";
@@ -91,7 +92,7 @@ export default function InvoiceSummaryContainer() {
         setEndDate(parsedEnd);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : "Failed to load summary");
+        setError(getApiErrorMessage(err, "Failed to load summary"));
       })
       .finally(() => setLoading(false));
   }, [
@@ -106,7 +107,7 @@ export default function InvoiceSummaryContainer() {
   ]);
 
   if (loading) return <LoadingPage title="Loading summary invoice ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
   if (!summaryData.length || !startDate || !endDate) {
     return <div className="p-4">No summary data found.</div>;
   }

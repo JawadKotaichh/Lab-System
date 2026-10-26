@@ -23,7 +23,7 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.beanie import apaginate
 from typing import Any, Dict, List
 from beanie import PydanticObjectId
-from .deps import require_admin, require_visit_access
+from .deps import get_current_principal, require_admin, require_visit_access
 from ..schemas.financial_types import round_money
 
 router = APIRouter(
@@ -65,19 +65,24 @@ async def create_lab_panel_result(visit_id: str, lab_panel_id: str):
         }
     ).to_list()
 
-    if existing:
-        dup_ids = {str(r.lab_test_type_id) for r in existing}
+    conflicting = [row for row in existing if row.lab_panel_id != db_lab_panel.id]
+    if conflicting:
+        dup_ids = {str(r.lab_test_type_id) for r in conflicting}
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Some of these tests are already recorded for visit {visit_id}: {', '.join(dup_ids)}",
         )
 
+    # Retrying a partially completed save adds only the missing panel members.
+    existing_ids = {row.lab_test_type_id for row in existing}
     for test_id in list_of_test_type_ids:
         if not PydanticObjectId.is_valid(test_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid lab test type ID",
             )
+        if PydanticObjectId(test_id) in existing_ids:
+            continue
         db_lab_test_result = DBLab_test_result(
             lab_panel_id=db_lab_panel.id,
             lab_test_type_id=PydanticObjectId(test_id),
@@ -123,6 +128,14 @@ async def create_lab_test_result(visit_id: str, data: Lab_test_result):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Test type {data.lab_test_type_id} not found",
         )
+    existing = await DBLab_test_result.find_one({
+        "visit_id": PydanticObjectId(visit_id),
+        "lab_test_type_id": PydanticObjectId(data.lab_test_type_id),
+    })
+    if existing is not None:
+        if existing.lab_panel_id is not None:
+            raise HTTPException(409, "This test is already included in a panel")
+        return existing
     visit_corresponds_to_patient = DBVisit.find(DBVisit.id == visit_id)
     if not visit_corresponds_to_patient:
         raise HTTPException(
@@ -208,7 +221,11 @@ async def get_completed_and_total_results(visit_id: str):
 async def get_result_list(
     visit_id: str,
     db_visit: DBVisit = Depends(require_visit_access),
+    include_incomplete: bool = False,
+    principal: dict = Depends(get_current_principal),
 ):
+    if include_incomplete:
+        require_admin(principal)
     visit_oid = db_visit.id
 
     db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
@@ -261,14 +278,14 @@ async def get_result_list(
                 "date": doc["prev_date"],
             }
 
-    completed_results = [
+    visible_results = current_results if include_incomplete else [
         test_result
         for test_result in current_results
         if test_result.result and test_result.result.strip()
     ]
     lab_test_type_ids = list(
         dict.fromkeys(
-            test_result.lab_test_type_id for test_result in completed_results
+            test_result.lab_test_type_id for test_result in visible_results
         )
     )
     lab_test_types = (
@@ -283,7 +300,7 @@ async def get_result_list(
     panel_ids = list(
         dict.fromkeys(
             test_result.lab_panel_id
-            for test_result in completed_results
+            for test_result in visible_results
             if test_result.lab_panel_id
         )
     )
@@ -310,7 +327,7 @@ async def get_result_list(
     list_of_standalone_test_results = []
     panels_to_list_of_tests = defaultdict(list)
 
-    for test_result in completed_results:
+    for test_result in visible_results:
         db_lab_test_type = lab_test_types_by_id.get(test_result.lab_test_type_id)
         if not db_lab_test_type:
             raise HTTPException(

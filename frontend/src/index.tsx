@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App";
 import { Buffer } from "buffer";
 
@@ -17,7 +17,5 @@ const el = document.getElementById("root");
 if (!el) throw new Error("Root element not found");
 
 ReactDOM.createRoot(el).render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+  <RouterProvider router={createBrowserRouter([{ path: "*", element: <App /> }])} />
 );

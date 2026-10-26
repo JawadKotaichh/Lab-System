@@ -1,3 +1,4 @@
+import { useFormValidation, ValidationSummary, FieldError, required, dateError } from "../FormValidation";
 import { Calendar, DollarSign, User } from "lucide-react";
 import {
   iconStyle,
@@ -21,12 +22,17 @@ import { useNavigate } from "react-router-dom";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import { getApiErrorMessage } from "../../api";
 
+const localToday = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+};
+
 const MonthSummary = () => {
   const [state, setState] = useState<string>("");
   const [data, setData] = useState<monthlySummaryInvoicesParams>({
     insurance_company_id: "",
-    start_date: new Date(),
-    end_date: new Date(),
+    start_date: localToday(),
+    end_date: localToday(),
     currency: "",
   });
   const navigate = useNavigate();
@@ -45,7 +51,7 @@ const MonthSummary = () => {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || "Failed to load");
+        setError(getApiErrorMessage(err, "Could not load insurance companies"));
         setLoading(false);
       });
   }, []);
@@ -74,11 +80,14 @@ const MonthSummary = () => {
       };
     });
   };
+  const validation = useFormValidation([
+    { name: "insurance_company_id", label: "Insurance company", error: required(data.insurance_company_id, "Insurance company") },
+    { name: "start_date", label: "Start date", error: dateError(data.start_date, "Start date") },
+    { name: "end_date", label: "End date", error: dateError(data.end_date, "End date") || (new Date(String(data.start_date)) > new Date(String(data.end_date)) ? "End date must be on or after start date." : null) },
+  ]);
   const handleSave = async () => {
-    if (data.insurance_company_id == "") {
-      setState("Please insert all the required fields!");
-      return;
-    }
+    if (!validation.validate()) { setState(""); return; }
+    setState("");
     try {
       const response = await getMonthlyInvoiceSummary({
         insurance_company_id: data.insurance_company_id,
@@ -124,20 +133,22 @@ const MonthSummary = () => {
     }
   };
   if (loading) return <LoadingPage title="Loading insurance companies ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>Month Summary</h1>
+      <ValidationSummary validation={validation} />
       <div className={inputFormAttributeCategoryList}>
         {listOfAttributesInvoice.map((i) => (
-          <div className={inputFormAttributeListItem}>
-            <label className={inputFormAttributeListItemLabel}>
+          <div key={i.attributeName} className={inputFormAttributeListItem}>
+            <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
             {i.typeOfInput === "Selection" ? (
               <select
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 value={
                   data[
@@ -165,6 +176,7 @@ const MonthSummary = () => {
               </select>
             ) : (
               <input
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
                 value={
@@ -184,6 +196,7 @@ const MonthSummary = () => {
                 }
               />
             )}
+            <FieldError validation={validation} name={i.attributeName} />
           </div>
         ))}
       </div>
@@ -191,7 +204,7 @@ const MonthSummary = () => {
       <button className={inputFormSave} onClick={() => handleSave()}>
         Get
       </button>
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };

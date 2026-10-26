@@ -1,3 +1,5 @@
+import { useFormValidation, ValidationSummary, FieldError, dateError } from "../FormValidation";
+import { getApiErrorMessage } from "../../api";
 import {
   BadgeDollarSign,
   CalendarDays,
@@ -81,7 +83,7 @@ const FinancialTransactionsSummary = () => {
         setCurrencies(curs);
         setTypes(tys);
       })
-      .catch((err) => setError(err?.message || "Failed to load"))
+      .catch((err) => setError(getApiErrorMessage(err, "Could not load report filters")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -98,16 +100,16 @@ const FinancialTransactionsSummary = () => {
     }));
   };
 
+  const validation = useFormValidation([
+    { name: "start_date", label: "From date", error: data.start_date ? dateError(toYMD(data.start_date), "From date") : null },
+    { name: "end_date", label: "To date", error: (data.end_date ? dateError(toYMD(data.end_date), "To date") : null) || (data.start_date && data.end_date && toYMD(data.start_date) > toYMD(data.end_date) ? "To date must be on or after From date." : null) },
+  ]);
   const handleSave = async () => {
+    if (!validation.validate()) { setState(""); return; }
     setState("");
 
     const start = toYMD(data.start_date);
     const end = toYMD(data.end_date);
-
-    if (start && end && start > end) {
-      setState("From date must be before (or equal to) To date.");
-      return;
-    }
 
     const filters: financialTransactionsSummaryParams = {
       type: normalizeAll(data.type),
@@ -138,7 +140,7 @@ const FinancialTransactionsSummary = () => {
         },
       });
     } catch (err) {
-      setState(err instanceof Error ? err.message : "Failed to fetch summary");
+      setState(getApiErrorMessage(err, "Failed to fetch summary"));
     }
   };
 
@@ -163,22 +165,24 @@ const FinancialTransactionsSummary = () => {
 
   if (loading)
     return <LoadingPage title="Loading financial transactions ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>Financial Transactions Summary</h1>
+      <ValidationSummary validation={validation} />
 
       <div className={inputFormAttributeList}>
         {listOfAttributesFinancialTransactionSummary.map((i) => (
           <div key={i.attributeName} className={inputFormAttributeListItem}>
-            <label className={inputFormAttributeListItemLabel}>
+            <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
 
             {i.typeOfInput === "Selection" ? (
               <select
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 value={String(
                   data[
@@ -217,6 +221,7 @@ const FinancialTransactionsSummary = () => {
               </select>
             ) : (
               <input
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
                 value={toYMD(
@@ -246,6 +251,7 @@ const FinancialTransactionsSummary = () => {
                 }
               />
             )}
+            <FieldError validation={validation} name={i.attributeName} />
           </div>
         ))}
       </div>
@@ -254,7 +260,7 @@ const FinancialTransactionsSummary = () => {
         Get
       </button>
 
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };
