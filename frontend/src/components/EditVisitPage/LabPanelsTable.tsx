@@ -18,10 +18,9 @@ import {
   tableItem,
   tableItemPanel,
 } from "../../style";
-import axios from "axios";
 import Pagination from "../Pagination";
 import SearchLabPanel from "../LabPanel/SearchLabPanel";
-import api from "../../api";
+import api, { getApiErrorMessage } from "../../api";
 import { labTestResultApiURL } from "../data";
 import type { PaginationState } from "@tanstack/react-table";
 import renderNormalValue from "../renderNormalValue";
@@ -36,10 +35,8 @@ function useDebounced<T>(value: T, delay = 500) {
   return v;
 }
 
-interface ErrorResponse {
-  detail: string;
-}
 interface labPanelTableParams {
+  onSelectPanel?: (panel: labPanel) => void;
   pagination: PaginationState;
   visit_id: string;
   showPanelsTable: boolean;
@@ -59,6 +56,7 @@ interface labPanelTableParams {
 }
 
 const LabPanelsTable: React.FC<labPanelTableParams> = ({
+  onSelectPanel,
   visit_id,
   showPanelsTable,
   setShowPanelsTable,
@@ -83,11 +81,16 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   const [searchInput, setSearchInput] = useState<string>("");
   const debouncedSearch = useDebounced(searchInput, 500);
   const handleAddLabPanel = async (visit_id: string, lab_panel_id: string) => {
+    if (onSelectPanel) {
+      const panel = availableLabPanels.find(p => p.id === lab_panel_id);
+      if (panel) onSelectPanel(panel);
+      return;
+    }
     setLoading(true);
     setError("");
 
     if (panelResults.some((panel) => panel.lab_panel_id === lab_panel_id)) {
-      alert("This lab panel already exists.");
+      setError("This lab panel is already included in the visit.");
       setLoading(false);
       return;
     }
@@ -102,18 +105,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
       await refreshResults();
     } catch (err: unknown) {
       console.error("handleAddLabPanel error:", err);
-      let message = "Failed to add lab panel";
-      if (axios.isAxiosError(err)) {
-        const data = err.response?.data as Partial<ErrorResponse> | undefined;
-        message =
-          data?.detail ||
-          err.response?.statusText ||
-          (err as Error).message ||
-          message;
-      } else if (err instanceof Error) {
-        message = err.message;
-      }
-      alert(message);
+      const message = getApiErrorMessage(err, "Could not add lab panel");
       setError(message);
     } finally {
       setLoading(false);
@@ -149,7 +141,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
         setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
       } catch (err) {
         if (!canceled) {
-          setError(err instanceof Error ? err.message : String(err));
+          setError(getApiErrorMessage(err, "Could not load lab panels"));
         }
       } finally {
         if (!canceled) setLoading(false);

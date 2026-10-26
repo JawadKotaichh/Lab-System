@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { fetchFinancialTransactionsPaginated } from "../utils";
@@ -107,7 +108,7 @@ const FinancialTransactionsTable: React.FC = () => {
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfFinancialTransactions);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
+        setError(getApiErrorMessage(err, "Could not load financial transactions"));
       } finally {
         setLoading(false);
       }
@@ -149,7 +150,7 @@ const FinancialTransactionsTable: React.FC = () => {
         </button>
       </div>
 
-      {error && <div className="text-red-600">{error}</div>}
+      {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
       <GenericTable
         table={table}
         loading={loading}

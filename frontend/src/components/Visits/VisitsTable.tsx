@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import { useNavigate } from "react-router-dom";
 // import DateRangePicker from './DataRangePicker';
 import React, { useEffect, useState } from "react";
@@ -95,7 +96,7 @@ const VisitsTable: React.FC = () => {
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfVisits);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
+        setError(getApiErrorMessage(err, "Could not load visits"));
       } finally {
         setLoading(false);
       }
@@ -116,7 +117,7 @@ const VisitsTable: React.FC = () => {
   return (
     <div className="p-8 bg-white">
       <h1 className={pageListTitle}>Visits</h1>
-      {error && <div className="text-red-600">{error}</div>}
+      {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
 
       <GenericTable
         table={table}

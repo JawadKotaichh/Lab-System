@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import {
   useReactTable,
   type ColumnFiltersState,
@@ -32,6 +33,7 @@ import GenericTable from "../react-table/GeneralTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
 
 interface TestsList {
+  onSelectTest?: (test: labTest) => void;
   addError: string;
   showTestsTable: boolean;
   error: string;
@@ -57,6 +59,7 @@ interface TestsList {
 }
 
 const AddTestResultTable: React.FC<TestsList> = ({
+  onSelectTest,
   addError,
   visit_id,
   showTestsTable,
@@ -112,6 +115,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
     setError,
     showAdd,
     {
+      onSelectTest,
       pagination,
       setPagination,
       visit_id,
@@ -168,7 +172,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfTests);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
+        setError(getApiErrorMessage(err, "Could not load available lab tests"));
       } finally {
         setLoading(false);
       }
@@ -203,7 +207,7 @@ const AddTestResultTable: React.FC<TestsList> = ({
     >
       <div className="bg-white p-6 rounded shadow-lg w-fit max-h-[80vh] overflow-y-auto">
         <div className="p-8 bg-white">
-          {error && <div className="text-red-600">{error}</div>}
+          {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
           {addError && <div className="text-red-600">{addError}</div>}
 
           <h1 className={pageListTitle}>Add Lab Test Result</h1>

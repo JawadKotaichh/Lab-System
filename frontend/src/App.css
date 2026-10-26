@@ -1,4 +1,14 @@
 @import "tailwindcss";
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"],
+button[aria-invalid="true"] {
+  border-color: #dc2626 !important;
+  outline: 2px solid #dc2626;
+  outline-offset: 1px;
+}
+
 html,
 body {
   margin: 0;

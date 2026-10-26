@@ -37,7 +37,7 @@ import type {
   visitFilters,
   VisitsInfo,
 } from "./types.js";
-import api from "../api.js";
+import api from "../api";
 import type { labTest } from "./types.js";
 import {
   FinancialTransactionsApiURL,
@@ -154,9 +154,9 @@ const fetchLabTestResultsAndPanelsPaginated = async (
   const response = await api.get(url);
   return response.data;
 };
-const fetchResultList = async (visit_id: string): Promise<resultListData> => {
+const fetchResultList = async (visit_id: string, includeIncomplete = false): Promise<resultListData> => {
   const url = `${labTestResultApiURL}/${visit_id}/get_result_list`;
-  const response = await api.get(url);
+  const response = await api.get(url, { params: includeIncomplete ? { include_incomplete: true } : undefined });
   return response.data;
 };
 

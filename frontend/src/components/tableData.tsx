@@ -50,6 +50,7 @@ import { PostResultCheckbox } from "./PostResultCheckbox";
 type SelectOption = { value: string; label: string };
 
 export interface LabTestColumnOptions {
+  onSelectTest?: (test: labTest) => void;
   showAddForLabPanels?: boolean;
   setShowAddForLabPanels?: React.Dispatch<React.SetStateAction<boolean>>;
   data?: labPanelsWithIdsList;
@@ -428,6 +429,7 @@ export function getLabTestColumns(
   options?: LabTestColumnOptions
 ): ColumnDef<labTest>[] {
   const {
+    onSelectTest,
     showAddForLabPanels,
     setShowAddForLabPanels,
     data,
@@ -648,6 +650,10 @@ export function getLabTestColumns(
             label: "Add",
             className: "text-blue-600",
             onClick: () => {
+              if (onSelectTest) {
+                onSelectTest(row.original);
+                return;
+              }
               if (
                 !pagination ||
                 !setPagination ||
@@ -741,7 +747,7 @@ export function getLabTestColumns(
                   {item.label}
                 </button>
               ))} */}
-              {!showAddForLabPanels && (
+              {!showAddForLabPanels && !showAdd && (
                 <button
                   type="button"
                   onClick={() =>

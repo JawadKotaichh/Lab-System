@@ -1,3 +1,4 @@
+import { useFormValidation, ValidationSummary, FieldError, required } from "../FormValidation";
 import { useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -39,7 +40,7 @@ const EditLabTestCategory = ({ title }: PageTitle) => {
         .then((d) => setData(d))
         .catch((err) => {
           console.error("Failed to fetch lab test category", err);
-          setState("Failed to load lab test category data");
+          setState(getApiErrorMessage(err, "Could not load lab test category details"));
         });
     }
   }, [lab_test_category_id]);
@@ -56,11 +57,12 @@ const EditLabTestCategory = ({ title }: PageTitle) => {
       [attributeName]: value,
     }));
   };
+  const validation = useFormValidation([
+    { name: "lab_test_category_name", label: "Category name", error: required(data.lab_test_category_name, "Category name") },
+  ]);
   const handleSave = async () => {
-    if (data.lab_test_category_name == "") {
-      setState("Please insert all the required fields!");
-      return;
-    }
+    if (!validation.validate()) { setState(""); return; }
+    setState("");
     try {
       if (lab_test_category_id) {
         await api.put(labTestCategoryApiURL + lab_test_category_id, data);
@@ -87,14 +89,16 @@ const EditLabTestCategory = ({ title }: PageTitle) => {
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
+      <ValidationSummary validation={validation} />
       <div className={inputFormAttributeCategoryList}>
         {listOfAttributesLabTestCategory.map((i) => (
-          <div className={inputFormAttributeListItem}>
-            <label className={inputFormAttributeListItemLabel}>
+          <div key={i.attributeName} className={inputFormAttributeListItem}>
+            <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
             <input
+              {...validation.field(i.attributeName)}
               className={inputFormAttributeListItemInput}
               type={i.typeOfInput}
               value={
@@ -113,6 +117,7 @@ const EditLabTestCategory = ({ title }: PageTitle) => {
                 })
               }
             ></input>
+            <FieldError validation={validation} name={i.attributeName} />
           </div>
         ))}
       </div>
@@ -120,7 +125,7 @@ const EditLabTestCategory = ({ title }: PageTitle) => {
       <button className={inputFormSave} onClick={() => handleSave()}>
         Save
       </button>
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { useFormValidation, ValidationSummary, FieldError, required, numberError } from "../FormValidation";
 import React, { useEffect, useRef, useState } from "react";
 import type { labPanelsWithIdsList, labTestCategoryParams } from "../types";
 import {
@@ -69,7 +70,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       .then((currentPanelData) => {
         setData(currentPanelData);
       })
-      .catch((err) => setError(err.message || "Failed to load lab panel"));
+      .catch((err) => setError(getApiErrorMessage(err, "Failed to load lab panel")));
   }, [lab_panel_id]);
 
   useEffect(() => {
@@ -78,7 +79,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       .then((categoryData) => {
         setLabTestCategories(categoryData);
       })
-      .catch((err) => setError(err.message || err.toString()))
+      .catch((err) => setError(getApiErrorMessage(err, "Could not load data")))
       .finally(() => setLoading(false));
   }, [currentPage, pageSize]);
 
@@ -93,7 +94,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   //       setTotalNumberOfTests(testData.TotalNumberOfTests);
   //       setLabTestCategories(categoryData);
   //     })
-  //     .catch((err) => setError(err.message || err.toString()))
+  //     .catch((err) => setError(getApiErrorMessage(err, "Could not load data")))
   //     .finally(() => setLoading(false));
   // }, [currentPage, pageSize]);
 
@@ -127,7 +128,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       setData(prevData);
       console.error(err);
       if (err instanceof Error) {
-        setError(err.message);
+        setState(getApiErrorMessage(err, "Could not remove this test from the panel"));
       }
     }
   };
@@ -158,18 +159,16 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
   };
   const handleAddButton = () => setShow(true);
 
+  const validation = useFormValidation([
+    { name: "panel_name", label: "Lab panel name", error: required(data.lab_panel.panel_name, "Lab panel name") },
+    { name: "lab_panel_price", label: "L", error: numberError(data.lab_panel.lab_panel_price, "L", true) },
+    { name: "nssf_id", label: "NSSF ID", error: numberError(data.lab_panel.nssf_id, "NSSF ID", true, true) },
+    { name: "lab_panel_category_id", label: "Category", error: required(data.lab_panel.lab_panel_category_id, "Category") },
+    { name: "tests", label: "Lab tests", error: data.list_of_lab_test_ids.length ? null : "Add at least one lab test to this panel." },
+  ]);
   const handleSave = async () => {
     if (savingRef.current) return;
-    if (
-      !data.lab_panel.panel_name ||
-      data.list_of_lab_test_ids.length === 0 ||
-      !data.lab_panel.lab_panel_price ||
-      !data.lab_panel.lab_panel_category_id ||
-      !data.lab_panel.nssf_id
-    ) {
-      setState("Please insert all the required fields!");
-      return;
-    }
+    if (!validation.validate()) { setState(""); return; }
     setState("");
     savingRef.current = true;
     setSaving(true);
@@ -191,7 +190,9 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           lab_panel_category_id: data.lab_panel.lab_panel_category_id,
         });
       }
-      navigate(labPanelMainPageURL);
+      navigate(labPanelMainPageURL, {
+        state: { savedMessage: lab_panel_id ? "Lab panel changes saved" : "Lab panel created" },
+      });
     } catch (err) {
       console.error(err);
       setState(getApiErrorMessage(err, "Could not save lab panel. Your edits are kept."));
@@ -201,72 +202,43 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
     }
   };
   if (loading) return <LoadingPage title="Loading lab categories ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     <div className="p-8 bg-white">
       <h1 className={inputFormTitle}>{title}</h1>
-      <div className="flex items-center mb-4">
-        <label className={inputFormAttributeListItemLabel}>
-          <span className="text-xl mr-5">Lab Panel Name:</span>
-        </label>
-        <input
-          className={inputFormAttributeListItemInput + " w-fit"}
-          type={"text"}
-          value={data.lab_panel.panel_name || ""}
-          placeholder={"Enter Lab Panel Name"}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          onChange={(e) => handlePanelNameChange(e.target.value)}
-          onBlur={(e) => handlePanelNameChange(toTitleCase(e.target.value))}
-        />
-        <label className={inputFormAttributeListItemLabel + " p-3"}>
-          <span className="text-xl mr-5">L:</span>
-        </label>
-        <input
-          className={inputFormAttributeListItemInput + " w-fit"}
-          type={"number"}
-          value={data.lab_panel.lab_panel_price || 0}
-          placeholder={"Enter Lab Panel L"}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          onChange={(e) => handlePanelPriceChange(Number(e.target.value))}
-        />
-        <label className={inputFormAttributeListItemLabel + " p-3"}>
-          <span className="text-xl mr-5">Nssf ID:</span>
-        </label>
-        <input
-          className={inputFormAttributeListItemInput + " w-fit"}
-          type={"number"}
-          value={data.lab_panel.nssf_id || 0}
-          placeholder={"Enter Lab Panel nssf Id"}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          onChange={(e) => handlePanelNssfIDChange(Number(e.target.value))}
-        />
-        <label className={inputFormAttributeListItemLabel + " p-3"}>
-          <span className="text-xl mr-5">Category:</span>
-        </label>
-        <select
-          className={inputFormAttributeListItemInput}
-          value={data.lab_panel.lab_panel_category_id || ""}
-          onChange={(e) => handleCategoryChange(e.target.value)}
-        >
-          <option value="" disabled>
-            — Select lab test category —
-          </option>
-          {labTestCategories.map((ltc) => (
-            <option
-              key={ltc.lab_test_category_id}
-              value={ltc.lab_test_category_id}
-            >
-              {ltc.lab_test_category_name}
-            </option>
-          ))}
-        </select>
+      <ValidationSummary validation={validation} />
+      <div className="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div>
+          <label htmlFor={validation.id("panel_name")} className={inputFormAttributeListItemLabel}>Lab Panel Name</label>
+          <input {...validation.field("panel_name")} className={inputFormAttributeListItemInput + " w-full"} type="text"
+            value={data.lab_panel.panel_name || ""} placeholder="Enter lab panel name"
+            onChange={e => handlePanelNameChange(e.target.value)} onBlur={e => handlePanelNameChange(toTitleCase(e.target.value))} />
+          <FieldError validation={validation} name="panel_name" />
+        </div>
+        <div>
+          <label htmlFor={validation.id("lab_panel_price")} className={inputFormAttributeListItemLabel}>L</label>
+          <input {...validation.field("lab_panel_price")} className={inputFormAttributeListItemInput + " w-full"} type="number" min="0" step="any"
+            value={Number.isFinite(data.lab_panel.lab_panel_price) ? data.lab_panel.lab_panel_price : ""}
+            onChange={e => handlePanelPriceChange(e.target.value === "" ? NaN : Number(e.target.value))} />
+          <FieldError validation={validation} name="lab_panel_price" />
+        </div>
+        <div>
+          <label htmlFor={validation.id("nssf_id")} className={inputFormAttributeListItemLabel}>NSSF ID</label>
+          <input {...validation.field("nssf_id")} className={inputFormAttributeListItemInput + " w-full"} type="number" min="1" step="1"
+            value={Number.isFinite(data.lab_panel.nssf_id) ? data.lab_panel.nssf_id : ""}
+            onChange={e => handlePanelNssfIDChange(e.target.value === "" ? NaN : Number(e.target.value))} />
+          <FieldError validation={validation} name="nssf_id" />
+        </div>
+        <div>
+          <label htmlFor={validation.id("lab_panel_category_id")} className={inputFormAttributeListItemLabel}>Category</label>
+          <select {...validation.field("lab_panel_category_id")} className={inputFormAttributeListItemInput + " w-full"}
+            value={data.lab_panel.lab_panel_category_id || ""} onChange={e => handleCategoryChange(e.target.value)}>
+            <option value="" disabled>— Select lab test category —</option>
+            {labTestCategories.map(category => <option key={category.lab_test_category_id} value={category.lab_test_category_id}>{category.lab_test_category_name}</option>)}
+          </select>
+          <FieldError validation={validation} name="lab_panel_category_id" />
+        </div>
       </div>
 
       <div className="flex justify-between items-center mb-4">
@@ -279,11 +251,12 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           setCurrentPage={setCurrentPage}
         />
 
-        <button className={tableHandleButton} onClick={handleAddButton}>
+        <button {...validation.field("tests")} className={tableHandleButton} onClick={handleAddButton}>
           Add Test
         </button>
       </div>
 
+      <FieldError validation={validation} name="tests" />
       {data.lab_panel.lab_tests.length > 0 && (
         <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
           <thead>
@@ -352,7 +325,7 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
 
       <div className="flex justify-end">
         <button type="button" disabled={saving} aria-busy={saving} className={`${inputFormSave} disabled:opacity-60 disabled:cursor-wait`} onClick={handleSave}>
-          {saving ? "Saving…" : "Save"}
+          {saving ? "Saving…" : lab_panel_id ? "Save changes" : "Create panel"}
         </button>
       </div>
       {state && <p role="alert" className={stateStyle}>{state}</p>}

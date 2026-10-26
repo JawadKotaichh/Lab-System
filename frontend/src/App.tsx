@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
 import {
   Routes,
   Route,
@@ -7,9 +8,10 @@ import {
   useMatch,
   Navigate,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import "./App.css";
-import MaintenanceMenu from "./components/MaintenanceMenu";
+import MaintenanceMenu, { maintenanceNavItems } from "./components/MaintenanceMenu";
 import EditPatientPage from "./components/Patients/EditPatient";
 import EditVisitPage from "./components/EditVisitPage/EditVisitPage";
 import EditInsuranceCompany from "./components/InsuranceCompany/EditInsuranceCompany";
@@ -80,35 +82,14 @@ function LoginRoute({
   return (
     <LoginPage
       onSubmit={async ({ username, password }) => {
-        if (!username.trim() || !password.trim()) {
-          alert("Please fill username and password");
-          return;
-        }
-
-        try {
-          const res = await loginUser(username, password);
-
-          if (res.ok) {
-            onLoginSuccess({
-              user_id: res.user_id ?? "",
-              username: res.username ?? username,
-              role: res.role as Role,
-            });
-            if (res.role == "admin") {
-              navigate("/visits", { replace: true });
-            } else {
-              navigate("/my-visits", { replace: true });
-            }
-            return;
-          }
-
-          alert("Invalid credentials");
-          return;
-        } catch (error) {
-          console.error("Login error:", error);
-          alert("Login failed. Please try again.");
-          return;
-        }
+        const res = await loginUser(username, password);
+        if (!res.ok) throw new Error("The username or password is incorrect.");
+        onLoginSuccess({
+          user_id: res.user_id ?? "",
+          username: res.username ?? username,
+          role: res.role as Role,
+        });
+        navigate(res.role === "admin" ? "/visits" : "/my-visits", { replace: true });
       }}
     />
   );
@@ -125,18 +106,10 @@ function EditPatientAccountRoute({
       title="Profile"
       buttonText="Update"
       onSubmit={async ({ username, password }) => {
-        if (!username.trim() || !password.trim()) {
-          alert("Please fill username and password");
-          return;
-        }
-        try {
-          const updated = await updateOwnAccount(username, password);
-          onAccountUpdated(updated.username);
-          alert("Profile updated ✅");
-          navigate("/my-visits", { replace: true });
-        } catch {
-          alert("Failed to update patient account.");
-        }
+        const updated = await updateOwnAccount(username, password);
+        onAccountUpdated(updated.username);
+        alert("Profile updated");
+        navigate("/my-visits", { replace: true });
       }}
     />
   );
@@ -163,6 +136,10 @@ const App: React.FC = () => {
   const logoutButtonStyle =
     "px-3 py-2 rounded-md text-red-600 border border-red-600 hover:bg-red-700 hover:border-red-700 hover:text-white transition cursor-pointer";
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigationRef = useRef<HTMLElement>(null);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const location = useLocation();
   const [user, setUser] = useState<AuthUser | null>(() => {
     const stored = localStorage.getItem("auth_user");
     if (!stored) return null;
@@ -174,6 +151,42 @@ const App: React.FC = () => {
   });
   const isAdmin = user?.role === "admin";
   const navItems = isAdmin ? navItemsAdmin : navItemsUser;
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsMenuOpen(false);
+  }, [location.key, user?.user_id]);
+
+  useEffect(() => {
+    // The longer admin navigation needs more room than the patient navigation.
+    const desktop = window.matchMedia(isAdmin ? "(min-width: 80rem)" : "(min-width: 48rem)");
+    const closeMenus = () => {
+      setIsMobileMenuOpen(false);
+      setIsMenuOpen(false);
+    };
+    desktop.addEventListener("change", closeMenus);
+    return () => desktop.removeEventListener("change", closeMenus);
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !navigationRef.current?.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+        mobileMenuButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener("pointerdown", closeOutside);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      window.removeEventListener("pointerdown", closeOutside);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isMobileMenuOpen]);
   useEffect(() => {
     if (!user) return;
     let isMounted = true;
@@ -228,47 +241,72 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {user && (
-        <nav className="bg-white shadow w-full border-b">
-          <div className="flex items-center h-20">
-            <div className="shrink-0 pl-4">
-              <Link to="/">
-                <img
-                  src={`${baseURLL}/branding/logo`}
-                  alt="logo"
-                  className="h-18 w-auto"
-                />
-              </Link>
+        <nav ref={navigationRef} aria-label="Main navigation" className="w-full border-b bg-white shadow">
+          <div className="flex h-20 items-center justify-between gap-3 px-4">
+            <Link to="/" aria-label="Al Saha Lab home" className="shrink-0">
+              <img src={`${baseURLL}/branding/logo`} alt="Al Saha Lab" className="h-18 w-auto" />
+            </Link>
+
+            <div className={isAdmin ? "hidden min-w-0 items-center justify-end gap-6 xl:flex" : "hidden min-w-0 items-center justify-end gap-6 md:flex"}>
+              {navItems.map(({ to, label, end, dynamic }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  {...(end ? { end: true } : {})}
+                  className={({ isActive }) => `${(dynamic ? isOnEdit : isActive) ? activeClass : inactiveClass} whitespace-nowrap`}
+                >
+                  {label}
+                </NavLink>
+              ))}
+              {isAdmin && <MaintenanceMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />}
+              <button type="button" onClick={handleLogout} className={`${logoutButtonStyle} whitespace-nowrap`}>
+                Logout
+              </button>
             </div>
 
-            <div className="flex-1 justify-end">
-              <div className="mx-auto px-4 flex justify-end items-center space-x-6">
-                {navItems.map(({ to, label, end, dynamic }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    {...(end ? { end: true } : {})}
-                    className={({ isActive: navIsActive }) => {
-                      const isActive = dynamic ? isOnEdit : navIsActive;
-                      return isActive ? activeClass : inactiveClass;
-                    }}
-                  >
-                    {label}
-                  </NavLink>
-                ))}
-                {isAdmin && (
-                  <MaintenanceMenu
-                    isMenuOpen={isMenuOpen}
-                    setIsMenuOpen={setIsMenuOpen}
-                  />
-                )}
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className={logoutButtonStyle}
+            <button
+              ref={mobileMenuButtonRef}
+              type="button"
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
+              onClick={() => setIsMobileMenuOpen(open => !open)}
+              className={`inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${isAdmin ? "xl:hidden" : "md:hidden"}`}
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+            </button>
+          </div>
+
+          <div id="mobile-navigation" hidden={!isMobileMenuOpen} className={`border-t border-gray-100 px-4 pb-4 pt-3 ${isAdmin ? "xl:hidden" : "md:hidden"}`}>
+            <div className="flex flex-col gap-2">
+              {navItems.map(({ to, label, end, dynamic }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  {...(end ? { end: true } : {})}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) => `flex min-h-11 items-center ${(dynamic ? isOnEdit : isActive) ? activeClass : inactiveClass}`}
                 >
-                  Logout
-                </button>
-              </div>
+                  {label}
+                </NavLink>
+              ))}
+              {isAdmin && (
+                <div className="mt-1 flex flex-col gap-2 border-t border-gray-200 pt-3">
+                  <p className="px-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Maintenance</p>
+                  {maintenanceNavItems.map(({ path, label }) => (
+                    <NavLink key={path} to={path} onClick={() => setIsMobileMenuOpen(false)}
+                      className={({ isActive }) => `flex min-h-11 items-center ${isActive ? activeClass : inactiveClass}`}>
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+              <button type="button" className={`${logoutButtonStyle} mt-2 min-h-11 text-left`} onClick={() => {
+                setIsMobileMenuOpen(false);
+                void handleLogout();
+              }}>
+                Logout
+              </button>
             </div>
           </div>
         </nav>

@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import React, { useEffect, useState } from "react";
 import type { labPanel, labPanelFilter } from "../types";
 import { fetchLabPanelsPaginated } from "../utils";
@@ -8,7 +9,7 @@ import {
   tableItem,
   tableItemPanel,
 } from "../../style";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../api";
 import {
   labPanelCreatePageURL,
@@ -32,6 +33,7 @@ function useDebounced<T>(value: T, delay = 500) {
 }
 
 const LabPanelsList = () => {
+  const location = useLocation();
   const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ const LabPanelsList = () => {
         }
       }, 0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(getApiErrorMessage(err, "Could not load lab panels"));
     }
   };
 
@@ -115,7 +117,7 @@ const LabPanelsList = () => {
         setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
       } catch (err) {
         if (!canceled) {
-          setError(err instanceof Error ? err.message : "An error occurred");
+          setError(getApiErrorMessage(err, "Could not load lab panels"));
         }
       } finally {
         if (!canceled) setLoading(false);
@@ -129,7 +131,7 @@ const LabPanelsList = () => {
   }, [currentPage, pageSize, debouncedSearch]);
 
   if (loading) return <LoadingPage title="Loading lab panels ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     // <div className="p-8 bg-white">
@@ -250,6 +252,9 @@ const LabPanelsList = () => {
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between gap-4 mb-4">
         <h1 className={pageListTitle}>Lab Panels</h1>
+        {location.state?.savedMessage && (
+          <p role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">{location.state.savedMessage}</p>
+        )}
 
         <button
           type="button"

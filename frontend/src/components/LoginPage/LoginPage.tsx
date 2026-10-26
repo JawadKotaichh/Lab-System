@@ -1,6 +1,7 @@
+import { useFormValidation, ValidationSummary, FieldError, required } from "../FormValidation";
 import { FormEvent, useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { baseURLL } from "../../api";
+import { baseURLL, getApiErrorMessage } from "../../api";
 import { fetchUser } from "../utils";
 
 type LoginInProps = {
@@ -20,6 +21,11 @@ const LoginPage = ({
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const validation = useFormValidation([
+    { name: "username", label: "Username", error: required(username, "Username") },
+    { name: "password", label: "Password", error: required(password, "Password") },
+  ]);
   useEffect(() => {
     let cancelled = false;
     async function loadUsername() {
@@ -27,8 +33,8 @@ const LoginPage = ({
       try {
         const resp = await fetchUser(patient_id);
         if (!cancelled) setUsername(resp.username ?? "");
-      } catch {
-        if (!cancelled) setUsername("");
+      } catch (err) {
+        if (!cancelled) { setUsername(""); setError(getApiErrorMessage(err, "Could not load the account username")); }
       }
     }
     loadUsername();
@@ -40,11 +46,15 @@ const LoginPage = ({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!onSubmit || loading) return;
+    setError("");
+    if (!validation.validate()) return;
 
     try {
       setLoading(true);
       setShowPassword(false);
       await onSubmit({ username, password });
+    } catch (err) {
+      setError(getApiErrorMessage(err, buttonText === "Sign in" ? "Could not sign in" : "Could not update your account"));
     } finally {
       setLoading(false);
     }
@@ -66,11 +76,14 @@ const LoginPage = ({
         </h1>
 
         <div className="w-full mt-6 rounded-xl border border-gray-200 justify-center bg-white shadow-sm">
-          <form onSubmit={handleSubmit} className="p-6">
-            <label className="block text-sm font-medium text-gray-800">
+          <form noValidate onSubmit={handleSubmit} className="p-6">
+            <ValidationSummary validation={validation} />
+            {error && <p role="alert" className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+            <label htmlFor={validation.id("username")} className="block text-sm font-medium text-gray-800">
               Username:
             </label>
             <input
+              {...validation.field("username")}
               type="text"
               autoComplete="username"
               className="w-full mt-2 rounded-md border border-gray-300 bg-white focus:ring-indigo-200 px-3 py-2 text-sm text-gray-900 outline-none"
@@ -80,12 +93,13 @@ const LoginPage = ({
               required
               disabled={loading}
             />
-            <label htmlFor="login-password" className="block text-sm font-medium text-gray-800">
+            <FieldError validation={validation} name="username" />
+            <label htmlFor={validation.id("password")} className="block text-sm font-medium text-gray-800">
               Password:
             </label>
             <div className="relative mt-2">
               <input
-                id="login-password"
+                {...validation.field("password")}
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 className="w-full rounded-md border border-gray-300 bg-white focus:ring-indigo-200 pl-3 pr-12 py-2 text-sm text-gray-900 outline-none"
@@ -99,7 +113,7 @@ const LoginPage = ({
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                aria-controls="login-password"
+                aria-controls={validation.id("password")}
                 aria-pressed={showPassword}
                 disabled={loading}
                 className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-3 text-gray-500 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 cursor-pointer"
@@ -111,6 +125,7 @@ const LoginPage = ({
                 )}
               </button>
             </div>
+            <FieldError validation={validation} name="password" />
             <button
               type="submit"
               disabled={loading}

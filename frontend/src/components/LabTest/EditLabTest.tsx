@@ -1,5 +1,6 @@
+import { useFormValidation, ValidationSummary, FieldError, required, numberError } from "../FormValidation";
 import { useEffect, useState } from "react";
-import api from "../../api";
+import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   iconStyle,
@@ -88,7 +89,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
             normal_value_list: resp.normal_value_list,
           });
         })
-        .catch(() => setState("Failed to load lab test data"));
+        .catch((err) => setState(getApiErrorMessage(err, "Could not load lab test details")));
     }
   }, [lab_test_id]);
 
@@ -99,7 +100,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
         setLoading(false);
       })
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Failed to load");
+        setError(getApiErrorMessage(err, "Could not load lab test categories"));
         setLoading(false);
       });
   }, []);
@@ -111,7 +112,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
     setData((prev) => ({ ...prev, [k]: value }));
 
   const handleNumberAttr = (k: NumberKeys, value: string) =>
-    setData((prev) => ({ ...prev, [k]: Number(value) }));
+    setData((prev) => ({ ...prev, [k]: value.trim() === "" ? NaN : Number(value) }));
 
   const getAttrValue = (k: StringKeys | NumberKeys): string | number => {
     if (k === "nssf_id") return data.nssf_id;
@@ -174,17 +175,15 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
     }
   };
 
+  const validation = useFormValidation([
+    { name: "nssf_id", label: "NSSF ID", error: numberError(data.nssf_id, "NSSF ID", false, true) },
+    { name: "lab_test_category_id", label: "Category", error: required(data.lab_test_category_id, "Category") },
+    { name: "name", label: "Test name", error: required(data.name, "Test name") },
+    { name: "price", label: "L", error: numberError(data.price, "L") },
+  ]);
   const handleSave = async () => {
-    if (
-      data.name.trim() === "" ||
-      data.lab_test_category_id.trim() === "" ||
-      !Number.isFinite(data.price) ||
-      !Number.isFinite(data.nssf_id)
-    ) {
-      setState("Please insert all the required fields!");
-      return;
-    }
-
+    if (!validation.validate()) { setState(""); return; }
+    setState("");
     try {
       if (lab_test_id) {
         await api.put(labTestApiURL + lab_test_id, data);
@@ -194,17 +193,18 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
       navigate(labTestMainPageURL);
     } catch (err) {
       setState(
-        err instanceof Error ? `Save failed: ${err.message}` : "Save failed"
+        getApiErrorMessage(err, "Could not save lab test")
       );
     }
   };
 
   if (loading) return <LoadingPage title="Loading lab categories ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
+      <ValidationSummary validation={validation} />
       <div className={inputFormAttributeList}>
         {listOfAttributesLabTest.map((i) => {
           const key = i.attributeName as
@@ -218,13 +218,14 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
 
           return (
             <div className={inputFormAttributeListItem} key={i.subItem}>
-              <label className={inputFormAttributeListItemLabel}>
+              <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
                 {renderIcon(i.icon)}
                 <span>{i.subItem}</span>
               </label>
 
               {isSelection ? (
                 <select
+                  {...validation.field(i.attributeName)}
                   className={inputFormAttributeListItemInput}
                   value={String(getAttrValue("lab_test_category_id"))}
                   onChange={(e) =>
@@ -245,13 +246,14 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
                 </select>
               ) : (
                 <input
+                  {...validation.field(i.attributeName)}
                   className={inputFormAttributeListItemInput}
                   type={i.typeOfInput}
                   value={
                     key === "nssf_id"
-                      ? data.nssf_id
+                      ? (Number.isFinite(data.nssf_id) ? data.nssf_id : "")
                       : key === "price"
-                      ? data.price
+                      ? (Number.isFinite(data.price) ? data.price : "")
                       : key === "name"
                       ? data.name
                       : key === "unit"
@@ -275,6 +277,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
                   }
                 />
               )}
+              <FieldError validation={validation} name={i.attributeName} />
             </div>
           );
         })}
@@ -472,7 +475,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
       <button className={inputFormSave} onClick={handleSave}>
         Save
       </button>
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };

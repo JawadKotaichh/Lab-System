@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import type {
@@ -55,7 +56,7 @@ export default function ResultContainer() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || "Failed to load");
+        setError(getApiErrorMessage(err, "Could not load the test results"));
         setLoading(false);
       });
     version.current += 1;

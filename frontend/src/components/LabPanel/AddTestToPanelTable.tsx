@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import {
   useReactTable,
   type ColumnFiltersState,
@@ -116,7 +117,7 @@ const AddTestToPanelTable: React.FC<TestsList> = ({
         setTotalPages(res.total_pages);
         setTotalNumberOfPaginatedItems(res.TotalNumberOfTests);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
+        setError(getApiErrorMessage(err, "Could not load available lab tests"));
       } finally {
         setLoading(false);
       }

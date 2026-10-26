@@ -1,3 +1,4 @@
+import { useFormValidation, ValidationSummary, FieldError, required, dateError } from "../FormValidation";
 import { useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -55,7 +56,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || "Failed to load");
+        setError(getApiErrorMessage(err, "Could not load insurance companies"));
         setLoading(false);
       });
   }, []);
@@ -70,7 +71,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
         )
         .catch((err) => {
           console.error("Failed to fetch patient data:", err);
-          setState("Failed to load patient data");
+          setState(getApiErrorMessage(err, "Could not load patient details"));
         });
     }
   }, [patient_id]);
@@ -87,17 +88,16 @@ const EditPatientPage = ({ title }: PageTitle) => {
       [attributeName]: value,
     }));
   };
+  const validation = useFormValidation([
+    { name: "name", label: "Patient name", error: required(data.name, "Patient name") },
+    { name: "DOB", label: "Date of birth", error: dateError(data.DOB, "Date of birth") },
+    { name: "gender", label: "Gender", error: required(data.gender, "Gender") },
+    { name: "phone_number", label: "Phone number", error: required(data.phone_number, "Phone number") },
+    { name: "insurance_company_id", label: "Insurance company", error: required(data.insurance_company_id, "Insurance company") },
+  ]);
   const handleSave = async () => {
-    if (
-      data.DOB == "" ||
-      data.name == "" ||
-      data.gender == "" ||
-      data.phone_number == "" ||
-      data.insurance_company_id == ""
-    ) {
-      setState("Please insert all the required fields!");
-      return;
-    }
+    if (!validation.validate()) { setState(""); return; }
+    setState("");
     try {
       if (patient_id) {
         await api.put(PatientsApiURL + patient_id, data);
@@ -129,20 +129,22 @@ const EditPatientPage = ({ title }: PageTitle) => {
   };
 
   if (loading) return <LoadingPage title="Loading insurance companies ..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     <div className={inputForm}>
       <h1 className={inputFormTitle}>{title}</h1>
+      <ValidationSummary validation={validation} />
       <div className={inputFormAttributeList}>
         {listOfAttributesPatient.map((i) => (
-          <div className={inputFormAttributeListItem}>
-            <label className={inputFormAttributeListItemLabel}>
+          <div key={i.attributeName} className={inputFormAttributeListItem}>
+            <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
               {renderIcon(i.icon)}
               <span>{i.subItem}</span>
             </label>
             {i.typeOfInput === "Selection" ? (
               <select
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 value={data[i.attributeName as keyof patientInfo]}
                 onChange={(e) =>
@@ -177,22 +179,8 @@ const EditPatientPage = ({ title }: PageTitle) => {
                 )}
               </select>
             ) : (
-              // <input
-              //   className={inputFormAttributeListItemInput}
-              //   type={i.typeOfInput}
-              //   value={data[i.attributeName as keyof patientInfo] || ""}
-              //   placeholder={i.placeHolder}
-              //   onKeyDown={(e) => {
-              //     if (e.key === "Enter") e.currentTarget.blur();
-              //   }}
-              //   onChange={(e) =>
-              //     handleInputChange({
-              //       attributeName: i.attributeName,
-              //       value: e.target.value,
-              //     })
-              //   }
-              // />
               <input
+                {...validation.field(i.attributeName)}
                 className={inputFormAttributeListItemInput}
                 type={i.typeOfInput}
                 value={data[i.attributeName as keyof patientInfo] || ""}
@@ -213,6 +201,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
                 }}
               />
             )}
+            <FieldError validation={validation} name={i.attributeName} />
           </div>
         ))}
       </div>
@@ -220,7 +209,7 @@ const EditPatientPage = ({ title }: PageTitle) => {
       <button className={inputFormSave} onClick={() => handleSave()}>
         Save
       </button>
-      <h1 className={stateStyle}>{state}</h1>
+      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };

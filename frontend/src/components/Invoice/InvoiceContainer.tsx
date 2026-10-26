@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from "../../api";
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -74,7 +75,7 @@ export default function InvoiceContainer() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || "Failed to load");
+        setError(getApiErrorMessage(err, "Could not load the invoice"));
         setLoading(false);
       });
     version.current += 1;
