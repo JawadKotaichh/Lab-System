@@ -187,3 +187,51 @@ for (const role of ['admin', 'patient']) {
     }
   });
 }
+
+test('Add Test Result keeps one dialog and its close button visible while loading', async () => {
+  const React = require('react');
+  const { renderToStaticMarkup } = require('react-dom/server');
+  const state = [], effects = [];
+  let cursor = 0, resolvePage;
+  const pageRequest = new Promise(resolve => { resolvePage = resolve; });
+  const picker = loadSource('components/EditVisitPage/AddTestResultTable.tsx', {
+    react: {
+      ...React,
+      useState(initial) {
+        const index = cursor++;
+        if (!(index in state)) state[index] = initial;
+        return [state[index], next => { state[index] = typeof next === 'function' ? next(state[index]) : next; }];
+      },
+      useEffect(effect) { effects.push(effect); },
+    },
+    'react-router-dom': { useNavigate: () => () => {} },
+    '@tanstack/react-table': { useReactTable: options => options, getCoreRowModel() {}, getPaginationRowModel() {}, getSortedRowModel() {} },
+    '../utils': { fetchLabTestTypePaginated: () => pageRequest },
+    '../tableData': { getLabTestColumns: () => [] },
+    '../CloseButton': loadSource('components/CloseButton.tsx'),
+    '../../hooks/useLabTestCategoryOptions': { useLabTestCategoryOptions: () => [], buildLabTestFilters: () => ({}) },
+    '../react-table/GeneralTable': { __esModule: true, default: ({ table }) => React.createElement('table', null, React.createElement('tbody', null, table.data.map(row => React.createElement('tr', { key: row.lab_test_id }, React.createElement('td', null, row.name))))) },
+  }).default;
+  const props = { showTestsTable: true, error: '', addError: '', setError() {}, existingLabTestTypeIds: new Set() };
+  const render = () => { cursor = 0; return renderToStaticMarkup(picker(props)); };
+  const initial = render();
+  assert.equal((initial.match(/role="dialog"/g) ?? []).length, 1);
+  assert.match(initial, /role="status"/);
+  assert.match(initial, /aria-label="Close add test result dialog"/);
+  assert.doesNotMatch(initial, /<table/);
+
+  // Starting the request must keep the same dialog shell, rather than render a page loader.
+  const cleanup = effects[0]();
+  const pending = render();
+  assert.match(pending, /role="dialog"/);
+  assert.match(pending, /aria-label="Close add test result dialog"/);
+  resolvePage({ lab_tests: [labTest('Available test')], total_pages: 1, TotalNumberOfTests: 1 });
+  await pageRequest;
+  await Promise.resolve();
+  const loaded = render();
+  assert.match(loaded, /role="dialog"/);
+  assert.match(loaded, /<table/);
+  assert.match(loaded, /Available test/);
+  assert.doesNotMatch(loaded, /role="status"/);
+  cleanup();
+});

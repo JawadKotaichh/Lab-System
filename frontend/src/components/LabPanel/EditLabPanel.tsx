@@ -1,3 +1,4 @@
+import SaveButton from "../SaveButton";
 import { useFormValidation, ValidationSummary, FieldError, required, numberError } from "../FormValidation";
 import React, { useEffect, useRef, useState } from "react";
 import type { labPanelsWithIdsList, labTestCategoryParams } from "../types";
@@ -8,7 +9,6 @@ import {
 import {
   inputFormAttributeListItemInput,
   inputFormAttributeListItemLabel,
-  inputFormSave,
   inputFormTitle,
   stateStyle,
   tableDeleteButton,
@@ -324,9 +324,9 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
       />
 
       <div className="flex justify-end">
-        <button type="button" disabled={saving} aria-busy={saving} className={`${inputFormSave} disabled:opacity-60 disabled:cursor-wait`} onClick={handleSave}>
-          {saving ? "Saving…" : lab_panel_id ? "Save changes" : "Create panel"}
-        </button>
+        <SaveButton saving={saving} className="mt-5" onClick={() => void handleSave()}>
+          {lab_panel_id ? "Save changes" : "Create panel"}
+        </SaveButton>
       </div>
       {state && <p role="alert" className={stateStyle}>{state}</p>}
       <span>
