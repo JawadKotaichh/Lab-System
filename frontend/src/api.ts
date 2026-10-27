@@ -1,4 +1,7 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
+
+export const isSessionExpired = (error: unknown): boolean =>
+  axios.isAxiosError(error) && error.response?.status === 401;
 
 export const getApiErrorMessage = (
   error: unknown,
@@ -45,21 +48,45 @@ const api = axios.create({
 });
 
 let refreshPromise: Promise<void> | null = null;
+let sessionVersion = 0;
+type SessionRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+  _sessionVersion?: number;
+};
+
+// Startup checks and 401 recovery must share the same refresh operation.
+export function refreshAccessToken(): Promise<void> {
+  if (refreshPromise) return refreshPromise;
+  const refresh = async () => {
+    await api.post("/auth/refresh");
+    sessionVersion += 1;
+  };
+  // Cookies are shared by tabs. Serialize rotation across tabs as well as within
+  // this client so concurrent requests cannot replace each other's refresh token.
+  const operation = typeof navigator !== "undefined" && navigator.locks
+    ? navigator.locks.request(`lab-session-refresh:${baseURLL}`, refresh)
+    : refresh();
+  refreshPromise = operation.finally(() => { refreshPromise = null; });
+  return refreshPromise;
+}
+
+api.interceptors.request.use(config => {
+  (config as SessionRequestConfig)._sessionVersion = sessionVersion;
+  return config;
+});
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const response = error?.response;
-    const originalRequest = error?.config as
-      | (typeof error.config & { _retry?: boolean })
-      | undefined;
+    const originalRequest = error?.config as SessionRequestConfig | undefined;
     const url = String(originalRequest?.url || "");
 
     if (!response || response.status !== 401) {
       return Promise.reject(error);
     }
 
-    if (url.includes("/auth/login") || url.includes("/auth/refresh")) {
+    if (url.includes("/auth/login") || url.includes("/auth/refresh") || url.includes("/auth/logout")) {
       return Promise.reject(error);
     }
 
@@ -72,17 +99,12 @@ api.interceptors.response.use(
     }
     originalRequest._retry = true;
 
-    try {
-      if (!refreshPromise) {
-        refreshPromise = api.post("/auth/refresh").then(() => undefined);
-      }
-      await refreshPromise;
-      refreshPromise = null;
-      return api(originalRequest);
-    } catch (refreshError) {
-      refreshPromise = null;
-      return Promise.reject(refreshError);
+    // A delayed 401 may belong to a request sent before a refresh completed.
+    // Retry with the new cookie instead of rotating the session again.
+    if (originalRequest._sessionVersion === undefined || originalRequest._sessionVersion === sessionVersion) {
+      await refreshAccessToken();
     }
+    return api(originalRequest);
   }
 );
 
