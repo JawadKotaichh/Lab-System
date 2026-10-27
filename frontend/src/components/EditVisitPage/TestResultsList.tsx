@@ -5,27 +5,24 @@ import type {
   result_suggestions,
   updateInvoiceData,
 } from "../types.js";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import renderNormalValue from "../renderNormalValue.js";
 import {
   fetchResultSuggestions,
 } from "../utils.js";
 
+export type ResultTarget = { testId: string; panelId: string | null };
+const rowKey = (target: ResultTarget) => JSON.stringify([target.panelId, target.testId]);
+
 interface ShowResultsListParams {
   validation: FormValidation;
   panelResults: patientPanelResult[];
-  setPanelResults: React.Dispatch<React.SetStateAction<patientPanelResult[]>>;
   standAloneTestResults: patientTestResult[];
-  setStandAloneTestResults: React.Dispatch<
-    React.SetStateAction<patientTestResult[]>
-  >;
+  onResultChange: (target: ResultTarget, value: string) => void;
   onRemoveTest: (id: string) => void;
   onRemovePanel: (id: string) => void;
   onPriceChange: (id: string, value: string) => void;
   priceDrafts: Record<string, string>;
-  setPendingResults: React.Dispatch<
-    React.SetStateAction<Record<string, string>>
-  >;
   updatedInvoiceData: updateInvoiceData;
 }
 
@@ -47,14 +44,12 @@ const normalizeResult = (value: string) => {
 const TestResultsList: React.FC<ShowResultsListParams> = ({
   validation,
   panelResults,
-  setPanelResults,
   standAloneTestResults,
-  setStandAloneTestResults,
+  onResultChange,
   onRemoveTest,
   onRemovePanel,
   onPriceChange,
   priceDrafts,
-  setPendingResults,
   updatedInvoiceData,
 }: ShowResultsListParams) => {
   const [activeInputId, setActiveInputId] = useState<string | null>(null);
@@ -62,7 +57,17 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
   const [loadingSug, setLoadingSug] = useState(false);
   const [sugError, setSugError] = useState<string | null>(null);
   const debounceRef = useRef<number | null>(null);
+  const activeInputRef = useRef<string | null>(null);
+  const suggestionRequest = useRef(0);
+  useEffect(() => () => {
+    if (debounceRef.current !== null) window.clearTimeout(debounceRef.current);
+    activeInputRef.current = null;
+    suggestionRequest.current += 1;
+  }, []);
   const closeDropdown = () => {
+    if (debounceRef.current !== null) window.clearTimeout(debounceRef.current);
+    activeInputRef.current = null;
+    suggestionRequest.current += 1;
     setActiveInputId(null);
     setSuggestions([]);
     setSugError(null);
@@ -77,8 +82,12 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     prefix: string,
     inputId: string,
   ) => {
-    if (debounceRef.current) window.clearTimeout(debounceRef.current);
-
+    if (debounceRef.current !== null) window.clearTimeout(debounceRef.current);
+    activeInputRef.current = inputId;
+    setActiveInputId(inputId);
+    setSuggestions([]);
+    setLoadingSug(false);
+    const request = ++suggestionRequest.current;
     debounceRef.current = window.setTimeout(async () => {
       const trimmed = prefix.trim();
       if (!trimmed) {
@@ -91,47 +100,20 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
         setSugError(null);
 
         const data = await fetchResultSuggestions(lab_test_type_id, trimmed);
-        if (activeInputId !== inputId) return;
+        if (activeInputRef.current !== inputId || suggestionRequest.current !== request) return;
         setSuggestions(data);
       } catch (e) {
-        if (activeInputId !== inputId) return;
+        if (activeInputRef.current !== inputId || suggestionRequest.current !== request) return;
         setSuggestions([]);
         setSugError(`Failed to load suggestions: ${e}`);
       } finally {
-        if (activeInputId === inputId) setLoadingSug(false);
+        if (activeInputRef.current === inputId && suggestionRequest.current === request) setLoadingSug(false);
       }
     }, 200);
   };
-  const onPickSuggestion = (lab_test_result_id: string, value: string) => {
-    void handleChange(lab_test_result_id, normalizeResult(value));
+  const onPickSuggestion = (target: ResultTarget, value: string) => {
+    onResultChange(target, normalizeResult(value));
     closeDropdown();
-  };
-
-  const handleChange = async (
-    lab_test_result_id: string,
-    newResult: string,
-  ) => {
-    setStandAloneTestResults((prev) =>
-      prev.map((item) =>
-        item.lab_test_result_id == lab_test_result_id
-          ? { ...item, result: newResult }
-          : item,
-      ),
-    );
-    setPanelResults((prevPanels) =>
-      prevPanels.map((panel) => ({
-        ...panel,
-        list_of_test_results: panel.list_of_test_results.map((res) =>
-          res.lab_test_result_id === lab_test_result_id
-            ? { ...res, result: newResult }
-            : res,
-        ),
-      })),
-    );
-    setPendingResults((prev: Record<string, string>) => ({
-      ...prev,
-      [lab_test_result_id]: newResult,
-    }));
   };
 
   return (
@@ -155,8 +137,8 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
           </td>
         </tr>
         {standAloneTestResults.map((r) => (
-          <React.Fragment key={r.lab_test_result_id}>
-            <tr key={r.lab_test_result_id} className="border rounded-sm">
+          <React.Fragment key={rowKey({ testId: r.lab_test_type_id, panelId: null })}>
+            <tr key={rowKey({ testId: r.lab_test_type_id, panelId: null })} className="border rounded-sm">
               <td className="border rounded-b-sm px-4 py-2">
                 {r.lab_test_type.lab_test_category_name}
               </td>
@@ -170,36 +152,36 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                     placeholder="Enter result"
                     value={r.result}
                     onFocus={() => {
-                      setActiveInputId(r.lab_test_result_id);
+                      setActiveInputId(rowKey({ testId: r.lab_test_type_id, panelId: null }));
                       requestSuggestions(
-                        r.lab_test_type.lab_test_id,
+                        r.lab_test_type_id,
                         r.result ?? "",
-                        r.lab_test_result_id,
+                        rowKey({ testId: r.lab_test_type_id, panelId: null }),
                       );
                     }}
                     onChange={(e) => {
                       const v = e.target.value;
-                      handleChange(r.lab_test_result_id, v);
-                      setActiveInputId(r.lab_test_result_id);
+                      onResultChange({ testId: r.lab_test_type_id, panelId: null }, v);
+                      setActiveInputId(rowKey({ testId: r.lab_test_type_id, panelId: null }));
                       requestSuggestions(
-                        r.lab_test_type.lab_test_id,
+                        r.lab_test_type_id,
                         v,
-                        r.lab_test_result_id,
+                        rowKey({ testId: r.lab_test_type_id, panelId: null }),
                       );
                     }}
                     onBlur={(e) => {
                       const formatted = normalizeResult(e.currentTarget.value);
                       if (formatted !== e.currentTarget.value) {
-                        void handleChange(r.lab_test_result_id, formatted);
+                        void onResultChange({ testId: r.lab_test_type_id, panelId: null }, formatted);
                       }
-                      setTimeout(() => closeDropdown(), 150);
+                      setTimeout(() => { if (activeInputRef.current === rowKey({ testId: r.lab_test_type_id, panelId: null })) closeDropdown(); }, 150);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") e.currentTarget.blur();
                       if (e.key === "Escape") closeDropdown();
                     }}
                   />
-                  {activeInputId === r.lab_test_result_id &&
+                  {activeInputId === rowKey({ testId: r.lab_test_type_id, panelId: null }) &&
                     (loadingSug || sugError || suggestions.length > 0) && (
                       <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow z-50 max-h-44 overflow-auto text-left">
                         {loadingSug && (
@@ -229,7 +211,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                               className="w-full px-3 py-2 hover:bg-gray-100 text-left"
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() =>
-                                onPickSuggestion(r.lab_test_result_id, s.value)
+                                onPickSuggestion({ testId: r.lab_test_type_id, panelId: null }, s.value)
                               }
                             >
                               {s.value}
@@ -270,7 +252,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               <td className="border rounded-b-sm  px-4 py-2">
                 <button
                   className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
-                  onClick={() => onRemoveTest(r.lab_test_result_id)}
+                  onClick={() => onRemoveTest(r.lab_test_type_id)}
                 >
                   Remove
                 </button>
@@ -279,7 +261,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
           </React.Fragment>
         ))}
         {panelResults.map((panel) => (
-          <>
+          <React.Fragment key={panel.lab_panel_id}>
             <tr>
               <td className="border rounded-b-sm px-4 py-2" colSpan={4}>
                 {panel.lab_panel_name}
@@ -302,7 +284,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               </td>
             </tr>
             {panel.list_of_test_results.map((r) => (
-              <tr key={r.lab_test_result_id} className="border rounded-sm">
+              <tr key={rowKey({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id })} className="border rounded-sm">
                 <td className="border rounded-b-sm px-4 py-2">
                   {r.lab_test_type.lab_test_category_name}
                 </td>
@@ -316,25 +298,25 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                       placeholder="Enter result"
                       value={r.result}
                       onFocus={() => {
-                        setActiveInputId(r.lab_test_result_id);
+                        setActiveInputId(rowKey({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id }));
                         requestSuggestions(
-                          r.lab_test_type.lab_test_id,
+                          r.lab_test_type_id,
                           r.result ?? "",
-                          r.lab_test_result_id,
+                          rowKey({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id }),
                         );
                       }}
                       onChange={(e) => {
                         const v = e.target.value;
-                        handleChange(r.lab_test_result_id, v);
-                        setActiveInputId(r.lab_test_result_id);
+                        onResultChange({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id }, v);
+                        setActiveInputId(rowKey({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id }));
                         requestSuggestions(
-                          r.lab_test_type.lab_test_id,
+                          r.lab_test_type_id,
                           v,
-                          r.lab_test_result_id,
+                          rowKey({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id }),
                         );
                       }}
                       onBlur={() => {
-                        setTimeout(() => closeDropdown(), 150);
+                        setTimeout(() => { if (activeInputRef.current === rowKey({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id })) closeDropdown(); }, 150);
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") e.currentTarget.blur();
@@ -342,7 +324,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                       }}
                     />
 
-                    {activeInputId === r.lab_test_result_id &&
+                    {activeInputId === rowKey({ testId: r.lab_test_type_id, panelId: panel.lab_panel_id }) &&
                       (loadingSug || sugError || suggestions.length > 0) && (
                         <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow z-50 max-h-44 overflow-auto text-left">
                           {loadingSug && (
@@ -374,7 +356,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() =>
                                   onPickSuggestion(
-                                    r.lab_test_result_id,
+                                    { testId: r.lab_test_type_id, panelId: panel.lab_panel_id },
                                     s.value,
                                   )
                                 }
@@ -401,7 +383,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                 </td>
               </tr>
             ))}
-          </>
+          </React.Fragment>
         ))}
       </tbody>
     </table>

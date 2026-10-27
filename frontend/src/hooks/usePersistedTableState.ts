@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type SetStateAction } from "react";
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import type {
   ColumnFiltersState,
@@ -65,7 +65,7 @@ const readState = (
   return {
     pagination: {
       pageIndex: positiveNumber(params.get("page"), 1) - 1,
-      pageSize: positiveNumber(params.get("pageSize"), 50),
+      pageSize: Math.min(100, positiveNumber(params.get("pageSize"), 50)),
     },
     columnFilters: filters,
     sorting,
@@ -97,62 +97,80 @@ const writeState = (state: SavedTableState) => {
   return params;
 };
 
+// Preserve unchanged slices: opening a filter or changing sort must not refetch data.
+const reconcileState = (previous: SavedTableState, next: SavedTableState): SavedTableState => {
+  const pagination = previous.pagination.pageIndex === next.pagination.pageIndex && previous.pagination.pageSize === next.pagination.pageSize ? previous.pagination : next.pagination;
+  const columnFilters = JSON.stringify(previous.columnFilters) === JSON.stringify(next.columnFilters) ? previous.columnFilters : next.columnFilters;
+  const sorting = JSON.stringify(previous.sorting) === JSON.stringify(next.sorting) ? previous.sorting : next.sorting;
+  const showFilters = JSON.stringify(previous.showFilters) === JSON.stringify(next.showFilters) ? previous.showFilters : next.showFilters;
+  return pagination === previous.pagination && columnFilters === previous.columnFilters && sorting === previous.sorting && showFilters === previous.showFilters
+    ? previous : { pagination, columnFilters, sorting, showFilters };
+};
+
 export const usePersistedTableState = (defaultSorting: SortingState = []) => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const pathKey = location.pathname;
+  const search = searchParams.toString();
   const defaultSortingRef = useRef(defaultSorting);
-  const initial =
-    searchParams.size > 0
-      ? readState(searchParams, defaultSortingRef.current)
-      : tableStateByPath.get(pathKey) ??
-        readState(new URLSearchParams(), defaultSortingRef.current);
-  const [pagination, setPagination] = useState<PaginationState>(
-    initial.pagination,
-  );
-  const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>(
-    initial.columnFilters,
-  );
-  const [sorting, setSorting] = useState<SortingState>(initial.sorting);
-  const [showFilters, setShowFilters] = useState<Record<string, boolean>>(
-    initial.showFilters,
-  );
-  const lastWrittenSearch = useRef(searchParams.toString());
-  const setColumnFilters = (next: SetStateAction<ColumnFiltersState>) => {
-    setColumnFiltersState(next);
-    setPagination((current) =>
-      current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
-    );
-  };
+  const [state, setState] = useState<SavedTableState>(() => searchParams.size > 0
+    ? readState(searchParams, defaultSortingRef.current)
+    : tableStateByPath.get(pathKey) ?? readState(new URLSearchParams(), defaultSortingRef.current));
+  const stateRef = useRef(state);
+  const lastLocation = useRef({ path: pathKey, search });
 
   useEffect(() => {
-    const nextState = { pagination, columnFilters, sorting, showFilters };
-    tableStateByPath.set(pathKey, nextState);
-    const next = writeState(nextState);
-    const nextSearch = next.toString();
-    if (nextSearch !== searchParams.toString()) {
-      lastWrittenSearch.current = nextSearch;
-      setSearchParams(next, { replace: true });
+    tableStateByPath.set(pathKey, stateRef.current);
+  }, [pathKey, state]);
+
+  // Only user actions write the URL. A URL-restoration effect must never write
+  // the previous render's filters back over an incoming navigation.
+  const updateState = useCallback((update: (previous: SavedTableState) => SavedTableState) => {
+    const previous = stateRef.current;
+    const next = reconcileState(previous, update(previous));
+    if (next === previous) return;
+    stateRef.current = next;
+    tableStateByPath.set(pathKey, next);
+    setState(next);
+    const params = writeState(next);
+    const nextSearch = params.toString();
+    if (nextSearch !== lastLocation.current.search || pathKey !== lastLocation.current.path) {
+      lastLocation.current = { path: pathKey, search: nextSearch };
+      setSearchParams(params, { replace: true });
     }
-  }, [pathKey, pagination, columnFilters, sorting, showFilters, setSearchParams]);
+  }, [pathKey, setSearchParams]);
 
   useEffect(() => {
-    if (searchParams.toString() === lastWrittenSearch.current) return;
-    const next = readState(searchParams, defaultSortingRef.current);
-    setPagination(next.pagination);
-    setColumnFiltersState(next.columnFilters);
-    setSorting(next.sorting);
-    setShowFilters(next.showFilters);
-  }, [searchParams]);
+    const previousLocation = lastLocation.current;
+    if (previousLocation.path === pathKey && previousLocation.search === search) return;
+    lastLocation.current = { path: pathKey, search };
+    const next = reconcileState(stateRef.current,
+      previousLocation.path !== pathKey && !searchParams.size
+        ? tableStateByPath.get(pathKey) ?? readState(searchParams, defaultSortingRef.current)
+        : readState(searchParams, defaultSortingRef.current));
+    stateRef.current = next;
+    tableStateByPath.set(pathKey, next);
+    setState(next);
+  }, [pathKey, search, searchParams]);
 
-  return {
-    pagination,
-    setPagination,
-    columnFilters,
-    setColumnFilters,
-    sorting,
-    setSorting,
-    showFilters,
-    setShowFilters,
-  };
+  const setPagination = useCallback((update: SetStateAction<PaginationState>) => updateState(previous => {
+    const next = typeof update === "function" ? update(previous.pagination) : update;
+    return { ...previous, pagination: {
+      pageIndex: Number.isInteger(next.pageIndex) && next.pageIndex >= 0 ? next.pageIndex : 0,
+      pageSize: Number.isInteger(next.pageSize) && next.pageSize > 0 ? Math.min(100, next.pageSize) : 50,
+    } };
+  }), [updateState]);
+  const setColumnFilters = useCallback((update: SetStateAction<ColumnFiltersState>) => updateState(previous => {
+    const next = typeof update === "function" ? update(previous.columnFilters) : update;
+    if (JSON.stringify(previous.columnFilters) === JSON.stringify(next)) return previous;
+    return { ...previous, columnFilters: next, pagination: { ...previous.pagination, pageIndex: 0 } };
+  }), [updateState]);
+  const setSorting = useCallback((update: SetStateAction<SortingState>) => updateState(previous => ({
+    ...previous, sorting: typeof update === "function" ? update(previous.sorting) : update,
+  })), [updateState]);
+  const setShowFilters = useCallback((update: SetStateAction<Record<string, boolean>>) => updateState(previous => ({
+    ...previous, showFilters: typeof update === "function" ? update(previous.showFilters) : update,
+  })), [updateState]);
+
+  return { ...state, setPagination, setColumnFilters, setSorting, setShowFilters };
 };

@@ -22,7 +22,8 @@ function loadSource(file, mocks = {}) {
   return module.exports;
 }
 const validation = loadSource('components/FormValidation.tsx');
-const prices = loadSource('components/EditVisitPage/Prices.tsx');
+const pricing = loadSource('components/Invoice/invoicePricing.ts');
+const prices = loadSource('components/EditVisitPage/Prices.tsx', { '../Invoice/invoicePricing': pricing });
 const apiModule = loadSource('api.ts');
 const copy = value => structuredClone(value);
 const labTest = id => ({ lab_test_id: id, name: id, price: 20, nssf_id: 1, unit: 'unit', lab_test_category_id: 'category', normal_value_list: [] });
@@ -137,6 +138,42 @@ test('overridden prices are final amounts and are not multiplied by insurance ra
   assert.equal(prices.invoiceGross(invoice), 3);
 });
 
+test('invoice PDF uses the same test, panel, zero overrides and adjustment totals as the editor', () => {
+  const React = require('react');
+  const invoice = fixture().invoice.invoice_data;
+  invoice.list_of_lab_panels = [{ id: 'panel-a', panel_name: 'Panel A', nssf_id: 2, lab_panel_price: 50, lab_tests: [] }];
+  invoice.list_of_lab_tests_ids_changed = [{ lab_test_id: 'test-a', new_price: 0 }];
+  invoice.list_of_lab_panels_ids_changed = [{ panel_id: 'panel-a', new_price: 3.5 }];
+  invoice.adjustment_minor = -1.25;
+  assert.equal(pricing.invoiceGross(invoice), 3.5);
+  assert.equal(prices.invoiceGross(invoice), 3.5);
+  assert.equal(pricing.invoiceNet(invoice), 2.25);
+  const Table = loadSource('components/Invoice/TestsTableInvoice.tsx', {
+    '@react-pdf/renderer': { Text: 'pdf-text', View: 'pdf-view' },
+    './InvoiceStyle': { styles: {} },
+    './invoicePricing': pricing,
+    './amountToWords': { __esModule: true, default: amount => `Words: ${amount}` },
+  }).default;
+  const tree = Table({ invoiceData: invoice, list_of_tests: invoice.list_of_tests,
+    list_of_lab_panels: invoice.list_of_lab_panels, total_price: pricing.invoiceGross(invoice),
+    currency: 'USD', patient_insurance_company_rate: 0.2 });
+  const text = node => node == null || typeof node === 'boolean' ? '' : Array.isArray(node)
+    ? node.map(text).join(' ') : React.isValidElement(node) ? text(node.props.children) : String(node);
+  const rendered = text(tree);
+  for (const expected of ['test-a', 'Panel A', '0.000 $', '3.500 $', 'Adjustment', '-1.250 $', 'Net Total', '2.250 $', 'Words: 2.25']) {
+    assert.ok(rendered.includes(expected), `PDF must include ${expected}`);
+  }
+});
+
+test('invoice pricing applies insurance rates once to tests and panels in either currency', () => {
+  const invoice = fixture().invoice.invoice_data;
+  invoice.list_of_lab_panels = [{ id: 'panel-a', lab_panel_price: 50 }];
+  for (const rate of [0.07, 8500, 0]) {
+    invoice.patient_insurance_company_rate = rate;
+    assert.equal(pricing.invoiceGross(invoice), 70 * rate);
+  }
+});
+
 test('field validation accepts zero where permitted and rejects blanks and impossible dates', () => {
   assert.equal(validation.numberError(0, 'L'), null);
   assert.ok(validation.numberError('', 'L'));
@@ -151,6 +188,142 @@ test('API errors describe connection, permission, validation and server failures
   assert.match(apiModule.getApiErrorMessage(error(403), 'Failed'), /permission/);
   assert.match(apiModule.getApiErrorMessage(error(422, [{ loc: ['body', 'panel_name'], msg: 'Field required' }]), 'Failed'), /panel name: Field required/);
   assert.doesNotMatch(apiModule.getApiErrorMessage(error(500, 'private stack trace'), 'Failed'), /private stack trace/);
+});
+
+function panelFixture() {
+  const baseline = fixture();
+  baseline.results.list_of_standalone_test_results.push(result('test-b'));
+  baseline.invoice.invoice_data.list_of_tests.push(labTest('test-b'));
+  baseline.results.list_of_panel_results = ['panel-a', 'panel-b'].map((id, i) => ({
+    lab_panel_id: id, lab_panel_name: id, lab_panel_price: 30, lab_panel_category_id: 'category',
+    list_of_test_results: [result(`panel-${i}-test-1`), result(`panel-${i}-test-2`)],
+  }));
+  return baseline;
+}
+
+test('Urine Analysis and Sensitivity can be added together with independent results', () => {
+  const s = server(), initial = editValues(fixture());
+  const panel = (id, name, count) => ({ id, panel_name: name, nssf_id: 1, lab_panel_price: 20,
+    lab_panel_category_id: 'category', lab_tests: Array.from({ length: count }, (_, i) => labTest(`${id}-test-${i}`)) });
+  const urine = panel('urine', 'Urine Analysis', 12);
+  const sensitivity = panel('sensitivity', 'Antibiotic Sensitivity', 21);
+  let edits = s.edits.addVisitPanel(initial, urine);
+  edits = s.edits.addVisitPanel(edits, sensitivity);
+  assert.equal(edits.panels.length, 2);
+  assert.equal(edits.panels[0].list_of_test_results.length, 12);
+  assert.equal(edits.panels[1].list_of_test_results.length, 21);
+  edits = s.edits.updateVisitResult(edits, { panelId: 'urine', testId: 'urine-test-0' }, 'First result');
+  assert.equal(edits.panels[0].list_of_test_results[0].result, 'First result');
+  assert.ok(edits.panels[1].list_of_test_results.every(test => test.result === ''));
+  assert.throws(() => s.edits.addVisitPanel(edits, urine), /already included/);
+  const invalid = panel('invalid', 'Invalid', 2);
+  invalid.lab_tests.forEach(test => test.lab_test_id = null);
+  assert.throws(() => s.edits.addVisitPanel(initial, invalid), /missing or repeated test identifiers/);
+  const overlapping = panel('overlap', 'Overlapping', 1);
+  overlapping.lab_tests[0] = urine.lab_tests[0];
+  assert.throws(() => s.edits.addVisitPanel(edits, overlapping), /urine-test-0/);
+});
+
+test('typing in a panel updates only the selected test even when result IDs collide', () => {
+  const baseline = panelFixture(), s = server(baseline);
+  let edited = editValues(baseline);
+  for (const row of [...edited.tests, ...edited.panels.flatMap(panel => panel.list_of_test_results)]) row.lab_test_result_id = 'shared-id';
+  const original = copy(edited);
+  edited = s.edits.updateVisitResult(edited, { panelId: 'panel-a', testId: 'panel-0-test-2' }, '12.5');
+  assert.deepEqual(edited.tests, original.tests);
+  assert.equal(edited.panels[0].list_of_test_results[0].result, '');
+  assert.equal(edited.panels[0].list_of_test_results[1].result, '12.5');
+  assert.deepEqual(edited.panels[1], original.panels[1]);
+  edited = s.edits.updateVisitResult(edited, { panelId: 'panel-b', testId: 'panel-1-test-1' }, '98');
+  assert.equal(edited.panels[0].list_of_test_results[1].result, '12.5');
+  assert.equal(edited.panels[1].list_of_test_results[0].result, '98');
+  assert.equal(edited.panels[1].list_of_test_results[1].result, '');
+  assert.equal(s.edits.updateVisitResult(edited, { panelId: 'panel-a', testId: undefined }, 'wrong'), edited);
+});
+
+test('saving a panel result writes only its own server result record', async () => {
+  const baseline = panelFixture(), s = server(baseline);
+  const edited = s.edits.updateVisitResult(editValues(baseline), { panelId: 'panel-b', testId: 'panel-1-test-2' }, '12.5');
+  await s.edits.saveVisitEdits('visit', baseline, edited);
+  const resultWrites = s.writes.filter(([method, url]) => method === 'put' && url.startsWith('/lab_tests_results/'));
+  assert.equal(resultWrites.length, 1);
+  assert.equal(resultWrites[0][1], '/lab_tests_results/result-panel-1-test-2');
+  assert.equal(s.state.results.list_of_panel_results[0].list_of_test_results[0].result, '');
+  assert.equal(s.state.results.list_of_panel_results[1].list_of_test_results[1].result, '12.5');
+});
+
+test('ambiguous server result identifiers prevent saving before any records are changed', async () => {
+  for (const invalidId of ['', 'result-test-a']) {
+    const baseline = panelFixture();
+    baseline.results.list_of_panel_results[0].list_of_test_results[0].lab_test_result_id = invalidId;
+    const s = server(baseline);
+    const edited = editValues(baseline);
+    edited.panels[0].list_of_test_results[0].result = '12';
+    await assert.rejects(s.edits.saveVisitEdits('visit', baseline, edited), /missing or repeated result identifiers/);
+    assert.deepEqual(s.writes, []);
+  }
+});
+
+test('panel result inputs and autocomplete use the selected row, not a shared result ID', async () => {
+  const React = require('react');
+  const s = server(panelFixture());
+  let edited = editValues(panelFixture());
+  for (const row of edited.panels.flatMap(panel => panel.list_of_test_results)) row.lab_test_result_id = 'shared-panel-result';
+  const originalWindow = global.window;
+  const timers = new Map(), requests = [], slots = [];
+  let cursor = 0, timerId = 0;
+  global.window = {
+    setTimeout(callback) { timers.set(++timerId, callback); return timerId; },
+    clearTimeout(id) { timers.delete(id); },
+  };
+  const visitInputs = element => {
+    if (!React.isValidElement(element)) return [];
+    return [element, ...React.Children.toArray(element.props.children).flatMap(visitInputs)];
+  };
+  try {
+    const Results = loadSource('components/EditVisitPage/TestResultsList.tsx', {
+      react: { ...React,
+        useState(initial) { const index = cursor++; if (!(index in slots)) slots[index] = initial; return [slots[index], next => { slots[index] = typeof next === 'function' ? next(slots[index]) : next; }]; },
+        useRef(initial) { const index = cursor++; if (!(index in slots)) slots[index] = { current: initial }; return slots[index]; },
+        useEffect() {},
+      },
+      '../utils.js': { fetchResultSuggestions: testId => new Promise(resolve => requests.push({ testId, resolve })) },
+    }).default;
+    const render = () => {
+      cursor = 0;
+      return visitInputs(Results({ validation: { field: () => ({}) }, panelResults: edited.panels, standAloneTestResults: edited.tests,
+        updatedInvoiceData: fixture().invoice.invoice_data, priceDrafts: {}, onPriceChange() {}, onRemoveTest() {}, onRemovePanel() {},
+        onResultChange(target, value) { edited = s.edits.updateVisitResult(edited, target, value); },
+        // Legacy callbacks reproduce the previous identifier-based parent updates.
+        setStandAloneTestResults(update) { edited = { ...edited, tests: update(edited.tests) }; },
+        setPanelResults(update) { edited = { ...edited, panels: update(edited.panels) }; }, setPendingResults() {},
+      }));
+    };
+    let nodes = render();
+    let inputs = nodes.filter(x => x.type === 'input' && x.props.placeholder === 'Enter result');
+    inputs[2].props.onChange({ target: { value: '12' } });
+    assert.deepEqual(edited.panels.map(panel => panel.list_of_test_results.map(test => test.result)), [['12', ''], ['', '']]);
+    [...timers.values()][0](); timers.clear();
+    nodes = render(); inputs = nodes.filter(x => x.type === 'input' && x.props.placeholder === 'Enter result');
+    inputs[4].props.onChange({ target: { value: '9' } });
+    [...timers.values()][0](); timers.clear();
+    assert.equal(requests.length, 2);
+    requests[0].resolve([{ value: 'Wrong test suggestion' }]);
+    await Promise.resolve();
+    nodes = render();
+    assert.ok(!nodes.some(x => x.type === 'button' && x.props.children === 'Wrong test suggestion'));
+    requests[1].resolve([{ value: 'Correct test suggestion' }]);
+    await Promise.resolve();
+    nodes = render();
+    const suggestion = nodes.find(x => x.type === 'button' && x.props.children === 'Correct test suggestion');
+    assert.ok(suggestion);
+    suggestion.props.onClick();
+    assert.deepEqual(edited.panels.map(panel => panel.list_of_test_results.map(test => test.result)), [['12', ''], ['Correct Test Suggestion', '']]);
+    assert.deepEqual(edited.tests.map(test => test.result), ['', '']);
+  } finally {
+    if (originalWindow === undefined) delete global.window;
+    else global.window = originalWindow;
+  }
 });
 
 for (const role of ['admin', 'patient']) {

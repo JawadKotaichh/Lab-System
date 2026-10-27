@@ -5,7 +5,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { labTest } from "../types";
 import { fetchLabTestTypePaginated } from "../utils";
 import {
@@ -24,7 +24,6 @@ import {
 } from "../../hooks/useLabTestCategoryOptions";
 import GenericTable from "../react-table/GeneralTable";
 import { handleCreateLabTest } from "../Function";
-import LoadingPage from "../LoadingPage/LoadingPage";
 import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 const LabTestTable = () => {
@@ -45,12 +44,12 @@ const LabTestTable = () => {
   } = usePersistedTableState();
   const currentPage = pagination.pageIndex + 1;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
-  const toggleFilter = (colId: string) =>
-    setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
+  const toggleFilter = useCallback((colId: string) =>
+    setShowFilters((s) => ({ ...s, [colId]: !s[colId] })), [setShowFilters]);
 
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
@@ -61,14 +60,14 @@ const LabTestTable = () => {
 
   const labTestCategoryOptions = useLabTestCategoryOptions();
 
-  const labTestCols = getLabTestColumns(
+  const labTestCols = useMemo(() => getLabTestColumns(
     navigate,
     showFilters,
     toggleFilter,
     setError,
     false,
     { labTestCategoryOptions }
-  );
+  ), [navigate, showFilters, toggleFilter, setError, labTestCategoryOptions]);
 
   const table = useReactTable({
     data,
@@ -87,6 +86,7 @@ const LabTestTable = () => {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadPage = async () => {
       setLoading(true);
       setError("");
@@ -95,19 +95,22 @@ const LabTestTable = () => {
         const res = await fetchLabTestTypePaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
-          filters
+          filters,
+          controller.signal
         );
+        if (controller.signal.aborted) return;
         setData(res.lab_tests);
-        setTotalPages(res.total_pages);
+        setTotalPages(Math.max(1, res.total_pages));
         setTotalNumberOfPaginatedItems(res.TotalNumberOfTests);
       } catch (err) {
-        setError(getApiErrorMessage(err, "Could not load lab tests"));
+        if (!controller.signal.aborted) setError(getApiErrorMessage(err, "Could not load lab tests"));
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
-    loadPage();
+    void loadPage();
+    return () => controller.abort();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
 
   useEffect(() => {
@@ -117,7 +120,6 @@ const LabTestTable = () => {
     return () => window.removeEventListener("lab-test-deleted", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingPage title="Loading lab tests ..." />;
 
   return (
     <div className="p-8 bg-white">
@@ -149,6 +151,7 @@ const LabTestTable = () => {
       </div>
       {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
 
+      {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading lab tests…</p>}
       <GenericTable
         table={table}
         loading={loading}

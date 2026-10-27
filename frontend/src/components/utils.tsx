@@ -201,9 +201,10 @@ const fetchLabPanelsPaginated = async (
   page_number: number,
   page_size: number,
   filters: labPanelFilter = {},
+  signal?: AbortSignal,
 ): Promise<paginatedlabPanel> => {
   const url = `${labPanelApiURL}/page/${page_size}/${page_number}`;
-  const response = await api.get(url, { params: filters });
+  const response = await api.get(url, { params: filters, signal });
   return response.data;
 };
 
@@ -211,9 +212,10 @@ const fetchInsuranceCompaniesPaginated = async (
   page_number: number,
   page_size: number,
   filters: InsuranceFilters = {},
+  signal?: AbortSignal,
 ) => {
   const url = `${InsuranceApiURL}page/${page_size}/${page_number}`;
-  const response = await api.get(url, { params: filters });
+  const response = await api.get(url, { params: filters, signal });
   return response.data;
 };
 
@@ -290,9 +292,10 @@ const fetchPatientsPaginated = async (
   page_number: number,
   page_size: number,
   filters: patientsFilters = {},
+  signal?: AbortSignal,
 ): Promise<paginatedPatientInfo> => {
   const url = `${PatientsApiURL}page/${page_size}/${page_number}`;
-  const response = await api.get(url, { params: filters });
+  const response = await api.get(url, { params: filters, signal });
   return response.data;
 };
 
@@ -300,9 +303,10 @@ const fetchLabTestCategoryPaginated = async (
   page_number: number,
   page_size: number,
   filters: lab_test_category_filters,
+  signal?: AbortSignal,
 ): Promise<paginatedTestCategoryInfo> => {
   const url = `${labTestCategoryApiURL}page/${page_size}/${page_number}`;
-  const response = await api.get(url, { params: filters });
+  const response = await api.get(url, { params: filters, signal });
   return response.data;
 };
 
@@ -310,9 +314,10 @@ const fetchLabTestTypePaginated = async (
   page_number: number,
   page_size: number,
   filters: labTestFilters = {},
+  signal?: AbortSignal,
 ): Promise<paginatedlabTest> => {
   const url = `/lab_test_type/page/${page_size}/${page_number}`;
-  const response = await api.get(url, { params: filters });
+  const response = await api.get(url, { params: filters, signal });
   return response.data;
 };
 
@@ -325,9 +330,10 @@ const fetchVisitsPaginated = async (
   page_number: number,
   page_size: number,
   filters: visitFilters = {},
+  signal?: AbortSignal,
 ): Promise<paginatedVisitData> => {
   const url = `/visits/page/${page_size}/${page_number}`;
-  const response = await api.get(url, { params: filters });
+  const response = await api.get(url, { params: filters, signal });
   return response.data;
 };
 const updateOwnAccount = async (
@@ -382,9 +388,10 @@ const fetchFinancialTransactionsPaginated = async (
   page_number: number,
   page_size: number,
   filters: financialTransactionsFilters = {},
+  signal?: AbortSignal,
 ): Promise<paginatedFinancialTransactionsData> => {
   const url = `/financial_transaction/page/${page_size}/${page_number}`;
-  const response = await api.get(url, { params: filters });
+  const response = await api.get(url, { params: filters, signal });
   return response.data;
 };
 const fetchFinancialTransaction = async (

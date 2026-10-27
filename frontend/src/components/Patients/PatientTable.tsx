@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { UserPlus } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { patientInfo } from "../types";
 import { fetchPatientsPaginated } from "../utils";
 import {
@@ -20,7 +20,6 @@ import { useNavigate } from "react-router-dom";
 import Pagination from "../Pagination";
 import { getPatientsColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingPage from "../LoadingPage/LoadingPage";
 import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
 const PatientTable = () => {
@@ -41,12 +40,12 @@ const PatientTable = () => {
   } = usePersistedTableState();
   const currentPage = pagination.pageIndex + 1;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
-  const toggleFilter = (colId: string) =>
-    setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
+  const toggleFilter = useCallback((colId: string) =>
+    setShowFilters((s) => ({ ...s, [colId]: !s[colId] })), [setShowFilters]);
 
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
@@ -55,12 +54,12 @@ const PatientTable = () => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
 
-  const PatientsCols = getPatientsColumns(
+  const PatientsCols = useMemo(() => getPatientsColumns(
     navigate,
     showFilters,
     toggleFilter,
     setError
-  );
+  ), [navigate, showFilters, toggleFilter, setError]);
 
   const table = useReactTable({
     data,
@@ -79,6 +78,7 @@ const PatientTable = () => {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadPage = async () => {
       setLoading(true);
       setError("");
@@ -93,19 +93,22 @@ const PatientTable = () => {
         const res = await fetchPatientsPaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
-          filters
+          filters,
+          controller.signal
         );
+        if (controller.signal.aborted) return;
         setData(res.patients);
-        setTotalPages(res.total_pages);
+        setTotalPages(Math.max(1, res.total_pages));
         setTotalNumberOfPaginatedItems(res.TotalNumberOfPatients);
       } catch (err) {
-        setError(getApiErrorMessage(err, "Could not load patients"));
+        if (!controller.signal.aborted) setError(getApiErrorMessage(err, "Could not load patients"));
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
-    loadPage();
+    void loadPage();
+    return () => controller.abort();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
 
   useEffect(() => {
@@ -121,7 +124,6 @@ const PatientTable = () => {
     return () => window.removeEventListener("patients:changed", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingPage title="Loading patients ..." />;
 
   return (
     <div className="p-8 bg-white">
@@ -152,6 +154,7 @@ const PatientTable = () => {
       </div>
       {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
 
+      {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading patients…</p>}
       <GenericTable
         table={table}
         loading={loading}

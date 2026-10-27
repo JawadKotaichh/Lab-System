@@ -9,8 +9,8 @@ const Pagination = ({
 }: PaginationParams) => {
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSize = Number(e.target.value);
-    if (newSize > 0) {
-      setPageSize(newSize);
+    if (Number.isInteger(newSize) && newSize > 0) {
+      setPageSize(Math.min(100, newSize));
       setCurrentPage(1);
     }
   };
@@ -18,17 +18,17 @@ const Pagination = ({
     <div className="bottom-0 right-0 mt-5 mb-5 flex gap-4 items-center">
       <button
         className="border rounded-sm w-20 px-2 py-1 hover:bg-green-500"
-        disabled={currentPage === 1}
+        disabled={currentPage <= 1}
         onClick={() => setCurrentPage(currentPage - 1)}
       >
         Previous
       </button>
       <span>
-        Page {currentPage} of {totalPages}
+        Page {currentPage} of {Math.max(1, totalPages)}
       </span>
       <button
         className="border rounded-sm w-20 px-2 py-1 hover:bg-green-500"
-        disabled={currentPage === totalPages}
+        disabled={currentPage >= Math.max(1, totalPages)}
         onClick={() => setCurrentPage(currentPage + 1)}
       >
         Next
@@ -38,6 +38,8 @@ const Pagination = ({
       <input
         type="number"
         min="1"
+        max="100"
+        step="1"
         value={pageSize}
         className="w-20 px-2 py-1 border rounded text-center"
         placeholder="Page Size"
