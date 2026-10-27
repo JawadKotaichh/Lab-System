@@ -103,6 +103,35 @@ function findElement(element, predicate) {
   }
 }
 
+for (const status of [401, 503, 'network']) {
+  test(`startup session check ${status === 401 ? 'signs out a truly invalid session' : `keeps the login after ${status}`}`, async () => {
+    const host = hookHost(), removed = [];
+    const previousWindow = global.window, previousStorage = global.localStorage;
+    global.window = { matchMedia: () => ({ addEventListener() {}, removeEventListener() {} }) };
+    global.localStorage = {
+      getItem: () => JSON.stringify({ user_id: 'sample', username: 'sample', role: 'admin' }),
+      removeItem: key => removed.push(key),
+    };
+    try {
+      const App = loadSource('App.tsx', {
+        react: host.hooks,
+        'react-router-dom': { useLocation: () => ({ key: 'sample' }), useMatch: () => null, useNavigate: () => () => {} },
+        './api': { baseURLL: 'https://example.test', isSessionExpired: error => error.status === 401 },
+        './components/MaintenanceMenu': { __esModule: true, default: () => null, maintenanceNavItems: [] },
+        './components/utils': { refreshSession: async () => { throw { status }; } },
+      }).default;
+      host.render(App);
+      for (let i = 0; i < 8; i++) await Promise.resolve();
+      host.flush();
+      assert.deepEqual(removed, status === 401 ? ['auth_user'] : []);
+      host.unmount();
+    } finally {
+      global.window = previousWindow;
+      global.localStorage = previousStorage;
+    }
+  });
+}
+
 test('panel picker recovers missing list identifiers from the detail endpoint without saving', async () => {
   const host = hookHost(), selected = [], detailCalls = [];
   const panel = { id: 'urine', panel_name: 'Urine Analysis', lab_tests: [{ lab_test_id: null, name: 'Urine test', normal_value_list: [] }] };

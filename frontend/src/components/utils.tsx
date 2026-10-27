@@ -37,7 +37,7 @@ import type {
   visitFilters,
   VisitsInfo,
 } from "./types.js";
-import api from "../api";
+import api, { refreshAccessToken } from "../api";
 import type { labTest } from "./types.js";
 import {
   FinancialTransactionsApiURL,
@@ -360,8 +360,8 @@ const fetchUser = async (patient_id: string): Promise<fetchUserResponse> => {
   return response.data;
 };
 const refreshSession = async (): Promise<boolean> => {
-  const response = await api.post("/auth/refresh");
-  return response.data?.ok === true;
+  await refreshAccessToken();
+  return true;
 };
 
 const logoutUser = async (): Promise<void> => {
@@ -372,13 +372,8 @@ async function apiFetch(input: RequestInfo, init: RequestInit = {}) {
 
   if (res.status !== 401) return res;
 
-  // try refresh once
-  const refreshRes = await fetch("/auth/refresh", {
-    method: "POST",
-    credentials: "include",
-  });
-
-  if (!refreshRes.ok) return res;
+  try { await refreshAccessToken(); }
+  catch { return res; }
   return fetch(input, { ...init, credentials: "include" });
 }
 

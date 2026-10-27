@@ -28,7 +28,7 @@ import InvoiceContainer from "./components/Invoice/InvoiceContainer";
 import ResultContainer from "./components/ResultPDF/ResultContainer";
 import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryContainer";
 import MonthSummary from "./components/MonthlySummary/MonthSummary";
-import { baseURLL } from "./api";
+import { baseURLL, isSessionExpired } from "./api";
 import LoginPage from "./components/LoginPage/LoginPage";
 import {
   loginUser,
@@ -198,8 +198,9 @@ const App: React.FC = () => {
           setUser(null);
           localStorage.removeItem("auth_user");
         }
-      } catch {
-        if (isMounted) {
+      } catch (error) {
+        // Temporary connection/server failures do not invalidate a session.
+        if (isMounted && isSessionExpired(error)) {
           setUser(null);
           localStorage.removeItem("auth_user");
         }
