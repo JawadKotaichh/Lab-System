@@ -5,7 +5,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { insuranceCompanyParams } from "../types";
 import { fetchInsuranceCompaniesPaginated } from "../utils";
 import {
@@ -19,7 +19,6 @@ import { InsuranceCreatePageURL } from "../data";
 import Pagination from "../Pagination";
 import { getInsuranceCompanyColumns } from "../tableData";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingPage from "../LoadingPage/LoadingPage";
 import { Building2 } from "lucide-react";
 import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
@@ -41,13 +40,13 @@ const InsuranceCompanyTable = () => {
   } = usePersistedTableState();
   const currentPage = pagination.pageIndex + 1;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
 
-  const toggleFilter = (colId: string) =>
-    setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
+  const toggleFilter = useCallback((colId: string) =>
+    setShowFilters((s) => ({ ...s, [colId]: !s[colId] })), [setShowFilters]);
 
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
@@ -56,12 +55,12 @@ const InsuranceCompanyTable = () => {
     setPagination((old) => ({ ...old, pageSize: size, pageIndex: 0 }));
   };
 
-  const InsuranceCompanyCols = getInsuranceCompanyColumns(
+  const InsuranceCompanyCols = useMemo(() => getInsuranceCompanyColumns(
     navigate,
     showFilters,
     toggleFilter,
     setError
-  );
+  ), [navigate, showFilters, toggleFilter, setError]);
 
   const table = useReactTable({
     data,
@@ -80,6 +79,7 @@ const InsuranceCompanyTable = () => {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadPage = async () => {
       setLoading(true);
       setError("");
@@ -94,19 +94,22 @@ const InsuranceCompanyTable = () => {
         const res = await fetchInsuranceCompaniesPaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
-          filters
+          filters,
+          controller.signal
         );
+        if (controller.signal.aborted) return;
         setData(res.insurance_companies);
-        setTotalPages(res.total_pages);
+        setTotalPages(Math.max(1, res.total_pages));
         setTotalNumberOfPaginatedItems(res.totalNumberOfPaginatedItems);
       } catch (err) {
-        setError(getApiErrorMessage(err, "Could not load insurance companies"));
+        if (!controller.signal.aborted) setError(getApiErrorMessage(err, "Could not load insurance companies"));
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
-    loadPage();
+    void loadPage();
+    return () => controller.abort();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
 
   useEffect(() => {
@@ -117,7 +120,6 @@ const InsuranceCompanyTable = () => {
       window.removeEventListener("insurance-company-deleted", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingPage title="Loading insurance companies ..." />;
   return (
     <div className="p-8 bg-white">
       <div className="flex items-center justify-between gap-4 mb-4">
@@ -147,6 +149,7 @@ const InsuranceCompanyTable = () => {
       </div>
       {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
 
+      {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading insurance companies…</p>}
       <GenericTable
         table={table}
         loading={loading}

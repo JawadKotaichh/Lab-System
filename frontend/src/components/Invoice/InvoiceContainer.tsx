@@ -1,144 +1,69 @@
 import { getApiErrorMessage } from "../../api";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import {
-  AuthUser,
-  InvoiceData,
-  lab_test_changed,
-  type labPanel,
-  type labTest,
-  type patientInfo,
-} from "../types";
+import type { AuthUser, fetchedInvoiceData } from "../types";
 import { fetchInvoice } from "../utils";
+import { invoiceGross } from "./invoicePricing";
 import Invoice from "./Invoice";
 import ShowWithSignature from "../ShowWithSignature";
 import LoadingPage from "../LoadingPage/LoadingPage";
 
 export default function InvoiceContainer() {
-  const [loading, setLoading] = useState(true);
   const { visit_id } = useParams<{ visit_id: string }>();
-  const [listOfTests, setListOfTests] = useState<labTest[]>([]);
-  const [totalPrice, setTotalPrice] = useState<number>(0);
-  const [invoiceNumber, setInvoiceNumber] = useState<number>(0);
-  const [patient, setPatient] = useState<patientInfo>();
-  const [visitDate, setVisitDate] = useState<Date>(new Date());
-  const [patientInsuranceCompanyRate, setPatientInsuranceCompanyRate] =
-    useState<number>(0);
-  const [error, setError] = useState<string>("");
-  const version = useRef(0);
-  const [listOfPanels, setListOfPanels] = useState<labPanel[]>([]);
-  const [adjustmentAmount, setAdjustmentAmount] = useState<number>(0);
-  const [currency, setCurrency] = useState<string>("");
-  const [showSignature, setShowSignature] = useState<boolean>(true);
-  const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<fetchedInvoiceData | null>(null);
+  const [error, setError] = useState("");
+  const [showSignature, setShowSignature] = useState(true);
+  const [showSignatureOption, setShowSignatureOption] = useState(true);
   const [user] = useState<AuthUser | null>(() => {
-    const stored = localStorage.getItem("auth_user");
-    if (!stored) return null;
-    try {
-      return JSON.parse(stored) as AuthUser;
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(localStorage.getItem("auth_user") || "null") as AuthUser | null; }
+    catch { return null; }
   });
   const isPatient = user?.role === "patient";
 
   useEffect(() => {
-    if (isPatient) {
-      setShowSignature(true);
-      setShowSignatureOption(false);
-    }
-  }, [isPatient]);
-  useEffect(() => {
-    fetchInvoice(visit_id!)
-      .then((data) => {
-        setInvoiceData(data.invoice_data);
-        setPatient(data.patient);
-        setListOfTests(data.invoice_data.list_of_tests);
-        setVisitDate(data.invoice_data.visit_date);
-        const testsTotal = data.invoice_data.list_of_tests.reduce(
-          (acc, t) => acc + t.price,
-          0,
-        );
-        const panelsTotal = data.invoice_data.list_of_lab_panels.reduce(
-          (acc, panel) => acc + (panel.lab_panel_price ?? 0),
-          0,
-        );
-        setAdjustmentAmount(data.invoice_data.adjustment_minor);
-        setCurrency(data.currency);
-        setTotalPrice(testsTotal + panelsTotal);
-        setListOfPanels(data.invoice_data.list_of_lab_panels);
-        setPatientInsuranceCompanyRate(
-          data.invoice_data.patient_insurance_company_rate,
-        );
-        setInvoiceNumber(data.invoice_data.invoice_number);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(getApiErrorMessage(err, "Could not load the invoice"));
-        setLoading(false);
-      });
-    version.current += 1;
-  }, [adjustmentAmount, visit_id]);
-
-  const [priceEdits, setPriceEdits] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    if (!invoiceData) {
-      setPriceEdits({});
+    let cancelled = false;
+    setLoading(true);
+    setData(null);
+    setError("");
+    setShowSignatureOption(!isPatient);
+    setShowSignature(true);
+    if (!visit_id) {
+      setError("Visit not found");
+      setLoading(false);
       return;
     }
+    fetchInvoice(visit_id).then(response => {
+      if (!cancelled) setData(response);
+    }).catch(err => {
+      if (!cancelled) setError(getApiErrorMessage(err, "Could not load the invoice"));
+    }).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [visit_id, isPatient]);
 
-    const next: Record<string, number> = {};
-    (invoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
-      (x: lab_test_changed) => {
-        next[String(x.lab_test_id)] = x.new_price;
-      },
-    );
-
-    setPriceEdits(next);
-  }, [invoiceData]);
-
-  useEffect(() => {
-    if (!invoiceData) return;
-    const rate = invoiceData.patient_insurance_company_rate;
-    const testsTotal = listOfTests.reduce((acc, t) => {
-      const id = String(t.lab_test_id);
-      const override = priceEdits[id];
-      const effectivePrice = override !== undefined ? override : t.price * rate;
-      return acc + effectivePrice;
-    }, 0);
-
-    const panelsTotal = listOfPanels.reduce(
-      (acc, panel) => acc + (panel.lab_panel_price ?? 0),
-      0,
-    );
-
-    setTotalPrice(testsTotal + panelsTotal * rate);
-  }, [invoiceData, priceEdits, listOfTests, listOfPanels]);
   if (loading) return <LoadingPage title="Loading invoice ..." />;
-  if (error) return <div>Error: {error}</div>;
+  if (error || !data) return <div role="alert">{error || "Invoice not found"}</div>;
+  const invoice = data.invoice_data;
   return (
     <div style={{ width: "100%", height: "800px" }}>
       {!isPatient && showSignatureOption && (
-        <ShowWithSignature
-          setShowSignature={setShowSignature}
-          setShowSignatureOption={setShowSignatureOption}
-        />
+        <ShowWithSignature setShowSignature={setShowSignature} setShowSignatureOption={setShowSignatureOption} />
       )}
       {!showSignatureOption && (
         <Invoice
-          invoiceData={invoiceData!}
-          invoice_number={invoiceNumber}
-          adjustment_minor={adjustmentAmount}
+          invoiceData={invoice}
+          invoice_number={invoice.invoice_number}
+          adjustment_minor={invoice.adjustment_minor}
           showSignature={showSignature}
-          list_of_lab_panels={listOfPanels}
-          patient_insurance_company_rate={patientInsuranceCompanyRate}
-          patient={patient!}
-          list_of_tests={listOfTests}
-          total_price={totalPrice}
-          visit_date={visitDate}
-          currency={currency}
+          list_of_lab_panels={invoice.list_of_lab_panels}
+          patient_insurance_company_rate={invoice.patient_insurance_company_rate}
+          patient={data.patient}
+          list_of_tests={invoice.list_of_tests}
+          total_price={invoiceGross(invoice)}
+          visit_date={invoice.visit_date}
+          currency={data.currency}
         />
       )}
     </div>

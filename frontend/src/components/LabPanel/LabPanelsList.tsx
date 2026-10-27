@@ -19,7 +19,6 @@ import {
 import Pagination from "../Pagination";
 import SearchLabPanel from "./SearchLabPanel";
 import renderNormalValue from "../renderNormalValue";
-import LoadingPage from "../LoadingPage/LoadingPage";
 import { ClipboardList, Trash2 } from "lucide-react";
 import { usePersistedTableState } from "../../hooks/usePersistedTableState";
 
@@ -94,6 +93,7 @@ const LabPanelsList = () => {
 
   useEffect(() => {
     let canceled = false;
+    const controller = new AbortController();
 
     const load = async () => {
       try {
@@ -107,14 +107,15 @@ const LabPanelsList = () => {
         const panelData = await fetchLabPanelsPaginated(
           currentPage,
           pageSize,
-          filters
+          filters,
+          controller.signal
         );
 
         if (canceled) return;
 
         setAvailableLabPanels(panelData.lab_panels);
-        setTotalPages(panelData.total_pages);
-        setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
+        setTotalPages(Math.max(1, panelData.total_pages));
+        setTotalNumberOfLabPanels(panelData.TotalNumberOfLabPanels);
       } catch (err) {
         if (!canceled) {
           setError(getApiErrorMessage(err, "Could not load lab panels"));
@@ -127,11 +128,10 @@ const LabPanelsList = () => {
     load();
     return () => {
       canceled = true;
+      controller.abort();
     };
   }, [currentPage, pageSize, debouncedSearch]);
 
-  if (loading) return <LoadingPage title="Loading lab panels ..." />;
-  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
 
   return (
     // <div className="p-8 bg-white">
@@ -276,6 +276,8 @@ const LabPanelsList = () => {
         </button>
       </div>
 
+      {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
+      {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading lab panels…</p>}
       {/* Search should still show even if empty */}
       <SearchLabPanel
         searchInput={searchInput}

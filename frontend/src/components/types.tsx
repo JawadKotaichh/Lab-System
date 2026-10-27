@@ -423,7 +423,7 @@ export type paginatedlabTest = {
 };
 export type paginatedlabPanel = {
   total_pages: number;
-  TotalNumberOfPanels: number;
+  TotalNumberOfLabPanels: number;
   lab_panels: labPanel[];
 };
 export type paginatedInsuranceCompany = {

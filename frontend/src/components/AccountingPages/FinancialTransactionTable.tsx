@@ -1,6 +1,6 @@
 import { getApiErrorMessage } from "../../api";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchFinancialTransactionsPaginated } from "../utils";
 import { financialTransaction } from "../types";
 import Pagination from "../Pagination";
@@ -13,7 +13,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import GenericTable from "../react-table/GeneralTable";
-import LoadingPage from "../LoadingPage/LoadingPage";
 import PlusButtonMenu from "../PlusButtonMenu";
 import {
   buildFinancialTransactionsFilters,
@@ -40,12 +39,12 @@ const FinancialTransactionsTable: React.FC = () => {
   } = usePersistedTableState();
   const currentPage = pagination.pageIndex + 1;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
-  const toggleFilter = (colId: string) =>
-    setShowFilters((s) => ({ ...s, [colId]: !s[colId] }));
+  const toggleFilter = useCallback((colId: string) =>
+    setShowFilters((s) => ({ ...s, [colId]: !s[colId] })), [setShowFilters]);
 
   const handleSetPage = (page: number) => {
     setPagination((old) => ({ ...old, pageIndex: page - 1 }));
@@ -56,13 +55,13 @@ const FinancialTransactionsTable: React.FC = () => {
   const { categoryOptions, currencyOptions, typeOptions } =
     useFinancialTransactionsOptions();
 
-  const financialTransactionCols = getFinancialTransactionColumns(
+  const financialTransactionCols = useMemo(() => getFinancialTransactionColumns(
     navigate,
     showFilters,
     toggleFilter,
     setError,
     { categoryOptions, currencyOptions, typeOptions }
-  );
+  ), [navigate, showFilters, toggleFilter, setError, categoryOptions, currencyOptions, typeOptions]);
   const table = useReactTable({
     data,
     columns: financialTransactionCols,
@@ -94,6 +93,7 @@ const FinancialTransactionsTable: React.FC = () => {
   ];
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadPage = async () => {
       setLoading(true);
       setError("");
@@ -102,19 +102,22 @@ const FinancialTransactionsTable: React.FC = () => {
         const res = await fetchFinancialTransactionsPaginated(
           pagination.pageIndex + 1,
           pagination.pageSize,
-          filters
+          filters,
+          controller.signal
         );
+        if (controller.signal.aborted) return;
         setData(res.financial_transactions);
-        setTotalPages(res.total_pages);
+        setTotalPages(Math.max(1, res.total_pages));
         setTotalNumberOfPaginatedItems(res.TotalNumberOfFinancialTransactions);
       } catch (err) {
-        setError(getApiErrorMessage(err, "Could not load financial transactions"));
+        if (!controller.signal.aborted) setError(getApiErrorMessage(err, "Could not load financial transactions"));
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
-    loadPage();
+    void loadPage();
+    return () => controller.abort();
   }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
 
   useEffect(() => {
@@ -125,7 +128,6 @@ const FinancialTransactionsTable: React.FC = () => {
       window.removeEventListener("financialTransaction-deleted", handleRefresh);
   }, []);
 
-  if (loading) return <LoadingPage title="Loading financial transactions..." />;
 
   return (
     <div className="p-8 bg-white">
@@ -151,6 +153,7 @@ const FinancialTransactionsTable: React.FC = () => {
       </div>
 
       {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
+      {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading financial transactions…</p>}
       <GenericTable
         table={table}
         loading={loading}

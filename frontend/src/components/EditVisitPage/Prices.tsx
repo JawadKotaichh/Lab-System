@@ -1,5 +1,7 @@
 import type { updateInvoiceData } from "../types";
 import { FieldError, type FormValidation } from "../FormValidation";
+import { invoiceGross } from "../Invoice/invoicePricing";
+export { invoiceGross } from "../Invoice/invoicePricing";
 
 type Props = {
   validation: FormValidation;
@@ -10,14 +12,6 @@ type Props = {
   onAdjustmentChange: (value: string) => void;
   onPaidChange: (value: string) => void;
 };
-
-export function invoiceGross(invoice: updateInvoiceData): number {
-  const rate = invoice.patient_insurance_company_rate ?? 1;
-  const tests = new Map((invoice.list_of_lab_tests_ids_changed ?? []).map(x => [x.lab_test_id, x.new_price]));
-  const panels = new Map((invoice.list_of_lab_panels_ids_changed ?? []).map(x => [x.panel_id, x.new_price]));
-  return (invoice.list_of_tests ?? []).reduce((sum, t) => sum + (tests.get(t.lab_test_id) ?? t.price * rate), 0)
-    + (invoice.list_of_lab_panels ?? []).reduce((sum, p) => sum + (panels.get(p.id) ?? (p.lab_panel_price ?? 0) * rate), 0);
-}
 
 export default function Prices({ validation, updatedInvoiceData, currency, adjustment, paid, onAdjustmentChange, onPaidChange }: Props) {
   const gross = invoiceGross(updatedInvoiceData);

@@ -3,42 +3,20 @@ import { styles } from "./InvoiceStyle";
 import amountToWords from "./amountToWords";
 import type {
   InvoiceWrapperProps,
-  lab_test_changed,
   labPanel,
   labTest,
 } from "../types";
-import { useEffect, useState } from "react";
+import { invoiceTestPrice, invoicePanelPrice, invoiceNet } from "./invoicePricing";
 
 const TestsTableInvoice = ({
   list_of_tests,
   total_price,
   list_of_lab_panels,
   currency,
-  patient_insurance_company_rate,
   invoiceData,
 }: InvoiceWrapperProps) => {
+  const netTotal = invoiceNet(invoiceData);
   const headers = ["Nssf ID", "Test Name", "Price"];
-
-  const [priceEdits, setPriceEdits] = useState<Record<string, number>>({});
-  useEffect(() => {
-    const next: Record<string, number> = {};
-    (invoiceData.list_of_lab_tests_ids_changed ?? []).forEach(
-      (x: lab_test_changed) => {
-        next[String(x.lab_test_id)] = x.new_price;
-      },
-    );
-    setPriceEdits(next);
-  }, [invoiceData.list_of_lab_tests_ids_changed]);
-
-  const getDisplayedPrice = (labTestTypeId: string, basePrice: number) => {
-    const override = priceEdits[labTestTypeId];
-    if (override !== undefined) {
-      return override;
-    }
-
-    const rate = invoiceData.patient_insurance_company_rate ?? 1;
-    return basePrice * rate;
-  };
 
   const formatPrice = (currency: string, value: number = 0) => {
     return currency === "USD"
@@ -47,12 +25,12 @@ const TestsTableInvoice = ({
   };
 
   const getPrice = (test: labTest) =>
-    formatPrice(currency, getDisplayedPrice(test.lab_test_id, test.price));
+    formatPrice(currency, invoiceTestPrice(invoiceData, test));
 
   const getPanelPrice = (panel: labPanel) =>
     formatPrice(
       currency,
-      panel.lab_panel_price! * patient_insurance_company_rate,
+      invoicePanelPrice(invoiceData, panel),
     );
 
   return (
@@ -160,8 +138,20 @@ const TestsTableInvoice = ({
           </View>
         </View>
       </View>
+      {invoiceData.adjustment_minor !== 0 && (
+        <View>
+          <View style={[styles.tableRow, styles.subTotal]} wrap={false}>
+            <View style={styles.subTotalCol}><Text style={styles.subtotalCellText}>Adjustment</Text></View>
+            <View style={styles.tableColLast}><Text style={[styles.subtotalCellText, { textAlign: "right" }]}>{formatPrice(currency, invoiceData.adjustment_minor)}</Text></View>
+          </View>
+          <View style={[styles.tableRow, styles.subTotal]} wrap={false}>
+            <View style={styles.subTotalCol}><Text style={styles.subtotalCellText}>Net Total</Text></View>
+            <View style={styles.tableColLast}><Text style={[styles.subtotalCellText, { textAlign: "right" }]}>{formatPrice(currency, netTotal)}</Text></View>
+          </View>
+        </View>
+      )}
       <View style={[{ textAlign: "center" }, styles.AmountBox]} wrap={false}>
-        <Text>{amountToWords(total_price, currency)}</Text>
+        <Text>{amountToWords(netTotal, currency)}</Text>
       </View>
     </View>
   );

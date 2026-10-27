@@ -9,6 +9,7 @@ import type {
 } from "../types";
 import {
   fetchLabPanelsPaginated,
+  fetchLabPanelWithTests,
   // fetchLabTestResultsAndPanelsPaginated,
   rebuildInvoice,
 } from "../utils";
@@ -82,7 +83,18 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
   const handleAddLabPanel = async (visit_id: string, lab_panel_id: string) => {
     if (onSelectPanel) {
       const panel = availableLabPanels.find(p => p.id === lab_panel_id);
-      if (panel) onSelectPanel(panel);
+      if (!panel) return;
+      setError("");
+      try {
+        // Older backend list responses omit test IDs; the detail endpoint has them.
+        if (panel.lab_tests.some(test => !test.lab_test_id)) {
+          setLoading(true);
+          const detail = await fetchLabPanelWithTests(lab_panel_id);
+          onSelectPanel(detail.lab_panel);
+        } else onSelectPanel(panel);
+      } catch (error) {
+        setError(getApiErrorMessage(error, "Could not load this lab panel"));
+      } finally { setLoading(false); }
       return;
     }
     setLoading(true);
@@ -137,7 +149,7 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
 
         setAvailableLabPanels(panelData.lab_panels);
         setTotalPages(panelData.total_pages);
-        setTotalNumberOfLabPanels(panelData.TotalNumberOfPanels);
+        setTotalNumberOfLabPanels(panelData.TotalNumberOfLabPanels);
       } catch (err) {
         if (!canceled) {
           setError(getApiErrorMessage(err, "Could not load lab panels"));

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "./Debounce";
 import { ArrowDown, ArrowUp, ArrowUpDown, Filter } from "lucide-react";
 import type { Column } from "@tanstack/react-table";
@@ -24,18 +24,22 @@ export function ColumnFilter<TData, TValue>({
 }) {
   const initial = (column.getFilterValue() as string) ?? "";
   const [draft, setDraft] = useState(initial);
+  const pendingEdit = useRef(false);
   const debounced = useDebounce(draft, 3000);
 
   useEffect(() => {
+    pendingEdit.current = false;
     setDraft(initial);
   }, [initial]);
 
   useEffect(() => {
+    if (!pendingEdit.current || debounced !== draft) return;
+    pendingEdit.current = false;
     const current = (column.getFilterValue() as string) ?? "";
     if (debounced !== current) {
       column.setFilterValue(debounced || undefined);
     }
-  }, [debounced, column]);
+  }, [debounced, draft, column]);
 
   const canSort = column.getCanSort();
   const sortDir = column.getIsSorted();
@@ -94,6 +98,7 @@ export function ColumnFilter<TData, TValue>({
               : "text-gray-500 cursor-pointer"
           }
           onClick={() => {
+            pendingEdit.current = false;
             setDraft("");
             column.setFilterValue(undefined);
           }}
@@ -109,9 +114,10 @@ export function ColumnFilter<TData, TValue>({
             <select
               className="border rounded p-1 flex-1 text-center h-9"
               value={(column.getFilterValue() as string) ?? ""}
-              onChange={(e) =>
-                column.setFilterValue(e.target.value || undefined)
-              }
+              onChange={(e) => {
+                pendingEdit.current = false;
+                column.setFilterValue(e.target.value || undefined);
+              }}
             >
               <option value="">All</option>
               {options.map((o) => (
@@ -125,7 +131,7 @@ export function ColumnFilter<TData, TValue>({
               type={inputType}
               className="border rounded p-1 h-9 flex-1 text-center"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => { pendingEdit.current = true; setDraft(e.target.value); }}
               placeholder={placeholder}
             />
           )}

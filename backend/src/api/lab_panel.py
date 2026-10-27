@@ -131,6 +131,7 @@ async def get_Lab_panel_with_page_size(
                     detail=f"lab test category {db_lab_test.lab_test_category_id} not found!",
                 )
             lab_test = Lab_test_type(
+                lab_test_id=str(db_lab_test.id),
                 name=db_lab_test.name,
                 nssf_id=db_lab_test.nssf_id,
                 lab_test_category_id=str(db_lab_test.lab_test_category_id),

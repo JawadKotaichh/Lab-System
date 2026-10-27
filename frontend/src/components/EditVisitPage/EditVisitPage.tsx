@@ -10,7 +10,7 @@ import type { fetchedInvoiceData, labPanel, labTest, patientPanelResult, patient
 import { fetchInvoice, fetchResultList } from "../utils";
 import PatientInfo from "./PatientInfo";
 import Prices, { invoiceGross } from "./Prices";
-import TestResultsList from "./TestResultsList";
+import TestResultsList, { type ResultTarget } from "./TestResultsList";
 import AddTestResultTable from "./AddTestResultTable";
 import LabPanelsTable from "./LabPanelsTable";
 import LoadingPage from "../LoadingPage/LoadingPage";
@@ -29,6 +29,56 @@ export type VisitEdits = {
 };
 const clone = <T,>(value: T): T => structuredClone(value);
 const rows = (edits: VisitEdits) => [...edits.tests, ...edits.panels.flatMap(p => p.list_of_test_results)];
+export function addVisitPanel(edits: VisitEdits, panel: labPanel): VisitEdits {
+  if (edits.panels.some(existing => existing.lab_panel_id === panel.id)) throw new Error("This lab panel is already included in the visit.");
+  if (!panel.lab_tests.length) throw new Error("This panel has no tests.");
+  const testIds = panel.lab_tests.map(test => test.lab_test_id);
+  if (!panel.id || testIds.some(id => !id) || new Set(testIds).size !== testIds.length) {
+    throw new Error("This panel has missing or repeated test identifiers. Reload the panel list and try again.");
+  }
+  const existingIds = new Set(rows(edits).map(test => test.lab_test_type_id));
+  const overlap = panel.lab_tests.filter(test => existingIds.has(test.lab_test_id));
+  if (overlap.length) throw new Error(`These tests are already included in the visit: ${overlap.map(test => test.name).join(", ")}. Remove the overlapping tests first.`);
+  return { ...edits, panels: [...edits.panels, {
+    lab_panel_id: panel.id, nssf_id: panel.nssf_id, lab_panel_name: panel.panel_name,
+    lab_panel_price: panel.lab_panel_price ?? 0, lab_panel_category_id: panel.lab_panel_category_id ?? "",
+    list_of_test_results: panel.lab_tests.map(test => ({
+      lab_test_result_id: `pending-${panel.id}-${test.lab_test_id}`,
+      lab_test_type_id: test.lab_test_id, lab_test_type: test, result: "",
+    })),
+  }] };
+}
+export function updateVisitResult(edits: VisitEdits, target: ResultTarget, value: string): VisitEdits {
+  if (!target.testId || target.panelId === undefined) return edits;
+  if (target.panelId === null) {
+    return { ...edits, tests: edits.tests.map(test => test.lab_test_type_id === target.testId ? { ...test, result: value } : test) };
+  }
+  return { ...edits, panels: edits.panels.map(panel => panel.lab_panel_id === target.panelId
+    ? { ...panel, list_of_test_results: panel.list_of_test_results.map(test => test.lab_test_type_id === target.testId ? { ...test, result: value } : test) }
+    : panel) };
+}
+function validateResultTargets(results: resultListData) {
+  const keys = new Set<string>();
+  const check = (test: patientTestResult, panelId: string | null) => {
+    const key = JSON.stringify([panelId, test.lab_test_type_id]);
+    if (!test.lab_test_type_id || keys.has(key)) throw new Error("Some tests have missing or repeated test identifiers. Reload the visit before editing results.");
+    keys.add(key);
+  };
+  results.list_of_standalone_test_results.forEach(test => check(test, null));
+  results.list_of_panel_results.forEach(panel => {
+    if (!panel.lab_panel_id) throw new Error("A panel identifier is missing. Reload the visit before editing results.");
+    panel.list_of_test_results.forEach(test => check(test, panel.lab_panel_id));
+  });
+}
+function validateResultIdentifiers(results: resultListData) {
+  const identifiers = new Set<string>();
+  for (const test of [...results.list_of_standalone_test_results, ...results.list_of_panel_results.flatMap(panel => panel.list_of_test_results)]) {
+    if (!test.lab_test_result_id || identifiers.has(test.lab_test_result_id)) {
+      throw new Error("The server returned missing or repeated result identifiers. Reload the visit before saving.");
+    }
+    identifiers.add(test.lab_test_result_id);
+  }
+}
 const dateOnly = (date: unknown) => String(date).split("T")[0];
 function editsFrom(source: Source): VisitEdits {
   const invoice = source.invoice.invoice_data;
@@ -74,6 +124,7 @@ export function validateVisitEdits(source: Source, edits: VisitEdits): string | 
 }
 async function readVisit(visitId: string): Promise<Source> {
   const [results, invoice] = await Promise.all([fetchResultList(visitId, true), fetchInvoice(visitId)]);
+  validateResultTargets(results);
   return { results, invoice };
 }
 class VisitChangedError extends Error {}
@@ -86,6 +137,7 @@ export async function saveVisitEdits(visitId: string, baseline: Source, edits: V
       current.invoice.invoice_data.patient_insurance_company_rate !== baseline.invoice.invoice_data.patient_insurance_company_rate) {
     throw new VisitChangedError("This visit changed since you opened it. Your edits are kept. Reload and review before saving.");
   }
+  validateResultIdentifiers(current.results);
   const wantedTests = new Set(edits.tests.map(x => x.lab_test_type_id));
   const wantedPanels = new Set(edits.panels.map(x => x.lab_panel_id));
   for (const panel of current.results.list_of_panel_results) {
@@ -106,9 +158,15 @@ export async function saveVisitEdits(visitId: string, baseline: Source, edits: V
     }
   }
   const live = await fetchResultList(visitId, true);
-  const liveRows = [...live.list_of_standalone_test_results, ...live.list_of_panel_results.flatMap(p => p.list_of_test_results)];
-  for (const test of rows(edits)) {
-    const saved = liveRows.find(x => x.lab_test_type_id === test.lab_test_type_id);
+  validateResultIdentifiers(live);
+  const scopedRows = [
+    ...edits.tests.map(test => ({ test, panelId: null as string | null })),
+    ...edits.panels.flatMap(panel => panel.list_of_test_results.map(test => ({ test, panelId: panel.lab_panel_id }))),
+  ];
+  for (const { test, panelId } of scopedRows) {
+    const savedRows = panelId === null ? live.list_of_standalone_test_results
+      : live.list_of_panel_results.find(panel => panel.lab_panel_id === panelId)?.list_of_test_results ?? [];
+    const saved = savedRows.find(row => row.lab_test_type_id === test.lab_test_type_id);
     if (!saved) throw new Error("A test could not be added. Retry saving to finish.");
     if (saved.result !== test.result) await api.put(`/lab_tests_results/${saved.lab_test_result_id}`, null, { params: { result: test.result } });
   }
@@ -199,22 +257,20 @@ export default function EditVisitPage() {
     setShowTests(false);
   };
   const addPanel = (panel: labPanel) => {
-    if (edits.panels.some(p => p.lab_panel_id === panel.id) || panel.lab_tests.some(t => allIds.has(t.lab_test_id))) {
-      setError("This panel includes a test already in the visit. Remove the overlapping test first."); return;
+    try {
+      const next = addVisitPanel(edits, panel);
+      change(() => next);
+      setShowPanels(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not add this lab panel.");
     }
-    if (!panel.lab_tests.length) { setError("This panel has no tests."); return; }
-    change(previous => ({ ...previous, panels: [...previous.panels, { lab_panel_id: panel.id, nssf_id: panel.nssf_id,
-      lab_panel_name: panel.panel_name, lab_panel_price: panel.lab_panel_price ?? 0, lab_panel_category_id: panel.lab_panel_category_id ?? "",
-      list_of_test_results: panel.lab_tests.map(test => ({ lab_test_result_id: `pending-${test.lab_test_id}`, lab_test_type_id: test.lab_test_id, lab_test_type: test, result: "" })) }] }));
-    setShowPanels(false);
   };
-  const discard = () => { if (window.confirm("Discard your unsaved changes?")) { setEdits(editsFrom(source)); setFeedback({ status: "idle" }); setError(""); } };
   const units = [...edits.tests.map(test => ({ test })), ...edits.panels.map(panel => ({ panel }))];
   const visible = units.slice(pagination.pageIndex * pagination.pageSize, (pagination.pageIndex + 1) * pagination.pageSize);
   const pageTests = visible.flatMap(x => "test" in x ? [x.test] : []);
   const pagePanels = visible.flatMap(x => "panel" in x ? [x.panel] : []);
   return <div className="p-4 pb-40 sm:p-8 sm:pb-40 bg-white">
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">Edit Visit</h1><p className="mt-1 text-sm text-gray-500">Changes stay on this page until you save.</p></div>
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">Edit Visit</h1></div>
       <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${dirty ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>{dirty ? <Circle className="h-3 w-3 fill-current" /> : <CheckCircle2 className="h-4 w-4" />}{dirty ? "Unsaved changes" : "Up to date"}</span>
     </div>
     {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
@@ -225,18 +281,16 @@ export default function EditVisitPage() {
       <div className="mt-6 flex gap-3"><button type="button" className="rounded-lg border border-blue-200 px-4 py-2 text-blue-700 hover:bg-blue-50 cursor-pointer" onClick={() => setShowTests(true)}>Add test result</button><button type="button" className="rounded-lg border border-blue-200 px-4 py-2 text-blue-700 hover:bg-blue-50 cursor-pointer" onClick={() => setShowPanels(true)}>Add lab panel</button></div>
       <TestResultsList validation={validation} panelResults={pagePanels} standAloneTestResults={pageTests} updatedInvoiceData={invoice} priceDrafts={edits.prices}
         onPriceChange={(id, value) => change(p => ({ ...p, prices: { ...p.prices, [id]: value } }))}
-        onRemoveTest={id => change(p => { const test = p.tests.find(x => x.lab_test_result_id === id); const prices = { ...p.prices }; if (test) delete prices[test.lab_test_type_id]; return { ...p, prices, tests: p.tests.filter(x => x.lab_test_result_id !== id) }; })}
+        onRemoveTest={id => change(p => { const prices = { ...p.prices }; delete prices[id]; return { ...p, prices, tests: p.tests.filter(test => test.lab_test_type_id !== id) }; })}
         onRemovePanel={id => change(p => ({ ...p, panels: p.panels.filter(x => x.lab_panel_id !== id) }))}
-        setStandAloneTestResults={update => change(p => { const currentPage = p.tests.filter(t => pageTests.some(x => x.lab_test_result_id === t.lab_test_result_id)); const next = typeof update === "function" ? update(currentPage) : update; return { ...p, tests: p.tests.map(t => next.find(x => x.lab_test_result_id === t.lab_test_result_id) ?? t) }; })}
-        setPanelResults={update => change(p => { const currentPage = p.panels.filter(t => pagePanels.some(x => x.lab_panel_id === t.lab_panel_id)); const next = typeof update === "function" ? update(currentPage) : update; return { ...p, panels: p.panels.map(t => next.find(x => x.lab_panel_id === t.lab_panel_id) ?? t) }; })}
-        setPendingResults={() => {}} />
+        onResultChange={(target, value) => change(previous => updateVisitResult(previous, target, value))} />
       <Pagination currentPage={pagination.pageIndex + 1} totalPages={Math.max(1, Math.ceil(units.length / pagination.pageSize))} pageSize={pagination.pageSize} TotalNumberOfPaginatedItems={units.length} setCurrentPage={page => setPagination(p => ({ ...p, pageIndex: page - 1 }))} setPageSize={size => setPagination({ pageIndex: 0, pageSize: size })} />
     </fieldset>
     {showTests && <AddTestResultTable onSelectTest={addTest} showTestsTable showAdd visit_id={visit_id} error={error} addError={error} setError={setError} setAddError={setError} setShowTestsTable={setShowTests} existingLabTestTypeIds={allIds} standAloneTestResults={edits.tests} panelResults={edits.panels} setStandAloneTestResults={() => {}} setPanelResults={() => {}} refreshResults={async () => {}} markExistingLabTestIdsDirty={() => {}} setUpdatedInvoiceData={() => {}} setCurrency={() => {}} />}
     {showPanels && <LabPanelsTable onSelectPanel={addPanel} pagination={pagination} visit_id={visit_id} showPanelsTable setShowPanelsTable={setShowPanels} panelResults={edits.panels} setPanelResults={() => {}} setStandAloneTestResults={() => {}} setTotalNumberOfTests={() => {}} refreshResults={async () => {}} markExistingLabTestIdsDirty={() => {}} setUpdatedInvoiceData={() => {}} setCurrency={() => {}} />}
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white px-4 py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] sm:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div aria-live="polite"><SaveFeedback state={feedback.message ? feedback : { status: "idle", message: dirty ? "You have unsaved changes" : "No unsaved changes" }} onRetry={!requiresReview ? () => void save() : undefined} /></div>
-        <div className="ml-auto flex items-center gap-3"><button type="button" onClick={discard} disabled={!dirty || saving} className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-40 cursor-pointer">Discard changes</button>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div aria-live="polite"><SaveFeedback state={feedback} onRetry={!requiresReview ? () => void save() : undefined} /></div>
+        <div className="ml-auto flex items-center gap-3">
           {requiresReview ? <button type="button" className="rounded-lg bg-blue-700 px-5 py-2 text-white" onClick={() => { if (window.confirm("Reload saved data? Unsaved edits will be discarded.")) void load(); }}>Reload saved visit</button> : <SaveButton saving={saving} onClick={() => void save()}>Save changes</SaveButton>}
         </div>
       </div>
@@ -246,17 +300,16 @@ export default function EditVisitPage() {
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
           <header className="flex items-start justify-between gap-4">
-            <DialogTitle className="text-xl font-semibold">Save your changes before leaving?</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Save changes?</DialogTitle>
             <CloseButton label="Close unsaved changes dialog and keep editing" disabled={saving}
               onClick={() => blocker.state === "blocked" && blocker.reset()} />
           </header>
-          <p className="mt-3 text-gray-600">This visit has unsaved changes. You can save them, keep editing, or discard them.</p>
+          <p className="mt-3 text-gray-600">Save your changes before continuing, or keep editing this visit.</p>
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <button disabled={saving} onClick={() => blocker.state === "blocked" && blocker.reset()} className="rounded-lg border px-4 py-2">Keep editing</button>
-            <button disabled={saving} onClick={() => blocker.state === "blocked" && blocker.proceed()} className="px-3 py-2 text-red-700">Discard and leave</button>
             <SaveButton saving={saving} disabled={requiresReview} onClick={async () => {
               if (await save()) { if (blocker.state === "blocked") blocker.proceed(); }
-            }}>Save and leave</SaveButton>
+            }}>Save</SaveButton>
           </div>
         </DialogPanel>
       </div>

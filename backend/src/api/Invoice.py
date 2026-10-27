@@ -127,19 +127,10 @@ async def get_monthly_summary_invoice(
     patients = await DBPatient.find({"_id": {"$in": patient_ids}}).to_list()
     patients_by_id = {patient.id: patient for patient in patients}
 
-    category_ids = list(
-        dict.fromkeys(
-            test.lab_test_category_id
-            for invoice in invoices
-            for test in invoice.list_of_tests
-        )
-    )
-    categories = (
-        await DBlab_test_category.find({"_id": {"$in": category_ids}}).to_list()
-        if category_ids
-        else []
-    )
-    categories_by_id = {category.id: category for category in categories}
+    orders = await DBLab_test_result.find({"visit_id": {"$in": visit_ids}}).to_list()
+    orders_by_visit = defaultdict(list)
+    for order in orders:
+        orders_by_visit[order.visit_id].append(order)
 
     listOfInvoices: List[invoiceData] = []
     for invoice in invoices:
@@ -155,54 +146,11 @@ async def get_monthly_summary_invoice(
                 detail=f"Patient of ID: {db_visit.patient_id} not found!",
             )
 
-        patient_insurance_company_rate = insurance_company.rate
-        currentPatient = Patient(
-            insurance_company_name=insurance_company.insurance_company_name,
-            DOB=db_patient.DOB,
-            patient_id=str(db_patient.id),
-            name=db_patient.name,
-            gender=db_patient.gender,
-            phone_number=db_patient.phone_number,
-            insurance_company_id=str(db_patient.insurance_company_id),
-        )
-        list_of_test_types: List[Lab_test_type] = []
-        for test in invoice.list_of_tests:
-            db_category = categories_by_id.get(test.lab_test_category_id)
-            if db_category is None:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Lab Test category {test.lab_test_category_id} not found",
-                )
-            lab_test = Lab_test_type(
-                lab_test_id=str(test.lab_test_id),
-                lab_test_category_name=db_category.lab_test_category_name,
-                nssf_id=test.nssf_id,
-                lab_test_category_id=str(test.lab_test_category_id),
-                name=test.name,
-                unit=test.unit,
-                price=test.price,
-                normal_value_list=test.normal_value_list,
-            )
-            list_of_test_types.append(lab_test)
-        current_invoice = Invoice(
-            adjustment_minor=invoice.adjustment_minor,
-            insurance_company_id=str(invoice.insurance_company_id),
-            list_of_tests=list_of_test_types,
-            list_of_lab_panels=invoice.list_of_lab_panels,
-            visit_date=invoice.visit_date,
-            patient_insurance_company_rate=patient_insurance_company_rate,
-            visit_id=str(db_visit.id),
-            invoice_number=invoice.invoice_number,
-            total_paid=invoice.total_paid,
-            list_of_lab_tests_ids_changed=invoice.list_of_lab_tests_ids_changed,
-            list_of_lab_panels_ids_changed=invoice.list_of_lab_panels_ids_changed,
-        )
-        current_invoice_data = invoiceData(
-            patient=currentPatient,
-            invoice_data=current_invoice,
-            currency=insurance_company.currency,
-        )
-        listOfInvoices.append(current_invoice_data)
+        listOfInvoices.append(await _invoice_from_results(
+            str(db_visit.id), db_visit, invoice, preserve_snapshot=True,
+            orders=orders_by_visit[invoice.visit_id], db_patient=db_patient,
+            db_insurance_company=insurance_company,
+        ))
     return listOfInvoices
 
 
@@ -223,6 +171,18 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
+    if update_data.list_of_tests is not None or update_data.list_of_lab_panels is not None:
+        orders = await DBLab_test_result.find(DBLab_test_result.visit_id == db_visit.id).to_list()
+        test_ids = {str(order.lab_test_type_id) for order in orders if not order.lab_panel_id}
+        panel_ids = {str(order.lab_panel_id) for order in orders if order.lab_panel_id}
+        if (
+            update_data.list_of_tests is not None
+            and {str(test.lab_test_id) for test in update_data.list_of_tests} != test_ids
+        ) or (
+            update_data.list_of_lab_panels is not None
+            and {str(panel.id) for panel in update_data.list_of_lab_panels} != panel_ids
+        ):
+            raise HTTPException(409, "Invoice items do not match the saved visit tests. Reload the visit before saving.")
     if update_data.list_of_lab_tests_ids_changed is not None:
         existing_invoice.list_of_lab_tests_ids_changed = (
             update_data.list_of_lab_tests_ids_changed
@@ -375,25 +335,65 @@ async def rebuild_invoice(visit_id: str):
     if not db_visit:
         raise HTTPException(status_code=400, detail=f"Visit Id:{visit_id} not found!")
 
-    db_list_of_lab_tests_results = await DBLab_test_result.find(
-        DBLab_test_result.visit_id == PydanticObjectId(visit_id)
-    ).to_list()
-    if not db_list_of_lab_tests_results:
-        raise HTTPException(
-            status_code=400,
-            detail=f"No test result found for visit with id: {visit_id}!",
-        )
+    db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
+    if not db_invoice:
+        raise HTTPException(404, detail="Invoice not found")
+    output = await _invoice_from_results(visit_id, db_visit, db_invoice)
+    db_invoice.list_of_tests = output.invoice_data.list_of_tests
+    db_invoice.list_of_lab_panels = output.invoice_data.list_of_lab_panels
+    await _validate_invoice_total(db_invoice, db_visit)
+    await db_invoice.replace()
+    return output
 
-    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+
+async def _invoice_from_results(
+    visit_id: str, db_visit: DBVisit, db_invoice: DBInvoice,
+    preserve_snapshot: bool = False,
+    *, orders: list | None = None,
+    db_patient: DBPatient | None = None,
+    db_insurance_company: DBInsurance_company | None = None,
+) -> invoiceData:
+    """Build billable membership from saved orders, including blank results.
+
+    Invoice reads preserve existing price snapshots and overrides and never write.
+    The explicit rebuild operation can still refresh catalog snapshots.
+    """
+
+    db_list_of_lab_tests_results = orders
+    if db_list_of_lab_tests_results is None:
+        db_list_of_lab_tests_results = await DBLab_test_result.find(
+            DBLab_test_result.visit_id == PydanticObjectId(visit_id)
+        ).to_list()
+
+    test_ids = list(dict.fromkeys(str(row.lab_test_type_id) for row in db_list_of_lab_tests_results if not row.lab_panel_id))
+    panel_ids = list(dict.fromkeys(str(row.lab_panel_id) for row in db_list_of_lab_tests_results if row.lab_panel_id))
+    saved_tests = {str(test.lab_test_id): Lab_test_type(
+        lab_test_id=str(test.lab_test_id), nssf_id=test.nssf_id,
+        lab_test_category_id=str(test.lab_test_category_id),
+        lab_test_category_name=getattr(test, "lab_test_category_name", None),
+        name=test.name, unit=test.unit, price=test.price,
+        normal_value_list=test.normal_value_list,
+    ) for test in db_invoice.list_of_tests}
+    saved_panels = {str(panel.id): panel for panel in db_invoice.list_of_lab_panels}
+    if preserve_snapshot:
+        # Existing invoice snapshots remain usable even if catalog items changed
+        # or were removed. Only missing invoice items need catalog lookups.
+        db_list_of_lab_tests_results = [row for row in db_list_of_lab_tests_results
+            if (str(row.lab_panel_id) not in saved_panels if row.lab_panel_id
+                else str(row.lab_test_type_id) not in saved_tests)]
+
+    if db_patient is None:
+        db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
     if not db_patient:
         raise HTTPException(
             status_code=400,
             detail=f"Patient of ID: {db_visit.patient_id} not found!",
         )
 
-    db_insurance_company = await DBInsurance_company.find_one(
-        DBInsurance_company.id == db_patient.insurance_company_id
-    )
+    if db_insurance_company is None:
+        db_insurance_company = await DBInsurance_company.find_one(
+            DBInsurance_company.id == db_patient.insurance_company_id
+        )
     if not db_insurance_company:
         raise HTTPException(
             status_code=400,
@@ -533,13 +533,11 @@ async def rebuild_invoice(visit_id: str):
         listOfPanels.append(lab_panel)
         # totalPrice += db_lab_panel.lab_panel_price
 
-    db_invoice = await DBInvoice.find_one(
-        DBInvoice.visit_id == PydanticObjectId(visit_id)
-    )
-    if not db_invoice:
-        raise HTTPException(
-            status_code=400, detail=f"Invoice with visit id: {visit_id} not found"
-        )
+    if preserve_snapshot:
+        resolved_tests = {str(test.lab_test_id): test for test in listOfTests} | saved_tests
+        resolved_panels = {str(panel.id): panel for panel in listOfPanels} | saved_panels
+        listOfTests = [resolved_tests[test_id] for test_id in test_ids]
+        listOfPanels = [resolved_panels[panel_id] for panel_id in panel_ids]
     current_invoice_data = Invoice(
         insurance_company_id=str(db_patient.insurance_company_id),
         list_of_tests=listOfTests,
@@ -554,11 +552,6 @@ async def rebuild_invoice(visit_id: str):
         list_of_lab_tests_ids_changed=db_invoice.list_of_lab_tests_ids_changed,
     )
 
-    db_invoice.list_of_lab_panels = listOfPanels
-    db_invoice.list_of_tests = listOfTests
-
-    await _validate_invoice_total(db_invoice, db_visit)
-    await db_invoice.replace()
     output = invoiceData(
         patient=currentPatient,
         invoice_data=current_invoice_data,
@@ -648,71 +641,7 @@ async def get_invoice(
         raise HTTPException(
             status_code=400, detail=f"Invoice with visit id:{db_visit.id} not found!"
         )
-    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
-    if not db_patient:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Patient of ID: {db_visit.patient_id} not found!",
-        )
-
-    db_insurance_company = await DBInsurance_company.find_one(
-        DBInsurance_company.id == db_patient.insurance_company_id
-    )
-    if not db_insurance_company:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Insurance Company of ID: {db_patient.insurance_company_id} not found!",
-        )
-    patient_insurance_company_rate = db_insurance_company.rate
-    currentPatient = Patient(
-        insurance_company_name=db_insurance_company.insurance_company_name,
-        DOB=db_patient.DOB,
-        patient_id=str(db_patient.id),
-        name=db_patient.name,
-        gender=db_patient.gender,
-        phone_number=db_patient.phone_number,
-        insurance_company_id=str(db_patient.insurance_company_id),
-    )
-    list_of_lab_test: List[Lab_test_type] = []
-    for test in db_invoice.list_of_tests:
-        db_category = await DBlab_test_category.find_one(
-            DBlab_test_category.id == test.lab_test_category_id
-        )
-        if db_category is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Lab Test Category with id: {test.lab_test_category_id} not found",
-            )
-        lab_test = Lab_test_type(
-            lab_test_id=str(test.lab_test_id),
-            lab_test_category_name=db_category.lab_test_category_name,
-            nssf_id=test.nssf_id,
-            lab_test_category_id=str(test.lab_test_category_id),
-            name=test.name,
-            unit=test.unit,
-            price=test.price,
-            normal_value_list=test.normal_value_list,
-        )
-        list_of_lab_test.append(lab_test)
-    currentInvoice = Invoice(
-        adjustment_minor=db_invoice.adjustment_minor,
-        visit_id=str(db_invoice.visit_id),
-        list_of_tests=list_of_lab_test,
-        list_of_lab_panels=db_invoice.list_of_lab_panels,
-        visit_date=db_invoice.visit_date,
-        patient_insurance_company_rate=patient_insurance_company_rate,
-        insurance_company_id=str(db_patient.insurance_company_id),
-        invoice_number=db_invoice.invoice_number,
-        total_paid=db_invoice.total_paid,
-        list_of_lab_tests_ids_changed=db_invoice.list_of_lab_tests_ids_changed,
-        list_of_lab_panels_ids_changed=db_invoice.list_of_lab_panels_ids_changed,
-    )
-    output_invoice_data = invoiceData(
-        patient=currentPatient,
-        invoice_data=currentInvoice,
-        currency=db_insurance_company.currency,
-    )
-    return output_invoice_data
+    return await _invoice_from_results(visit_id, db_visit, db_invoice, preserve_snapshot=True)
 
 
 @router.get(

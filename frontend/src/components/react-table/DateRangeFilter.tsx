@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, Filter } from "lucide-react";
 import type { Column } from "@tanstack/react-table";
 import { useDebounce } from "./Debounce";
@@ -29,14 +29,18 @@ export function DateRangeFilter<TData>({
     end: initial?.end ?? "",
   });
   const debounced = useDebounce(draft, 2000);
+  const pendingEdit = useRef(false);
   const fromId = `${column.id}-from`;
   const toId = `${column.id}-to`;
 
   useEffect(() => {
+    pendingEdit.current = false;
     setDraft({ start: initial?.start ?? "", end: initial?.end ?? "" });
   }, [initial?.start, initial?.end]);
 
   useEffect(() => {
+    if (!pendingEdit.current || draft.start !== debounced.start || draft.end !== debounced.end) return;
+    pendingEdit.current = false;
     const current = column.getFilterValue() as DateRangeValue | undefined;
     const currentStart = current?.start ?? "";
     const currentEnd = current?.end ?? "";
@@ -56,7 +60,7 @@ export function DateRangeFilter<TData>({
         end: nextEnd || undefined,
       });
     }
-  }, [debounced, column]);
+  }, [debounced, draft, column]);
 
   const canSort = column.getCanSort();
   const sortDir = column.getIsSorted();
@@ -113,6 +117,7 @@ export function DateRangeFilter<TData>({
               : "text-gray-500 cursor-pointer"
           }
           onClick={() => {
+            pendingEdit.current = false;
             setDraft({ start: "", end: "" });
             column.setFilterValue(undefined);
           }}
@@ -135,9 +140,10 @@ export function DateRangeFilter<TData>({
             type="date"
             className="border rounded p-1 h-9 w-full text-center"
             value={draft.start ?? ""}
-            onChange={(e) =>
-              setDraft((prev) => ({ ...prev, start: e.target.value }))
-            }
+            onChange={(e) => {
+              pendingEdit.current = true;
+              setDraft((prev) => ({ ...prev, start: e.target.value }));
+            }}
             aria-label="From date"
           />
           <label
@@ -151,9 +157,10 @@ export function DateRangeFilter<TData>({
             type="date"
             className="border rounded p-1 h-9 w-full text-center"
             value={draft.end ?? ""}
-            onChange={(e) =>
-              setDraft((prev) => ({ ...prev, end: e.target.value }))
-            }
+            onChange={(e) => {
+              pendingEdit.current = true;
+              setDraft((prev) => ({ ...prev, end: e.target.value }));
+            }}
             aria-label="To date"
           />
         </div>
