@@ -3,6 +3,7 @@ import type {
   CreateLabTestParams,
   CreatePatientAccountProps,
   fetchedInvoiceData,
+  VisitEditorData,
   fetchUserResponse,
   financial_transaction_summary,
   financialTransaction,
@@ -86,6 +87,10 @@ const create_invoice = async (visit_id: string, patient: patientInfo) => {
 const fetchInvoice = async (visit_id: string): Promise<fetchedInvoiceData> => {
   const url = `${invoicesApiURL}/${visit_id}/fetch_invoice`;
   const response = await api.get(url);
+  return response.data;
+};
+export const fetchVisitEditor = async (visit_id: string): Promise<VisitEditorData> => {
+  const response = await api.get(`/visits/${visit_id}/editor`);
   return response.data;
 };
 const updateInvoice = async (

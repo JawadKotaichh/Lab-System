@@ -30,6 +30,34 @@ from ..schemas.schema_Patient import Patient
 from ..models import lab_test_type as DBLab_test_type
 from ..models import insurance_company as DBInsurance_company
 from ..schemas.financial_types import round_money
+from ..schemas.financial_types import Money, SignedMoney
+from pydantic import BaseModel, Field
+from asyncio import gather
+
+
+class _InvoiceSummary(BaseModel):
+    visit_id: PydanticObjectId
+    adjustment_minor: SignedMoney
+    total_paid: Money
+
+
+class _TestPrice(BaseModel):
+    id: PydanticObjectId = Field(alias="_id")
+    price: Money
+
+
+class _PanelPrice(BaseModel):
+    id: PydanticObjectId = Field(alias="_id")
+    lab_panel_price: Money
+
+
+async def _find_by_ids(model, ids, projection=None):
+    if not ids:
+        return []
+    query = model.find({"_id": {"$in": ids}})
+    if projection is not None:
+        query = query.project(projection)
+    return await query.to_list()
 
 
 router = APIRouter(prefix="/visits", tags=["visits"])
@@ -278,82 +306,62 @@ async def get_visits_with_page_size(
             "$lte": end_dt,
         }
 
-    total_number_of_visits = await DBVisit.find(mongo_filter_visits).count()
-    page_visits = await (
+    total_number_of_visits, page_visits = await gather(
+        DBVisit.find(mongo_filter_visits).count(),
         DBVisit.find(mongo_filter_visits)
         .sort([("visit_date", SortDirection.DESCENDING)])
-        .skip(offset)
-        .limit(page_size)
-    ).to_list()
+        .skip(offset).limit(page_size).to_list(),
+    )
+    if not page_visits:
+        return PaginatedVisitDataList(
+            visitsData=[], total_pages=ceil(total_number_of_visits / page_size),
+            TotalNumberOfVisits=total_number_of_visits,
+        )
 
     visit_ids = [visit.id for visit in page_visits]
     patient_ids = list(dict.fromkeys(visit.patient_id for visit in page_visits))
-
-    patients = (
-        await DBPatient.find({"_id": {"$in": patient_ids}}).to_list()
-        if patient_ids
-        else []
+    # Group in MongoDB: the table needs counts and item IDs, not result text.
+    pipeline = [
+        {"$match": {"visit_id": {"$in": visit_ids}}},
+        {"$group": {
+            "_id": {
+                "visit_id": "$visit_id",
+                "lab_test_type_id": {"$cond": [
+                    {"$eq": [{"$ifNull": ["$lab_panel_id", None]}, None]},
+                    "$lab_test_type_id", None,
+                ]},
+                "lab_panel_id": {"$ifNull": ["$lab_panel_id", None]},
+            },
+            "total": {"$sum": 1},
+            "completed": {"$sum": {"$cond": [{"$ne": ["$result", ""]}, 1, 0]}},
+        }},
+    ]
+    patients, result_groups, invoices = await gather(
+        _find_by_ids(DBPatient, patient_ids),
+        DBLab_test_result.aggregate(pipeline).to_list(),
+        DBInvoice.find({"visit_id": {"$in": visit_ids}}).project(_InvoiceSummary).to_list(),
     )
     patients_by_id = {patient.id: patient for patient in patients}
-
-    insurance_company_ids = list(
-        dict.fromkeys(patient.insurance_company_id for patient in patients)
-    )
-    insurance_companies = (
-        await DBInsurance_company.find(
-            {"_id": {"$in": insurance_company_ids}}
-        ).to_list()
-        if insurance_company_ids
-        else []
-    )
-    insurance_companies_by_id = {
-        insurance_company.id: insurance_company
-        for insurance_company in insurance_companies
-    }
-
-    lab_results = (
-        await DBLab_test_result.find({"visit_id": {"$in": visit_ids}}).to_list()
-        if visit_ids
-        else []
-    )
-    lab_results_by_visit_id: Dict[
-        PydanticObjectId, List[DBLab_test_result]
-    ] = defaultdict(list)
-    individual_lab_test_type_ids = []
-    lab_panel_ids = []
-    for lab_result in lab_results:
-        lab_results_by_visit_id[lab_result.visit_id].append(lab_result)
-        if lab_result.lab_panel_id is not None:
-            lab_panel_ids.append(lab_result.lab_panel_id)
-        else:
-            individual_lab_test_type_ids.append(lab_result.lab_test_type_id)
-
-    individual_lab_test_type_ids = list(dict.fromkeys(individual_lab_test_type_ids))
-    lab_test_types = (
-        await DBLab_test_type.find(
-            {"_id": {"$in": individual_lab_test_type_ids}}
-        ).to_list()
-        if individual_lab_test_type_ids
-        else []
-    )
-    lab_test_types_by_id = {
-        lab_test_type.id: lab_test_type for lab_test_type in lab_test_types
-    }
-
-    lab_panel_ids = list(dict.fromkeys(lab_panel_ids))
-    lab_panels = (
-        await DBLab_panel.find({"_id": {"$in": lab_panel_ids}}).to_list()
-        if lab_panel_ids
-        else []
-    )
-    lab_panels_by_id = {lab_panel.id: lab_panel for lab_panel in lab_panels}
-
-    invoices = (
-        await DBInvoice.find({"visit_id": {"$in": visit_ids}}).to_list()
-        if visit_ids
-        else []
-    )
     invoices_by_visit_id = {invoice.visit_id: invoice for invoice in invoices}
+    groups_by_visit_id = defaultdict(list)
+    individual_test_ids, panel_ids = set(), set()
+    for group in result_groups:
+        key = group["_id"]
+        groups_by_visit_id[key["visit_id"]].append(group)
+        if key["lab_panel_id"] is not None:
+            panel_ids.add(key["lab_panel_id"])
+        else:
+            individual_test_ids.add(key["lab_test_type_id"])
+
+    insurance_ids = list(dict.fromkeys(patient.insurance_company_id for patient in patients))
+    insurance_companies, lab_test_types, lab_panels = await gather(
+        _find_by_ids(DBInsurance_company, insurance_ids),
+        _find_by_ids(DBLab_test_type, list(individual_test_ids), _TestPrice),
+        _find_by_ids(DBLab_panel, list(panel_ids), _PanelPrice),
+    )
+    insurance_companies_by_id = {company.id: company for company in insurance_companies}
+    lab_test_types_by_id = {test.id: test for test in lab_test_types}
+    lab_panels_by_id = {panel.id: panel for panel in lab_panels}
 
     visits: List[VisitData] = []
     for db_visit in page_visits:
@@ -378,23 +386,21 @@ async def get_visits_with_page_size(
             patient_id=str(db_patient.id),
         )
 
-        visit_lab_results = lab_results_by_visit_id.get(visit_id, [])
+        visit_result_groups = groups_by_visit_id.get(visit_id, [])
         total_tests_results = 0
         completed_tests_results = 0
         total_price = 0
         panel_ids_for_visit = set()
-        for lab_result in visit_lab_results:
-            total_tests_results += 1
-            if lab_result.result != "":
-                completed_tests_results += 1
-
-            if lab_result.lab_panel_id is not None:
-                panel_ids_for_visit.add(lab_result.lab_panel_id)
+        for group in visit_result_groups:
+            total_tests_results += group["total"]
+            completed_tests_results += group["completed"]
+            key = group["_id"]
+            if key["lab_panel_id"] is not None:
+                panel_ids_for_visit.add(key["lab_panel_id"])
                 continue
-
-            lab_test = lab_test_types_by_id.get(lab_result.lab_test_type_id)
+            lab_test = lab_test_types_by_id.get(key["lab_test_type_id"])
             if lab_test:
-                total_price += lab_test.price
+                total_price += lab_test.price * group["total"]
 
         for panel_id in panel_ids_for_visit:
             db_lab_panel = lab_panels_by_id.get(panel_id)

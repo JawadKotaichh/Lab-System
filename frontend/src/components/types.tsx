@@ -164,6 +164,10 @@ export type fetchedInvoiceData = {
   invoice_data: InvoiceData;
   currency: string;
 };
+export type VisitEditorData = {
+  results: resultListData;
+  invoice: fetchedInvoiceData;
+};
 export type updateInvoiceData = {
   list_of_tests?: labTest[];
   list_of_lab_panels?: labPanel[];

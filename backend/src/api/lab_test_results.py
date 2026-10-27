@@ -1,4 +1,5 @@
 from collections import defaultdict
+from ..visit_read import VisitReadContext
 from math import ceil
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
@@ -226,13 +227,17 @@ async def get_result_list(
 ):
     if include_incomplete:
         require_admin(principal)
+    return await build_result_list(visit_id, db_visit, include_incomplete)
+
+
+async def build_result_list(visit_id: str, db_visit: DBVisit, include_incomplete: bool, context: VisitReadContext | None = None):
     visit_oid = db_visit.id
 
-    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+    db_patient = context.patient if context is not None else await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
     if not db_patient:
         raise HTTPException(400, detail=f"Patient not found: {db_visit.patient_id}")
 
-    current_results = await DBLab_test_result.find(
+    current_results = context.results if context is not None else await DBLab_test_result.find(
         DBLab_test_result.visit_id == visit_oid
     ).to_list()
 
@@ -288,7 +293,7 @@ async def get_result_list(
             test_result.lab_test_type_id for test_result in visible_results
         )
     )
-    lab_test_types = (
+    lab_test_types = list(context.tests.values()) if context is not None else (
         await DBLab_test_type.find({"_id": {"$in": lab_test_type_ids}}).to_list()
         if lab_test_type_ids
         else []
@@ -304,7 +309,7 @@ async def get_result_list(
             if test_result.lab_panel_id
         )
     )
-    lab_panels = (
+    lab_panels = list(context.panels.values()) if context is not None else (
         await DBLab_panel.find({"_id": {"$in": panel_ids}}).to_list()
         if panel_ids
         else []
@@ -317,7 +322,7 @@ async def get_result_list(
             + [lab_panel.lab_panel_category_id for lab_panel in lab_panels]
         )
     )
-    categories = (
+    categories = list(context.categories.values()) if context is not None else (
         await DBLab_test_category.find({"_id": {"$in": category_ids}}).to_list()
         if category_ids
         else []
@@ -394,7 +399,7 @@ async def get_result_list(
             )
         )
 
-    db_insurance_company = await DBInsurance_company.find_one(
+    db_insurance_company = context.insurance if context is not None else await DBInsurance_company.find_one(
         DBInsurance_company.id == db_patient.insurance_company_id
     )
     insurance_name = (

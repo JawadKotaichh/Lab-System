@@ -34,6 +34,7 @@ from ..models import lab_test_category as DBLab_test_category
 from ..models import lab_test_type as DBLab_test_type
 from .deps import require_admin, require_visit_access
 from ..schemas.financial_types import round_money
+from ..visit_read import VisitReadContext
 
 
 async def get_next_sequence(name: str) -> int:
@@ -352,6 +353,7 @@ async def _invoice_from_results(
     *, orders: list | None = None,
     db_patient: DBPatient | None = None,
     db_insurance_company: DBInsurance_company | None = None,
+    context: VisitReadContext | None = None,
 ) -> invoiceData:
     """Build billable membership from saved orders, including blank results.
 
@@ -422,7 +424,7 @@ async def _invoice_from_results(
             for lab_result in db_list_of_lab_tests_results
         )
     )
-    lab_test_types = (
+    lab_test_types = list(context.tests.values()) if context is not None else (
         await DBLab_test_type.find({"_id": {"$in": lab_test_type_ids}}).to_list()
         if lab_test_type_ids
         else []
@@ -436,7 +438,7 @@ async def _invoice_from_results(
             lab_test_type.lab_test_category_id for lab_test_type in lab_test_types
         )
     )
-    categories = (
+    categories = list(context.categories.values()) if context is not None else (
         await DBLab_test_category.find({"_id": {"$in": category_ids}}).to_list()
         if category_ids
         else []
@@ -450,7 +452,7 @@ async def _invoice_from_results(
             if lab_result.lab_panel_id
         )
     )
-    lab_panels = (
+    lab_panels = list(context.panels.values()) if context is not None else (
         await DBLab_panel.find({"_id": {"$in": lab_panel_ids}}).to_list()
         if lab_panel_ids
         else []

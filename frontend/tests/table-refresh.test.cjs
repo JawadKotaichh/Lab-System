@@ -171,8 +171,10 @@ test('Edit Visit offers Save or Keep editing without discard controls or idle wa
       './Prices': pricing,
       '../FormValidation': { useFormValidation: () => ({ validate: () => true }), dateError: () => null, moneyError: () => null },
       '../utils': {
-        fetchResultList: async () => ({ patient: {}, visit_date: '2026-10-28', report_date: '2026-10-28', list_of_standalone_test_results: [], list_of_panel_results: [] }),
-        fetchInvoice: async () => ({ currency: 'USD', invoice_data: { list_of_tests: [], list_of_lab_panels: [], list_of_lab_tests_ids_changed: [], list_of_lab_panels_ids_changed: [], adjustment_minor: 0, total_paid: 0 } }),
+        fetchVisitEditor: async () => ({
+          results: { patient: {}, visit_date: '2026-10-28', report_date: '2026-10-28', list_of_standalone_test_results: [], list_of_panel_results: [] },
+          invoice: { currency: 'USD', invoice_data: { list_of_tests: [], list_of_lab_panels: [], list_of_lab_tests_ids_changed: [], list_of_lab_panels_ids_changed: [], adjustment_minor: 0, total_paid: 0 } },
+        }),
       },
     }).default;
     host.render(Page);

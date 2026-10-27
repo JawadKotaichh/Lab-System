@@ -63,6 +63,7 @@ function server(initial = fixture()) {
     },
   };
   const utils = {
+    async fetchVisitEditor() { return copy(state); },
     async fetchResultList(id, includeIncomplete) { assert.equal(includeIncomplete, true, 'Editing must include blank results'); return copy(state.results); },
     async fetchInvoice() { return copy(state.invoice); },
   };
@@ -81,6 +82,15 @@ test('blank results remain on the invoice when only billing/dates change', async
   assert.equal(confirmed.results.list_of_standalone_test_results[0].result, '');
   assert.equal(confirmed.invoice.invoice_data.total_paid, 2);
   assert.ok(s.writes.every(([, , body]) => !body || !('posted' in body)));
+});
+
+test('the editor read uses one combined API request', async () => {
+  const calls = [], expected = fixture();
+  const utils = loadSource('components/utils.tsx', {
+    '../api': { __esModule: true, default: { get: async url => { calls.push(url); return { data: expected }; } } },
+  });
+  assert.deepEqual(await utils.fetchVisitEditor('sample-visit'), expected);
+  assert.deepEqual(calls, ['/visits/sample-visit/editor']);
 });
 
 test('adding standalone and panel results saves values against server-assigned IDs', async () => {
