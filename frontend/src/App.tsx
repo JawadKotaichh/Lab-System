@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import {
   Routes,
@@ -24,9 +24,7 @@ import EditLabPanel from "./components/LabPanel/EditLabPanel";
 import LabPanelsList from "./components/LabPanel/LabPanelsList";
 import LabTestCategoryTable from "./components/LabCategory/LabTestCategoryTable";
 import VisitsTable from "./components/Visits/VisitsTable";
-import InvoiceContainer from "./components/Invoice/InvoiceContainer";
-import ResultContainer from "./components/ResultPDF/ResultContainer";
-import InvoiceSummaryContainer from "./components/MonthlySummary/InvoiceSummaryContainer";
+import ReportPage from "./components/ReportPage";
 import MonthSummary from "./components/MonthlySummary/MonthSummary";
 import { baseURLL, isSessionExpired } from "./api";
 import LoginPage from "./components/LoginPage/LoginPage";
@@ -42,7 +40,10 @@ import UserVisitsPage from "./components/UserVisitsPage/UserVisitsPage";
 import FinancialTransactionTable from "./components/AccountingPages/FinancialTransactionTable";
 import EditFinancialTransaction from "./components/AccountingPages/EditFinancialTransaction";
 import FinancialTransactionsSummary from "./components/AccountingPages/FinancialTransactionsSummary";
-import FinancialTransactionsSummaryContainer from "./components/AccountingPages/FinancialTransactionsSummaryContainer";
+const InvoiceContainer = lazy(() => import("./components/Invoice/InvoiceContainer"));
+const ResultContainer = lazy(() => import("./components/ResultPDF/ResultContainer"));
+const InvoiceSummaryContainer = lazy(() => import("./components/MonthlySummary/InvoiceSummaryContainer"));
+const FinancialTransactionsSummaryContainer = lazy(() => import("./components/AccountingPages/FinancialTransactionsSummaryContainer"));
 type NavItem = {
   to: string;
   label: string;
@@ -385,7 +386,7 @@ const App: React.FC = () => {
             path="/financial-transactions/summary/:type"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
-                <FinancialTransactionsSummaryContainer />
+                <ReportPage><FinancialTransactionsSummaryContainer /></ReportPage>
               </RequireAuth>
             }
           />
@@ -537,7 +538,7 @@ const App: React.FC = () => {
             path="/invoice/:visit_id"
             element={
               <RequireAuth user={user} allowedRoles={["admin", "patient"]}>
-                <InvoiceContainer />
+                <ReportPage><InvoiceContainer /></ReportPage>
               </RequireAuth>
             }
           />
@@ -545,7 +546,7 @@ const App: React.FC = () => {
             path="/result/:visit_id"
             element={
               <RequireAuth user={user} allowedRoles={["admin", "patient"]}>
-                <ResultContainer />
+                <ReportPage><ResultContainer /></ReportPage>
               </RequireAuth>
             }
           />
@@ -561,7 +562,7 @@ const App: React.FC = () => {
             path="/summary-invoice/:insurance_company_id"
             element={
               <RequireAuth user={user} allowedRoles={["admin"]}>
-                <InvoiceSummaryContainer />
+                <ReportPage><InvoiceSummaryContainer /></ReportPage>
               </RequireAuth>
             }
           />

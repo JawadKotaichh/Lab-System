@@ -7,7 +7,7 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/re
 import { CheckCircle2, Circle } from "lucide-react";
 import api, { getApiErrorMessage } from "../../api";
 import type { fetchedInvoiceData, labPanel, labTest, patientPanelResult, patientTestResult, resultListData, updateInvoiceData } from "../types";
-import { fetchInvoice, fetchResultList } from "../utils";
+import { fetchVisitEditor, fetchResultList } from "../utils";
 import PatientInfo from "./PatientInfo";
 import Prices, { invoiceGross } from "./Prices";
 import TestResultsList, { type ResultTarget } from "./TestResultsList";
@@ -123,7 +123,7 @@ export function validateVisitEdits(source: Source, edits: VisitEdits): string | 
   return null;
 }
 async function readVisit(visitId: string): Promise<Source> {
-  const [results, invoice] = await Promise.all([fetchResultList(visitId, true), fetchInvoice(visitId)]);
+  const { results, invoice } = await fetchVisitEditor(visitId);
   validateResultTargets(results);
   return { results, invoice };
 }

@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI
 from .db import init_db
 from .api.patients import router as patients_router
 from .api.visits import router as visits_router
+from .api.visit_editor import router as visit_editor_router
 from .api.lab_test_results import router as lab_test_results_router
 from .api.lab_test_type import router as lab_test_type_router
 from .api.lab_test_category import router as lab_test_category_router
@@ -26,6 +27,7 @@ protected_dependencies = [Depends(get_current_principal)]
 
 app.include_router(patients_router, dependencies=protected_dependencies)
 app.include_router(visits_router, dependencies=protected_dependencies)
+app.include_router(visit_editor_router, dependencies=protected_dependencies)
 app.include_router(lab_test_type_router, dependencies=protected_dependencies)
 app.include_router(lab_test_results_router, dependencies=protected_dependencies)
 app.include_router(insurance_comapny_router, dependencies=protected_dependencies)
