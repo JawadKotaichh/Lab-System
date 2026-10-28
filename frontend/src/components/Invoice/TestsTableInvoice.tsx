@@ -21,7 +21,7 @@ const TestsTableInvoice = ({
   const formatPrice = (currency: string, value: number = 0) => {
     return currency === "USD"
       ? `${value.toFixed(2)} $`
-      : `${value.toLocaleString("en-US")} LBP`;
+      : `${value.toLocaleString("en-US", { maximumFractionDigits: 0 })} LBP`;
   };
 
   const getPrice = (test: labTest) =>
@@ -133,23 +133,11 @@ const TestsTableInvoice = ({
             >
               {currency === "USD"
                 ? `${total_price.toFixed(2)} $`
-                : `${total_price.toLocaleString("en-US")} LBP`}
+                : `${total_price.toLocaleString("en-US", { maximumFractionDigits: 0 })} LBP`}
             </Text>
           </View>
         </View>
       </View>
-      {invoiceData.adjustment_minor !== 0 && (
-        <View>
-          <View style={[styles.tableRow, styles.subTotal]} wrap={false}>
-            <View style={styles.subTotalCol}><Text style={styles.subtotalCellText}>Adjustment</Text></View>
-            <View style={styles.tableColLast}><Text style={[styles.subtotalCellText, { textAlign: "right" }]}>{formatPrice(currency, invoiceData.adjustment_minor)}</Text></View>
-          </View>
-          <View style={[styles.tableRow, styles.subTotal]} wrap={false}>
-            <View style={styles.subTotalCol}><Text style={styles.subtotalCellText}>Net Total</Text></View>
-            <View style={styles.tableColLast}><Text style={[styles.subtotalCellText, { textAlign: "right" }]}>{formatPrice(currency, netTotal)}</Text></View>
-          </View>
-        </View>
-      )}
       <View style={[{ textAlign: "center" }, styles.AmountBox]} wrap={false}>
         <Text>{amountToWords(netTotal, currency)}</Text>
       </View>

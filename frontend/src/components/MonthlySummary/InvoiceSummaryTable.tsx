@@ -68,7 +68,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
                 <Text style={styles.tableCellText}>
                   {currency === "USD"
                     ? rowTotal.toFixed(2)
-                    : rowTotal.toLocaleString("en-US")}{" "}
+                    : rowTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}{" "}
                   {currency === "USD" ? "$" : "LBP"}
                 </Text>
               </View>
@@ -93,7 +93,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             >
               {currency === "USD"
                 ? totalPrice.toFixed(2)
-                : totalPrice.toLocaleString("en-US")}{" "}
+                : totalPrice.toLocaleString("en-US", { maximumFractionDigits: 0 })}{" "}
               {currency === "USD" ? "$" : "LBP"}
             </Text>
           </View>

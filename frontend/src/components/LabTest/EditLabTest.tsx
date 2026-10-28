@@ -30,7 +30,6 @@ import {
   Tag,
   User,
   Trash2,
-  Plus,
 } from "lucide-react";
 import { fetchAllLabTestTypeCategories, fetchLabTest } from "../utils";
 import {
@@ -303,7 +302,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
             <option value="description_only">Description Only</option>
           </select>
           <ActionButton type="button" onClick={addNV} title="Add normal value" variant="secondary" icon={AddActionIcon}>
-            <Plus size={16} /> Add
+            Add
           </ActionButton>
         </div>
 

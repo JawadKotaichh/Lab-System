@@ -83,11 +83,12 @@ function validateResultIdentifiers(results: resultListData) {
   }
 }
 const dateOnly = (date: unknown) => String(date).split("T")[0];
-function editsFrom(source: Source): VisitEdits {
+export function editsFrom(source: Source): VisitEdits {
   const invoice = source.invoice.invoice_data;
   return {
     tests: source.results.list_of_standalone_test_results.map(t => ({ ...t,
-      lab_test_type: invoice.list_of_tests.find(x => x.lab_test_id === t.lab_test_type_id) ?? t.lab_test_type,
+      lab_test_type: { ...(invoice.list_of_tests.find(x => x.lab_test_id === t.lab_test_type_id) ?? t.lab_test_type),
+        lab_test_category_name: t.lab_test_type.lab_test_category_name ?? invoice.list_of_tests.find(x => x.lab_test_id === t.lab_test_type_id)?.lab_test_category_name },
     })),
     panels: source.results.list_of_panel_results.map(p => {
       const prior = invoice.list_of_lab_panels.find(x => x.id === p.lab_panel_id);
@@ -194,6 +195,24 @@ export async function saveVisitEdits(visitId: string, baseline: Source, edits: V
   return confirmed;
 }
 
+export function paginateVisitResults(edits: VisitEdits, pageIndex: number, pageSize: number) {
+  const units = [
+    ...edits.tests.map(test => ({test, panel: null as VisitEdits["panels"][number] | null})),
+    ...edits.panels.flatMap<{test: patientTestResult | null; panel: VisitEdits["panels"][number]}>(panel => panel.list_of_test_results.length
+      ? panel.list_of_test_results.map(test => ({test, panel})) : [{test: null, panel}]),
+  ];
+  const totalPages = Math.max(1, Math.ceil(units.length / pageSize));
+  const safeIndex = Math.max(0, Math.min(pageIndex, totalPages - 1));
+  const tests: patientTestResult[] = [], panels: VisitEdits["panels"] = [];
+  for (const {test, panel} of units.slice(safeIndex * pageSize, (safeIndex + 1) * pageSize)) {
+    if (!panel) { if (test) tests.push(test); continue; }
+    let group = panels.find(item => item.lab_panel_id === panel.lab_panel_id);
+    if (!group) { group = {...panel, list_of_test_results: []}; panels.push(group); }
+    if (test) group.list_of_test_results.push(test);
+  }
+  return {tests, panels, pageIndex: safeIndex, totalPages, total: units.length};
+}
+
 export default function EditVisitPage() {
   const { visit_id } = useParams<{ visit_id: string }>();
   const [source, setSource] = useState<Source | null>(null);
@@ -282,10 +301,7 @@ export default function EditVisitPage() {
       setError(error instanceof Error ? error.message : "Could not add this lab panel.");
     }
   };
-  const units = [...edits.tests.map(test => ({ test })), ...edits.panels.map(panel => ({ panel }))];
-  const visible = units.slice(pagination.pageIndex * pagination.pageSize, (pagination.pageIndex + 1) * pagination.pageSize);
-  const pageTests = visible.flatMap(x => "test" in x ? [x.test] : []);
-  const pagePanels = visible.flatMap(x => "panel" in x ? [x.panel] : []);
+  const resultPage = paginateVisitResults(edits, pagination.pageIndex, pagination.pageSize);
   return <div className="p-4 pb-40 sm:p-8 sm:pb-40 bg-white">
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">Edit Visit</h1></div>
       <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${dirty ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>{dirty ? <Circle className="h-3 w-3 fill-current" /> : <CheckCircle2 className="h-4 w-4" />}{dirty ? "Unsaved changes" : "Up to date"}</span>
@@ -296,12 +312,11 @@ export default function EditVisitPage() {
       <PatientInfo validation={validation} patientData={patient} visitDate={edits.visitDate} reportDate={edits.reportDate} onVisitDateChange={value => change(p => ({ ...p, visitDate: value }))} onReportDateChange={value => change(p => ({ ...p, reportDate: value }))} />
       <Prices validation={validation} updatedInvoiceData={invoice} currency={source.invoice.currency} adjustment={edits.adjustment} paid={edits.paid} onAdjustmentChange={value => change(p => ({ ...p, adjustment: value }))} onPaidChange={value => change(p => ({ ...p, paid: value }))} />
       <div className="mt-6 flex gap-3"><ActionButton type="button" onClick={() => setShowTests(true)} variant="secondary" icon={AddActionIcon}>Add test result</ActionButton><ActionButton type="button" onClick={() => setShowPanels(true)} variant="secondary" icon={AddActionIcon}>Add lab panel</ActionButton></div>
-      <TestResultsList validation={validation} panelResults={pagePanels} standAloneTestResults={pageTests} updatedInvoiceData={invoice} priceDrafts={edits.prices}
-        onPriceChange={(id, value) => change(p => ({ ...p, prices: { ...p.prices, [id]: value } }))}
+      <TestResultsList panelResults={resultPage.panels} standAloneTestResults={resultPage.tests}
         onRemoveTest={id => change(p => { const prices = { ...p.prices }; delete prices[id]; return { ...p, prices, tests: p.tests.filter(test => test.lab_test_type_id !== id) }; })}
         onRemovePanel={id => change(p => ({ ...p, panels: p.panels.filter(x => x.lab_panel_id !== id) }))}
         onResultChange={(target, value) => change(previous => updateVisitResult(previous, target, value))} />
-      <Pagination currentPage={pagination.pageIndex + 1} totalPages={Math.max(1, Math.ceil(units.length / pagination.pageSize))} pageSize={pagination.pageSize} TotalNumberOfPaginatedItems={units.length} setCurrentPage={page => setPagination(p => ({ ...p, pageIndex: page - 1 }))} setPageSize={size => setPagination({ pageIndex: 0, pageSize: size })} />
+      <Pagination currentPage={resultPage.pageIndex + 1} totalPages={resultPage.totalPages} pageSize={pagination.pageSize} TotalNumberOfPaginatedItems={resultPage.total} setCurrentPage={page => setPagination(p => ({ ...p, pageIndex: page - 1 }))} setPageSize={size => setPagination({ pageIndex: 0, pageSize: size })} />
     </fieldset>
     {showTests && <AddTestResultTable onSelectTest={addTest} showTestsTable showAdd visit_id={visit_id} error={error} addError={error} setError={setError} setAddError={setError} setShowTestsTable={setShowTests} existingLabTestTypeIds={allIds} standAloneTestResults={edits.tests} panelResults={edits.panels} setStandAloneTestResults={() => {}} setPanelResults={() => {}} refreshResults={async () => {}} markExistingLabTestIdsDirty={() => {}} setUpdatedInvoiceData={() => {}} setCurrency={() => {}} />}
     {showPanels && <LabPanelsTable onSelectPanel={addPanel} pagination={pagination} visit_id={visit_id} showPanelsTable setShowPanelsTable={setShowPanels} panelResults={edits.panels} setPanelResults={() => {}} setStandAloneTestResults={() => {}} setTotalNumberOfTests={() => {}} refreshResults={async () => {}} markExistingLabTestIdsDirty={() => {}} setUpdatedInvoiceData={() => {}} setCurrency={() => {}} />}
