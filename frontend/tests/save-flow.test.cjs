@@ -174,9 +174,11 @@ test('invoice PDF uses the same test, panel, zero overrides and adjustment total
   const text = node => node == null || typeof node === 'boolean' ? '' : Array.isArray(node)
     ? node.map(text).join(' ') : React.isValidElement(node) ? text(node.props.children) : String(node);
   const rendered = text(tree);
-  for (const expected of ['test-a', 'Panel A', '0.00 $', '3.50 $', 'Adjustment', '-1.25 $', 'Net Total', '2.25 $', 'Words: 2.25']) {
+  for (const expected of ['test-a', 'Panel A', '0.00 $', '3.50 $', 'Subtotal', 'Words: 2.25']) {
     assert.ok(rendered.includes(expected), `PDF must include ${expected}`);
   }
+  assert.ok(!rendered.includes('Adjustment'));
+  assert.ok(!rendered.includes('Net Total'));
 });
 
 test('invoice pricing applies insurance rates once to tests and panels in either currency', () => {
@@ -527,4 +529,27 @@ test('PDF signatures layer the new signature above the stamp and omit both when 
     assert.match(source,/<PdfSignature show=\{showSignature\} \/>/);
     assert.doesNotMatch(source,/branding\/lab_signature/);
   }
+});
+
+
+test('Edit Visit paginates individual panel results and clamps pages after removal', () => {
+  const s=server(), edited=editValues(fixture());
+  edited.panels=[{lab_panel_id:'panel',lab_panel_name:'Panel',list_of_test_results:Array.from({length:5},(_,i)=>result(`p-${i}`))}];
+  const first=s.edits.paginateVisitResults(edited,0,2), second=s.edits.paginateVisitResults(edited,1,2), last=s.edits.paginateVisitResults(edited,2,2);
+  assert.equal(first.total,6);assert.equal(first.totalPages,3);
+  assert.equal(first.tests.length,1);assert.equal(first.panels[0].list_of_test_results.length,1);
+  assert.deepEqual(second.panels[0].list_of_test_results.map(row=>row.lab_test_type_id),['p-1','p-2']);
+  assert.deepEqual(last.panels[0].list_of_test_results.map(row=>row.lab_test_type_id),['p-3','p-4']);
+  assert.equal(edited.panels[0].list_of_test_results.length,5);
+  edited.panels=[];
+  assert.equal(s.edits.paginateVisitResults(edited,2,2).pageIndex,0);
+});
+
+test('Edit Visit keeps category names from results and prices from invoice snapshots', () => {
+  const source=fixture(), s=server();
+  source.results.list_of_standalone_test_results[0].lab_test_type.lab_test_category_name='Chemistry';
+  source.invoice.invoice_data.list_of_tests[0].price=7;
+  const edits=s.edits.editsFrom(source);
+  assert.equal(edits.tests[0].lab_test_type.lab_test_category_name,'Chemistry');
+  assert.equal(edits.tests[0].lab_test_type.price,7);
 });

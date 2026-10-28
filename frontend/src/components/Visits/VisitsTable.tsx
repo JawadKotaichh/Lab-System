@@ -123,6 +123,7 @@ const VisitsTable: React.FC = () => {
 
       {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading visits…</p>}
       <GenericTable
+        columnWidths={{ patient_phone_number: 200, total_price_with_insurance: 240 }}
         table={table}
         loading={loading}
         tableHeadStyle={tableHead}

@@ -14,7 +14,7 @@ const formatYMDLocal = (value: unknown) => {
 
 function formatMoney(amount: number, currency: string) {
   if (currency === "USD") return `${amount.toFixed(2)} $`;
-  return `${amount.toLocaleString("en-US")} LBP`;
+  return `${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })} LBP`;
 }
 
 const getRowCurrency = (

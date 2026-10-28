@@ -1,8 +1,8 @@
 import ActionButton from "./ActionButton";
-import { Pencil as EditActionIcon, Trash2 as RemoveActionIcon } from "lucide-react";
+import { Trash2 as RemoveActionIcon } from "lucide-react";
 import React from "react";
 import { tableHandleButton } from "../style";
-import type { NavigateFunction } from "react-router-dom";
+import { Link, type NavigateFunction } from "react-router-dom";
 import { ClipboardPlus, FileText, RotateCw } from "lucide-react";
 import type {
   insuranceCompanyParams,
@@ -100,11 +100,9 @@ export function getInsuranceCompanyColumns(
         const insuranceCompanyId = row.original.insurance_company_id;
         const insuranceCompanyName = row.original.insurance_company_name;
         return (
-          <ActionButton type="button" onClick={() =>
-              navigate(`${InsuranceEditPageURL}${insuranceCompanyId}`)
-            } title="Edit insurance company" variant="primary" icon={EditActionIcon}>
+          <Link to={`${InsuranceEditPageURL}${insuranceCompanyId}`} title="Edit insurance company" className="text-blue-600 hover:underline cursor-pointer">
             {insuranceCompanyName}
-          </ActionButton>
+          </Link>
         );
       },
       header: ({ column }) => (
@@ -207,9 +205,9 @@ export function getPatientsColumns(
         const patientId = row.original.patient_id;
         const patient_name = row.original.name;
         return (
-          <ActionButton type="button" onClick={() => navigate(`/patients/edit-patient/${patientId}`)} title="Edit patient" variant="primary" icon={EditActionIcon}>
+          <Link to={`/patients/edit-patient/${patientId}`} title="Edit patient" className="text-blue-600 hover:underline cursor-pointer">
             {patient_name}
-          </ActionButton>
+          </Link>
         );
       },
       header: ({ column }) => (
@@ -490,9 +488,9 @@ export function getLabTestColumns(
         const labTestId = row.original.lab_test_id;
         const labTestName = row.original.name;
         return (
-          <ActionButton type="button" onClick={() => navigate(`${labTestEditPageURL}${labTestId}`)} title="Edit lab test" variant="primary" icon={EditActionIcon}>
+          <Link to={`${labTestEditPageURL}${labTestId}`} title="Edit lab test" className="text-blue-600 hover:underline cursor-pointer">
             {labTestName}
-          </ActionButton>
+          </Link>
         );
       },
       sortingFn: (rowA, rowB, columnId) => {
@@ -765,11 +763,9 @@ export function getLabTestCategoryColumns(
         const labTestCategoryId = row.original.lab_test_category_id;
         const labTestCategoryName = row.original.lab_test_category_name;
         return (
-          <ActionButton type="button" onClick={() =>
-              navigate(`${labTestCategoryEditPageURL}${labTestCategoryId}`)
-            } title="Edit lab test category" variant="primary" icon={EditActionIcon}>
+          <Link to={`${labTestCategoryEditPageURL}${labTestCategoryId}`} title="Edit lab test category" className="text-blue-600 hover:underline cursor-pointer">
             {labTestCategoryName}
-          </ActionButton>
+          </Link>
         );
       },
       sortingFn: (rowA, rowB, columnId) => {
@@ -923,7 +919,7 @@ export function getVisitsColumns(
         const value =
           currency === "USD"
             ? `${raw.toFixed(2)} $`
-            : `${raw.toLocaleString("en-US")} LBP`;
+            : `${raw.toLocaleString("en-US", { maximumFractionDigits: 0 })} LBP`;
         return (
           <button
             type="button"
@@ -957,7 +953,7 @@ export function getVisitsColumns(
         const currency = row.original.currency ?? "$";
         if (currency === "USD")
           return `${row.original.total_paid.toFixed(2)} $`;
-        else return `${row.original.total_paid.toLocaleString("en-US")} LBP`;
+        else return `${row.original.total_paid.toLocaleString("en-US", { maximumFractionDigits: 0 })} LBP`;
       },
       header: ({ column }) => (
         <ColumnFilter
@@ -997,7 +993,7 @@ export function getVisitsColumns(
         const value =
           currency === "USD"
             ? `${remaining.toFixed(2)} $`
-            : `${remaining.toLocaleString("en-US")} LBP`;
+            : `${remaining.toLocaleString("en-US", { maximumFractionDigits: 0 })} LBP`;
 
         return (
           <span className={remaining !== 0 ? "text-red-600" : undefined}>
@@ -1022,18 +1018,10 @@ export function getVisitsColumns(
           total_tests_results,
         } = row.original;
         return (
-          <ActionButton type="button" onClick={() =>
-              navigate(`${visitEditPageURL}${visit_id}`, {
-                state: {
-                  patientData: {
-                    ...patient,
-                    insurance_company_name: insurance_company_name,
-                  },
-                },
-              })
-            } title="Edit Visit" variant="primary" icon={EditActionIcon}>
+          <Link to={`${visitEditPageURL}${visit_id}`} state={{patientData: {...patient, insurance_company_name}}}
+            title="Edit Visit" className="text-blue-600 hover:underline cursor-pointer">
             {completed_tests_results} / {total_tests_results}
-          </ActionButton>
+          </Link>
         );
       },
       sortingFn: (rowA, rowB) => {
@@ -1148,9 +1136,10 @@ export function getFinancialTransactionColumns(
         const category = row.original.category;
 
         return (
-          <ActionButton type="button" onClick={() => navigate(`/financial-transactions/${transactionId}`)} title="Edit Transaction" disabled={category === "Visit By System"} variant="primary" icon={EditActionIcon}>
+          category === "Visit By System" ? <span>{dateOnly}</span> :
+          <Link to={`/financial-transactions/${transactionId}`} title="Edit Transaction" className="text-blue-600 hover:underline cursor-pointer">
             {dateOnly}
-          </ActionButton>
+          </Link>
         );
       },
       header: ({ column }) => (
@@ -1215,7 +1204,7 @@ export function getFinancialTransactionColumns(
         const amountText =
           currency === "USD"
             ? `${row.original.amount.toFixed(2)} $`
-            : `${row.original.amount.toLocaleString("en-US")} LBP`;
+            : `${row.original.amount.toLocaleString("en-US", { maximumFractionDigits: 0 })} LBP`;
 
         const amountClass =
           type === "expense"

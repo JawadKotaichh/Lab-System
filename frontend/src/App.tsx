@@ -132,10 +132,10 @@ const App: React.FC = () => {
   const isOnEdit = !!useMatch("/visits/:visit_id");
   const navigate = useNavigate();
   const activeClass =
-    "inline-flex min-h-10 items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 transition";
+    "inline-flex min-h-10 items-center px-4 py-2 rounded-lg text-lg font-medium text-white bg-blue-600 transition";
   const inactiveClass =
-    "inline-flex min-h-10 items-center px-4 py-2 rounded-lg text-sm font-medium text-blue-700 hover:text-white hover:bg-blue-600 transition";
-  const logoutButtonStyle = secondaryButtonStyle;
+    "inline-flex min-h-10 items-center px-4 py-2 rounded-lg text-lg font-medium text-blue-700 hover:text-white hover:bg-blue-600 transition";
+  const logoutButtonStyle = `${secondaryButtonStyle} text-lg!`;
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigationRef = useRef<HTMLElement>(null);

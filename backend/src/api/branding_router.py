@@ -46,4 +46,4 @@ def versioned_asset(asset: str, version: str, request: Request):
 def branding_asset(asset: str):
     _, digest = _asset(asset)
     return RedirectResponse(f"/branding/assets/{asset}/{digest}", status_code=307,
-                            headers={"Cache-Control": "public, max-age=300"})
+                            headers={"Cache-Control": "no-store"})

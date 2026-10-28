@@ -8,6 +8,7 @@ interface GenericTableProps<TData> {
   tableStyle?: string;
   tableHeadStyle?: string;
   cellStyle?: string;
+  columnWidths?: Record<string, number>;
   renderExpandedRow?: (row: Row<TData>) => React.ReactNode;
   renderFooterRow?: (table: Table<TData>) => React.ReactNode;
 }
@@ -21,6 +22,7 @@ const GenericTable = <TData,>({
   cellStyle = "px-4 py-2",
   renderFooterRow,
   renderExpandedRow,
+  columnWidths,
 }: GenericTableProps<TData>) => (
   <div className="w-full ">
     <table className={tableStyle}>
@@ -28,7 +30,7 @@ const GenericTable = <TData,>({
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <th key={header.id} className="px-2 py-2 text-center">
+              <th key={header.id} className="px-2 py-2 text-center" style={columnWidths?.[header.column.id] ? { width: columnWidths[header.column.id] } : undefined}>
                 {flexRender(
                   header.column.columnDef.header,
                   header.getContext()
@@ -44,7 +46,7 @@ const GenericTable = <TData,>({
             <Fragment key={row.id}>
               <tr className="border">
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className={cellStyle}>
+                  <td key={cell.id} className={cellStyle} style={columnWidths?.[cell.column.id] ? { width: columnWidths[cell.column.id] } : undefined}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

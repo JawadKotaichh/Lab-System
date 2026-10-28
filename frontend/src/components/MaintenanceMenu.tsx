@@ -74,7 +74,7 @@ const MaintenanceMenu = ({ isMenuOpen, setIsMenuOpen }: MenuParams) => {
             <button
               role="menuitem"
               type="button"
-              className="w-full text-sm font-medium text-blue-700 text-left rounded-lg px-4 py-3 cursor-pointer hover:text-white hover:bg-blue-600"
+              className="w-full text-lg font-medium text-blue-700 text-left rounded-lg px-4 py-3 cursor-pointer hover:text-white hover:bg-blue-600"
               onClick={() => handleSelect(opt.path)}
             >
               {opt.label}

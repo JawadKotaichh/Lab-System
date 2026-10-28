@@ -146,6 +146,7 @@ class BrandingTests(unittest.TestCase):
             self.assertEqual(client.get("/branding/signature").content, b"new signature")
             redirect = client.get("/branding/logo", follow_redirects=False)
             self.assertEqual(redirect.status_code, 307)
+            self.assertEqual(redirect.headers["cache-control"], "no-store")
             url = redirect.headers["location"]
             response = client.get(url)
             self.assertEqual(response.content, b"original image")

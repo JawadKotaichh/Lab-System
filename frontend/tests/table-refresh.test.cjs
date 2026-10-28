@@ -429,3 +429,27 @@ test('Lab Panels ignores stale searches and refetches a valid page after deletio
   assert.match(renderToStaticMarkup(tree),/Remaining panel/);
   assert.equal(requests.length,4);
 });
+
+
+test('Get financial summary sends normalized filters and opens report with the same data', async () => {
+  const host=hookHost(), calls=[], navigations=[];
+  const response={type:'Income',by_currency:{USD:{Sample:[{id:'tx',amount:3}]},LBP:{}}};
+  const Button=props=>React.createElement('button',props);
+  const Page=loadSource('components/AccountingPages/FinancialTransactionsSummary.tsx',{
+    react:host.hooks,'react-router-dom':{useNavigate:()=> (...args)=>navigations.push(args)},
+    '../ActionButton':{__esModule:true,default:Button},
+    '../FormValidation':{useFormValidation:()=>({validate:()=>true}),ValidationSummary:()=>null,FieldError:()=>null,dateError:()=>null},
+    '../data':{listOfAttributesFinancialTransactionSummary:[]},
+    '../utils':{fetchAllfinancialTransactionsCategories:async()=>[],fetchAllfinancialTransactionsCurrencies:async()=>[],fetchAllfinancialTransactionsTypes:async()=>[],
+      getFinancialTransactionsSummary:async filters=>{calls.push(filters);return response;}},
+  }).default;
+  host.render(Page);for(let i=0;i<6;i++) await Promise.resolve();const tree=host.flush();
+  const get=findElement(tree,node=>node.type===Button);
+  await get.props.onClick();
+  assert.equal(calls.length,1);assert.equal(calls[0].type,'Income');
+  assert.equal(calls[0].category,undefined);assert.equal(calls[0].currency,undefined);
+  assert.match(calls[0].start_date,/^\d{4}-\d{2}-\d{2}$/);assert.equal(calls[0].start_date,calls[0].end_date);
+  assert.match(navigations[0][0],/^\/financial-transactions\/summary\/Income\?/);
+  assert.equal(navigations[0][1].state.summaryData,response);
+  assert.equal(navigations[0][1].state.start_date,calls[0].start_date);
+});

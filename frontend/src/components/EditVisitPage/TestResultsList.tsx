@@ -1,11 +1,9 @@
 import ActionButton from "../ActionButton";
 import { Trash2 as RemoveActionIcon } from "lucide-react";
-import { FieldError, type FormValidation } from "../FormValidation";
 import type {
   patientPanelResult,
   patientTestResult,
   result_suggestions,
-  updateInvoiceData,
 } from "../types.js";
 import React, { useEffect, useRef, useState } from "react";
 import renderNormalValue from "../renderNormalValue.js";
@@ -17,15 +15,11 @@ export type ResultTarget = { testId: string; panelId: string | null };
 const rowKey = (target: ResultTarget) => JSON.stringify([target.panelId, target.testId]);
 
 interface ShowResultsListParams {
-  validation: FormValidation;
   panelResults: patientPanelResult[];
   standAloneTestResults: patientTestResult[];
   onResultChange: (target: ResultTarget, value: string) => void;
   onRemoveTest: (id: string) => void;
   onRemovePanel: (id: string) => void;
-  onPriceChange: (id: string, value: string) => void;
-  priceDrafts: Record<string, string>;
-  updatedInvoiceData: updateInvoiceData;
 }
 
 const isNumericLike = (s: string) => /^[+-]?\d+(?:[.,]\d+)?$/.test(s.trim());
@@ -44,15 +38,11 @@ const normalizeResult = (value: string) => {
   return toTitleCase(v);
 };
 const TestResultsList: React.FC<ShowResultsListParams> = ({
-  validation,
   panelResults,
   standAloneTestResults,
   onResultChange,
   onRemoveTest,
   onRemovePanel,
-  onPriceChange,
-  priceDrafts,
-  updatedInvoiceData,
 }: ShowResultsListParams) => {
   const [activeInputId, setActiveInputId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<result_suggestions[]>([]);
@@ -74,10 +64,6 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
     setSuggestions([]);
     setSugError(null);
     setLoadingSug(false);
-  };
-  const getDisplayedPrice = (id: string, base: number) => {
-    const saved = updatedInvoiceData.list_of_lab_tests_ids_changed?.find(x => x.lab_test_id === id);
-    return saved?.new_price ?? base * (updatedInvoiceData.patient_insurance_company_rate ?? 1);
   };
   const requestSuggestions = (
     lab_test_type_id: string,
@@ -128,13 +114,12 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
           <th className="h-8 px-0 py-2">Unit</th>
           <th className="h-8 px-0 py-2">L</th>
           <th className="h-8 px-0 py-2">Normal Value</th>
-          <th className="h-8 px-0 py-2">Price</th>
           <th className="h-8 px-0 py-2">Remove</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td colSpan={8}>
+          <td colSpan={7}>
             <h1 className="font-bold rounded-b-sm px-4 py-2">Tests</h1>
           </td>
         </tr>
@@ -238,18 +223,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   <span className="text-gray-400">—</span>
                 )}
               </td>
-              <td className="border rounded-b-sm px-4 py-2">
-                <input
-                  {...validation.field(`price-${r.lab_test_type.lab_test_id}`)}
-                  aria-label={`${r.lab_test_type.name} price`}
-                  type="number"
-                  className="h-8 text-center w-full"
-                  value={priceDrafts[r.lab_test_type.lab_test_id] ?? getDisplayedPrice(r.lab_test_type.lab_test_id, r.lab_test_type.price).toFixed(2)}
-                  onChange={(e) => onPriceChange(r.lab_test_type.lab_test_id, e.target.value)}
-                />
-                <FieldError validation={validation} name={`price-${r.lab_test_type.lab_test_id}`} />
 
-              </td>
 
               <td className="border rounded-b-sm  px-4 py-2">
                 <ActionButton onClick={() => onRemoveTest(r.lab_test_type_id)} aria-label={`Remove ${r.lab_test_type.name} from visit`} variant="remove" icon={RemoveActionIcon}></ActionButton>
@@ -266,7 +240,6 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               <td className="border rounded-b-sm px-4 py-2">
                 {panel.lab_panel_price}
               </td>
-              <td></td>
               <td></td>
 
               <td className="border rounded-b-sm  px-4 py-2">

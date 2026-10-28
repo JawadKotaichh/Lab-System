@@ -16,7 +16,7 @@ type Props = {
 export default function Prices({ validation, updatedInvoiceData, currency, adjustment, paid, onAdjustmentChange, onPaidChange }: Props) {
   const gross = invoiceGross(updatedInvoiceData);
   const net = Math.round((gross + Number(adjustment)) * 1000) / 1000;
-  const format = (value: number) => Number.isFinite(value) ? `${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency === "USD" ? "$" : currency}` : "—";
+  const format = (value: number) => Number.isFinite(value) ? `${value.toLocaleString("en-US", { minimumFractionDigits: currency === "USD" ? 2 : 0, maximumFractionDigits: currency === "USD" ? 2 : 0 })} ${currency === "USD" ? "$" : currency}` : "—";
   return <div className="mt-8 overflow-x-auto"><table className="w-full border bg-white text-center shadow-sm">
     <thead className="bg-gray-100"><tr>{["Total Price", "Adjustment", "Net Total", "Paid", "Remaining"].map(x => <th key={x} className="px-4 py-3">{x}</th>)}</tr></thead>
     <tbody><tr>
