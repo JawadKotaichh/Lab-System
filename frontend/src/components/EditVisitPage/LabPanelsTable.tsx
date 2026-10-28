@@ -1,3 +1,5 @@
+import ActionButton from "../ActionButton";
+import { Plus as AddActionIcon } from "lucide-react";
 import CloseButton from "../CloseButton";
 import React, { useEffect, useState } from "react";
 import type {
@@ -209,14 +211,11 @@ const LabPanelsTable: React.FC<labPanelTableParams> = ({
                                       {lp.panel_name}
                                     </span>
                                     <div className="flex space-x-2">
-                                      <button
-                                        className={tableHandleButton}
-                                        onClick={() =>
+                                      <ActionButton onClick={() =>
                                           handleAddLabPanel(visit_id, lp.id)
-                                        }
-                                      >
+                                        } variant="secondary" icon={AddActionIcon}>
                                         Add
-                                      </button>
+                                      </ActionButton>
                                     </div>
                                   </div>
                                 </td>

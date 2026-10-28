@@ -1,3 +1,5 @@
+import ActionButton from "../ActionButton";
+import { FileDown as GetActionIcon } from "lucide-react";
 import { useFormValidation, ValidationSummary, FieldError, dateError } from "../FormValidation";
 import { getApiErrorMessage } from "../../api";
 import {
@@ -256,9 +258,9 @@ const FinancialTransactionsSummary = () => {
         ))}
       </div>
 
-      <button className={inputFormSave} onClick={handleSave}>
+      <ActionButton onClick={handleSave} className="mt-5" variant="primary" icon={GetActionIcon}>
         Get
-      </button>
+      </ActionButton>
 
       {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>

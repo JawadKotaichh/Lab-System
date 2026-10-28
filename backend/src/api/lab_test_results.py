@@ -1,6 +1,7 @@
 from collections import defaultdict
 from ..visit_read import VisitReadContext
 from math import ceil
+from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from ..schemas.schema_Patient import Patient
@@ -26,6 +27,10 @@ from typing import Any, Dict, List
 from beanie import PydanticObjectId
 from .deps import get_current_principal, require_admin, require_visit_access
 from ..schemas.financial_types import round_money
+
+class _PreviousVisit(BaseModel):
+    id: PydanticObjectId = Field(alias="_id")
+
 
 router = APIRouter(
     prefix="/lab_tests_results",
@@ -245,43 +250,48 @@ async def build_result_list(visit_id: str, db_visit: DBVisit, include_incomplete
 
     prev_results_map = {}
     if current_test_type_ids:
-        pipeline = [
-            {
-                "$match": {
-                    "lab_test_type_id": {"$in": list(current_test_type_ids)},
-                    "visit_id": {"$ne": visit_oid},
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "visits",
-                    "localField": "visit_id",
-                    "foreignField": "_id",
-                    "as": "visit",
-                }
-            },
-            {"$unwind": "$visit"},
-            {
-                "$match": {
-                    "visit.patient_id": db_patient.id,
-                    "visit.visit_date": {"$lt": db_visit.visit_date},
-                }
-            },
-            {"$sort": {"visit.visit_date": -1}},
-            {
-                "$group": {
-                    "_id": "$lab_test_type_id",
-                    "prev_result": {"$first": "$result"},
-                    "prev_date": {"$first": "$visit.visit_date"},
-                }
-            },
-        ]
+        previous_visits = await DBVisit.find({
+            "patient_id": db_patient.id, "visit_date": {"$lt": db_visit.visit_date},
+        }).project(_PreviousVisit).to_list()
+        previous_ids = [visit.id for visit in previous_visits]
+        if previous_ids:
+            pipeline = [
+                {
+                    "$match": {
+                        "lab_test_type_id": {"$in": list(current_test_type_ids)},
+                        "visit_id": {"$in": previous_ids},
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "visits",
+                        "localField": "visit_id",
+                        "foreignField": "_id",
+                        "as": "visit",
+                    }
+                },
+                {"$unwind": "$visit"},
+                {
+                    "$match": {
+                        "visit.patient_id": db_patient.id,
+                        "visit.visit_date": {"$lt": db_visit.visit_date},
+                    }
+                },
+                {"$sort": {"visit.visit_date": -1}},
+                {
+                    "$group": {
+                        "_id": "$lab_test_type_id",
+                        "prev_result": {"$first": "$result"},
+                        "prev_date": {"$first": "$visit.visit_date"},
+                    }
+                },
+            ]
 
-        async for doc in DBLab_test_result.aggregate(pipeline):
-            prev_results_map[doc["_id"]] = {
-                "result": doc["prev_result"],
-                "date": doc["prev_date"],
-            }
+            async for doc in DBLab_test_result.aggregate(pipeline):
+                prev_results_map[doc["_id"]] = {
+                    "result": doc["prev_result"],
+                    "date": doc["prev_date"],
+                }
 
     visible_results = current_results if include_incomplete else [
         test_result

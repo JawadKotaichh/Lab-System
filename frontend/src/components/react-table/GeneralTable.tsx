@@ -1,4 +1,5 @@
-import { flexRender, type Table } from "@tanstack/react-table";
+import { Fragment } from "react";
+import { flexRender, type Row, type Table } from "@tanstack/react-table";
 
 interface GenericTableProps<TData> {
   table: Table<TData>;
@@ -7,6 +8,7 @@ interface GenericTableProps<TData> {
   tableStyle?: string;
   tableHeadStyle?: string;
   cellStyle?: string;
+  renderExpandedRow?: (row: Row<TData>) => React.ReactNode;
   renderFooterRow?: (table: Table<TData>) => React.ReactNode;
 }
 
@@ -18,6 +20,7 @@ const GenericTable = <TData,>({
   tableHeadStyle,
   cellStyle = "px-4 py-2",
   renderFooterRow,
+  renderExpandedRow,
 }: GenericTableProps<TData>) => (
   <div className="w-full ">
     <table className={tableStyle}>
@@ -38,13 +41,18 @@ const GenericTable = <TData,>({
       <tbody>
         {table.getRowModel().rows.length > 0 ? (
           table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border">
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className={cellStyle}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
+            <Fragment key={row.id}>
+              <tr className="border">
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className={cellStyle}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+              {renderExpandedRow && row.getIsExpanded() && (
+                <tr><td colSpan={row.getVisibleCells().length} className="bg-gray-50 p-4">{renderExpandedRow(row)}</td></tr>
+              )}
+            </Fragment>
           ))
         ) : (
           <tr>

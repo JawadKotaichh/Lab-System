@@ -1,3 +1,4 @@
+import PdfSignature from "../PdfSignature";
 import { baseURLL } from "../../api";
 
 import {
@@ -90,15 +91,7 @@ const InvoicePdf: React.FC<InvoiceWrapperProps> = ({
         patient_insurance_company_rate={patient_insurance_company_rate}
         currency={currency}
       />
-      <View style={styles.signatureBlock}>
-        {showSignature && (
-          <Image
-            src={`${baseURLL}/branding/lab_signature`}
-            style={styles.lab_signature}
-          />
-        )}
-        <Text style={styles.signatureLabel}>Signature</Text>
-      </View>
+      <PdfSignature show={showSignature} />
       <View style={styles.footer} fixed wrap={false}>
         <Image
           src={`${baseURLL}/branding/lab_address`}

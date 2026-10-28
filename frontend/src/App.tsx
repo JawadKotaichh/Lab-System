@@ -1,3 +1,4 @@
+import { secondaryButtonStyle } from "./components/ActionButton";
 import React, { lazy, useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import {
@@ -131,11 +132,10 @@ const App: React.FC = () => {
   const isOnEdit = !!useMatch("/visits/:visit_id");
   const navigate = useNavigate();
   const activeClass =
-    "px-3 py-2 rounded-md text-white bg-gradient-to-r from-blue-400 to-emerald-400 transition";
+    "inline-flex min-h-10 items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 transition";
   const inactiveClass =
-    "px-3 py-2 rounded-md text-gray-700 hover:text-white hover:bg-gradient-to-r from-blue-400 to-emerald-400 transition";
-  const logoutButtonStyle =
-    "px-3 py-2 rounded-md text-red-600 border border-red-600 hover:bg-red-700 hover:border-red-700 hover:text-white transition cursor-pointer";
+    "inline-flex min-h-10 items-center px-4 py-2 rounded-lg text-sm font-medium text-blue-700 hover:text-white hover:bg-blue-600 transition";
+  const logoutButtonStyle = secondaryButtonStyle;
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigationRef = useRef<HTMLElement>(null);

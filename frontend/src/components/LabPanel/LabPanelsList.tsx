@@ -1,376 +1,86 @@
-import { getApiErrorMessage } from "../../api";
-import React, { useEffect, useState } from "react";
-import type { labPanel, labPanelFilter } from "../types";
-import { fetchLabPanelsPaginated } from "../utils";
-import {
-  pageListTitle,
-  // tableCreateButton,
-  tableHandleButton,
-  tableItem,
-  tableItemPanel,
-} from "../../style";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { ClipboardList } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "../../api";
-import {
-  labPanelCreatePageURL,
-  labPanelApiURL,
-  labPanelEditPageURL,
-} from "../data";
-import Pagination from "../Pagination";
-import SearchLabPanel from "./SearchLabPanel";
-import renderNormalValue from "../renderNormalValue";
-import { ClipboardList, Trash2 } from "lucide-react";
+import api, { getApiErrorMessage } from "../../api";
+import { pageListTitle, tableHead, tableItem } from "../../style";
 import { usePersistedTableState } from "../../hooks/usePersistedTableState";
-
-function useDebounced<T>(value: T, delay = 500) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return v;
-}
+import { useLabTestCategoryOptions } from "../../hooks/useLabTestCategoryOptions";
+import type { labPanel } from "../types";
+import { fetchLabPanelsPaginated } from "../utils";
+import { labPanelApiURL, labPanelCreatePageURL, labPanelEditPageURL } from "../data";
+import ActionButton from "../ActionButton";
+import Pagination from "../Pagination";
+import GenericTable from "../react-table/GeneralTable";
+import { buildLabPanelFilters, getLabPanelColumns, PanelTestDetails } from "./LabPanelColumns";
 
 const LabPanelsList = () => {
   const location = useLocation();
-  const [availableLabPanels, setAvailableLabPanels] = useState<labPanel[]>([]);
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [totalNumberOfLabPanels, setTotalNumberOfLabPanels] =
-    useState<number>(0);
   const navigate = useNavigate();
-  const { pagination, setPagination, columnFilters, setColumnFilters } =
-    usePersistedTableState();
-  const currentPage = pagination.pageIndex + 1;
-  const pageSize = pagination.pageSize;
-  const searchInput = String(
-    columnFilters.find((filter) => filter.id === "panel_name")?.value ?? "",
-  );
-  const setSearchInput = (value: string) => {
-    setColumnFilters((current) => [
-      ...current.filter((filter) => filter.id !== "panel_name"),
-      ...(value ? [{ id: "panel_name", value }] : []),
-    ]);
-  };
-  const setCurrentPage = (page: number) =>
-    setPagination((current) => ({ ...current, pageIndex: page - 1 }));
-  const setPageSize = (size: number) =>
-    setPagination((current) => ({ ...current, pageSize: size, pageIndex: 0 }));
-
-  const debouncedSearch = useDebounced(searchInput, 500);
-
-  const handleCreateLabPanel = () => {
-    navigate(labPanelCreatePageURL);
-  };
-
-  const handleEditLabPanel = (lab_panel_id: string) => {
-    navigate(`${labPanelEditPageURL}${lab_panel_id}`);
-  };
-
-  const handleDeleteLabPanel = async (lab_panel_id: string) => {
-    if (!window.confirm("Are you sure you want to delete this lab panel?")) {
-      return;
-    }
+  const [data, setData] = useState<labPanel[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { pagination, setPagination, columnFilters, setColumnFilters, sorting, setSorting,
+    showFilters, setShowFilters } = usePersistedTableState();
+  const categories = useLabTestCategoryOptions();
+  const toggleFilter = useCallback((id: string) => setShowFilters(previous => ({...previous, [id]: !previous[id]})), [setShowFilters]);
+  const edit = useCallback((id: string) => navigate(`${labPanelEditPageURL}${id}`), [navigate]);
+  const remove = useCallback(async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this lab panel?")) return;
     try {
-      await api.delete(`${labPanelApiURL}/${lab_panel_id}`);
-      setAvailableLabPanels((prev) =>
-        prev.filter((p) => p.id !== lab_panel_id)
-      );
-      setTotalNumberOfLabPanels((n) => Math.max(0, n - 1));
-      setTimeout(() => {
-        if (availableLabPanels.length === 1 && currentPage > 1) {
-          setPagination((current) => ({
-            ...current,
-            pageIndex: current.pageIndex - 1,
-          }));
-        }
-      }, 0);
-    } catch (err) {
-      setError(getApiErrorMessage(err, "Could not load lab panels"));
-    }
-  };
+      await api.delete(`${labPanelApiURL}/${id}`);
+      // Reload totals and refill the page from the server after a confirmed delete.
+      setRefreshKey(previous => previous + 1);
+    } catch (error) { setError(getApiErrorMessage(error, "Could not delete lab panel")); }
+  }, []);
+  const columns = useMemo(() => getLabPanelColumns(showFilters, toggleFilter, categories, edit, remove),
+    [showFilters, toggleFilter, categories, edit, remove]);
+  const table = useReactTable({
+    data, columns, pageCount: totalPages, state: {pagination, columnFilters, sorting},
+    manualPagination: true, manualFiltering: true,
+    onPaginationChange: setPagination, onColumnFiltersChange: setColumnFilters, onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel(),
+    getRowId: row => row.id, getRowCanExpand: () => true,
+  });
 
   useEffect(() => {
-    let canceled = false;
     const controller = new AbortController();
-
     const load = async () => {
+      setLoading(true); setError("");
       try {
-        setLoading(true);
-
-        let filters: labPanelFilter | undefined = undefined;
-        if (debouncedSearch.trim()) {
-          filters = { panel_name: debouncedSearch.trim() };
+        const response = await fetchLabPanelsPaginated(pagination.pageIndex + 1, pagination.pageSize,
+          buildLabPanelFilters(columnFilters), controller.signal);
+        if (controller.signal.aborted) return;
+        const pages = Math.max(1, response.total_pages);
+        if (pagination.pageIndex >= pages) {
+          setPagination(previous => ({...previous, pageIndex: pages - 1}));
+          return;
         }
-
-        const panelData = await fetchLabPanelsPaginated(
-          currentPage,
-          pageSize,
-          filters,
-          controller.signal
-        );
-
-        if (canceled) return;
-
-        setAvailableLabPanels(panelData.lab_panels);
-        setTotalPages(Math.max(1, panelData.total_pages));
-        setTotalNumberOfLabPanels(panelData.TotalNumberOfLabPanels);
-      } catch (err) {
-        if (!canceled) {
-          setError(getApiErrorMessage(err, "Could not load lab panels"));
-        }
-      } finally {
-        if (!canceled) setLoading(false);
-      }
+        setData(response.lab_panels); setTotalPages(pages); setTotalItems(response.TotalNumberOfLabPanels);
+      } catch (error) {
+        if (!controller.signal.aborted) setError(getApiErrorMessage(error, "Could not load lab panels"));
+      } finally { if (!controller.signal.aborted) setLoading(false); }
     };
+    void load();
+    return () => controller.abort();
+  }, [pagination.pageIndex, pagination.pageSize, columnFilters, refreshKey]);
 
-    load();
-    return () => {
-      canceled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, debouncedSearch]);
-
-
-  return (
-    // <div className="p-8 bg-white">
-    //   <h1 className={pageListTitle}>Lab Panels List</h1>
-
-    //   {totalNumberOfLabPanels === 0 ? (
-    //     <p> No lab panels found!</p>
-    //   ) : (
-    //     <>
-    //       <div className="flex items-center justify-between gap-4 mb-4">
-    //         {/* <button
-    //           className={`${tableCreateButton} ml-auto text-xl`}
-    //           onClick={handleCreateLabPanel}
-    //         >
-    //           Create Lab Panel
-    //         </button> */}
-    //         <button
-    //           type="button"
-    //           onClick={() => handleCreateLabPanel}
-    //           className="
-    //         h-10 inline-flex items-center gap-2
-    //         w-fit shrink-0 rounded-lg bg-blue-600 px-4
-    //         text-sm font-medium text-white
-    //         shadow-sm
-    //         hover:bg-blue-700
-    //         active:scale-95 transition
-    //         focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer
-    //       "
-    //         >
-    //           <ClipboardList className="h-4 w-4" />
-    //           Create lab panel
-    //         </button>
-    //       </div>
-
-    //       <SearchLabPanel
-    //         searchInput={searchInput}
-    //         setSearchInput={setSearchInput}
-    //       />
-
-    //       <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
-    //         <tbody>
-    //           {availableLabPanels.map((lp) => (
-    //             <React.Fragment key={lp.id}>
-    //               <tr className="border">
-    //                 <td colSpan={1 + 8 * 6} className="px-4 py-2">
-    //                   <div className="flex justify-between items-center">
-    //                     <span className="font-bold text-xl text-left">
-    //                       {lp.panel_name}
-    //                     </span>
-    //                     <span className="font-bold text-xl text-left">
-    //                       L: {lp.lab_panel_price}
-    //                     </span>
-    //                     <span className="font-bold text-xl text-left">
-    //                       Nssf Id: {lp.nssf_id}
-    //                     </span>
-    //                     <div className="flex space-x-2">
-    //                       <button
-    //                         className={tableHandleButton}
-    //                         onClick={() => handleEditLabPanel(lp.id)}
-    //                       >
-    //                         Edit
-    //                       </button>
-    //                       <button
-    //                         className={tableDeleteButton}
-    //                         onClick={() => handleDeleteLabPanel(lp.id)}
-    //                       >
-    //                         Delete
-    //                       </button>
-    //                     </div>
-    //                   </div>
-    //                 </td>
-    //               </tr>
-    //               <tr>
-    //                 <th className={tableItemPanel}>Nssf ID</th>
-    //                 <th className={tableItemPanel}>Lab Test</th>
-    //                 <th className={tableItemPanel}>Category</th>
-    //                 <th className={tableItemPanel}>Unit</th>
-    //                 <th className={tableItemPanel}>L</th>
-    //                 <th className={tableItemPanel}>Normal Value</th>
-    //               </tr>
-
-    //               {lp.lab_tests.map((test) => (
-    //                 <tr key={test.lab_test_id}>
-    //                   <td className={tableItem}>{test.nssf_id}</td>
-    //                   <td className={tableItem}>{test.name}</td>
-    //                   <td className={tableItem}>
-    //                     {test.lab_test_category_name}
-    //                   </td>
-    //                   <td className={tableItem}>{test.unit}</td>
-    //                   <td className={tableItem}>{test.price}</td>
-    //                   <td className={tableItem}>
-    //                     {test.normal_value_list?.length ? (
-    //                       test.normal_value_list.map((nv, i) => (
-    //                         <div key={i}>{renderNormalValue(nv)}</div>
-    //                       ))
-    //                     ) : (
-    //                       <span className="text-gray-400">—</span>
-    //                     )}
-    //                   </td>
-    //                 </tr>
-    //               ))}
-    //             </React.Fragment>
-    //           ))}
-    //         </tbody>
-    //       </table>
-
-    //       <Pagination
-    //         TotalNumberOfPaginatedItems={totalNumberOfLabPanels}
-    //         setPageSize={setPageSize}
-    //         pageSize={pageSize}
-    //         currentPage={currentPage}
-    //         totalPages={totalPages}
-    //         setCurrentPage={setCurrentPage}
-    //       />
-    //     </>
-    //   )}
-    // </div>
-    <div className="p-8 bg-white">
-      <div className="flex items-center justify-between gap-4 mb-4">
-        <h1 className={pageListTitle}>Lab Panels</h1>
-        {location.state?.savedMessage && (
-          <p role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">{location.state.savedMessage}</p>
-        )}
-
-        <button
-          type="button"
-          onClick={handleCreateLabPanel}
-          className="
-            h-10 w-fit shrink-0
-            inline-flex items-center gap-2
-            rounded-lg bg-blue-600 px-4
-            text-sm font-medium text-white
-            shadow-sm
-            hover:bg-blue-700
-            active:scale-95 transition
-            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
-            cursor-pointer
-          "
-        >
-          <ClipboardList className="h-4 w-4" />
-          Create lab panel
-        </button>
-      </div>
-
-      {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
-      {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading lab panels…</p>}
-      {/* Search should still show even if empty */}
-      <SearchLabPanel
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-      />
-
-      {totalNumberOfLabPanels === 0 ? (
-        <p className="mt-4 text-gray-600">No lab panels found!</p>
-      ) : (
-        <>
-          <table className="overflow-y-auto border rounded-b-sm w-full table-auto bg-white rounded shadow text-center mt-5">
-            <tbody>
-              {availableLabPanels.map((lp) => (
-                <React.Fragment key={lp.id}>
-                  <tr className="border">
-                    <td colSpan={1 + 8 * 6} className="px-4 py-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-xl text-left">
-                          {lp.panel_name}
-                        </span>
-                        <span className="font-bold text-xl text-left">
-                          L: {lp.lab_panel_price}
-                        </span>
-                        <span className="font-bold text-xl text-left">
-                          Nssf Id: {lp.nssf_id}
-                        </span>
-                        <div className="flex space-x-2">
-                          <button
-                            className={tableHandleButton}
-                            onClick={() => handleEditLabPanel(lp.id)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-                            title="Delete lab panel"
-                            aria-label={`Delete lab panel ${lp.panel_name}`}
-                            onClick={() => handleDeleteLabPanel(lp.id)}
-                          >
-                            <Trash2 className="h-5 w-5" aria-hidden="true" />
-                          </button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <th className={tableItemPanel}>Nssf ID</th>
-                    <th className={tableItemPanel}>Lab Test</th>
-                    <th className={tableItemPanel}>Category</th>
-                    <th className={tableItemPanel}>Unit</th>
-                    <th className={tableItemPanel}>L</th>
-                    <th className={tableItemPanel}>Normal Value</th>
-                  </tr>
-
-                  {lp.lab_tests.map((test) => (
-                    <tr key={test.lab_test_id}>
-                      <td className={tableItem}>{test.nssf_id}</td>
-                      <td className={tableItem}>{test.name}</td>
-                      <td className={tableItem}>
-                        {test.lab_test_category_name}
-                      </td>
-                      <td className={tableItem}>{test.unit}</td>
-                      <td className={tableItem}>{test.price}</td>
-                      <td className={tableItem}>
-                        {test.normal_value_list?.length ? (
-                          test.normal_value_list.map((nv, i) => (
-                            <div key={i}>{renderNormalValue(nv)}</div>
-                          ))
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-
-          <Pagination
-            TotalNumberOfPaginatedItems={totalNumberOfLabPanels}
-            setPageSize={setPageSize}
-            pageSize={pageSize}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            setCurrentPage={setCurrentPage}
-          />
-        </>
-      )}
+  return <div className="p-8 bg-white">
+    <div className="mb-4 flex items-center justify-between gap-4">
+      <h1 className={pageListTitle}>Lab Panels</h1>
+      <ActionButton icon={ClipboardList} onClick={() => navigate(labPanelCreatePageURL)}>Create Lab Panel</ActionButton>
     </div>
-  );
+    {location.state?.savedMessage && <p role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">{location.state.savedMessage}</p>}
+    {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
+    {loading && <p role="status" className="my-3 text-sm text-gray-600">Loading lab panels…</p>}
+    <GenericTable table={table} loading={loading} tableHeadStyle={tableHead} cellStyle={tableItem}
+      noDataMessage="No lab panels found" renderExpandedRow={row => <PanelTestDetails panel={row.original} />} />
+    <Pagination TotalNumberOfPaginatedItems={totalItems} currentPage={pagination.pageIndex + 1} totalPages={totalPages}
+      setCurrentPage={page => setPagination(previous => ({...previous, pageIndex: page - 1}))} pageSize={pagination.pageSize}
+      setPageSize={size => setPagination(previous => ({...previous, pageSize: size, pageIndex: 0}))} />
+  </div>;
 };
-
 export default LabPanelsList;

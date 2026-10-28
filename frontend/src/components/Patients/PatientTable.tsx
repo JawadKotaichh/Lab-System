@@ -1,3 +1,4 @@
+import ActionButton from "../ActionButton";
 import { getApiErrorMessage } from "../../api";
 import {
   useReactTable,
@@ -135,22 +136,10 @@ const PatientTable = () => {
         >
           Create Patient
         </button> */}
-        <button
-          type="button"
-          onClick={() => navigate(`/patients/create-patient`)}
-          className="
-            h-10 inline-flex items-center gap-2
-            w-fit shrink-0 rounded-lg bg-blue-600 px-4
-            text-sm font-medium text-white
-            shadow-sm
-            hover:bg-blue-700
-            active:scale-95 transition
-            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer
-          "
-        >
+        <ActionButton type="button" onClick={() => navigate(`/patients/create-patient`)} variant="primary">
           <UserPlus className="h-4 w-4" />
           Create Patient
-        </button>
+        </ActionButton>
       </div>
       {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
 

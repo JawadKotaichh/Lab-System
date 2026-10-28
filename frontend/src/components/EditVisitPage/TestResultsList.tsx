@@ -1,3 +1,5 @@
+import ActionButton from "../ActionButton";
+import { Trash2 as RemoveActionIcon } from "lucide-react";
 import { FieldError, type FormValidation } from "../FormValidation";
 import type {
   patientPanelResult,
@@ -242,7 +244,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   aria-label={`${r.lab_test_type.name} price`}
                   type="number"
                   className="h-8 text-center w-full"
-                  value={priceDrafts[r.lab_test_type.lab_test_id] ?? getDisplayedPrice(r.lab_test_type.lab_test_id, r.lab_test_type.price).toFixed(3)}
+                  value={priceDrafts[r.lab_test_type.lab_test_id] ?? getDisplayedPrice(r.lab_test_type.lab_test_id, r.lab_test_type.price).toFixed(2)}
                   onChange={(e) => onPriceChange(r.lab_test_type.lab_test_id, e.target.value)}
                 />
                 <FieldError validation={validation} name={`price-${r.lab_test_type.lab_test_id}`} />
@@ -250,12 +252,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               </td>
 
               <td className="border rounded-b-sm  px-4 py-2">
-                <button
-                  className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
-                  onClick={() => onRemoveTest(r.lab_test_type_id)}
-                >
-                  Remove
-                </button>
+                <ActionButton onClick={() => onRemoveTest(r.lab_test_type_id)} aria-label={`Remove ${r.lab_test_type.name} from visit`} variant="remove" icon={RemoveActionIcon}></ActionButton>
               </td>
             </tr>
           </React.Fragment>
@@ -273,14 +270,9 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               <td></td>
 
               <td className="border rounded-b-sm  px-4 py-2">
-                <button
-                  className="p-2 h-10 w-20 rounded-sm bg-blue-400 hover:bg-red-600"
-                  onClick={() =>
+                <ActionButton onClick={() =>
                     onRemovePanel(panel.lab_panel_id)
-                  }
-                >
-                  Remove
-                </button>
+                  } aria-label={`Remove ${panel.lab_panel_name} from visit`} variant="remove" icon={RemoveActionIcon}></ActionButton>
               </td>
             </tr>
             {panel.list_of_test_results.map((r) => (

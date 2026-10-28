@@ -32,28 +32,6 @@ export const styles = StyleSheet.create({
     width:"100%",
     objectFit: "cover",
   },
-  signatureBlock: {
-    position: "relative",
-    alignItems: "flex-end",
-    height: 125,
-  },
-  lab_signature:{
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 110,
-    height: 110,
-    objectFit: "contain",
-  },
-  signatureLabel: {
-    position: "absolute",
-    top: 49,
-    right: 0,
-    width: 110,
-    fontSize: 12,
-    lineHeight: 12,
-    textAlign: "center",
-  },
   logo: {
     position: 'absolute',
     right: 0, 

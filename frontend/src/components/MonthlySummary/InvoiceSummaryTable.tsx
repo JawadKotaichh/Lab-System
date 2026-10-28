@@ -6,30 +6,12 @@ import amountToWords from "../Invoice/amountToWords";
 
 const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
   const headers = ["Date", "Patient Name", "Insurance Company", "Total Price"];
-  const filteredSummaryData = summaryData.filter((currentInvoice) => {
+  const rows = summaryData.map(currentInvoice => {
     const d = currentInvoice.invoice_data;
-    const rowTotal = getTotalPrice(
-      d.patient_insurance_company_rate,
-      d.list_of_tests,
-      d.list_of_lab_panels,
-      d.list_of_lab_tests_ids_changed,
-      d.list_of_lab_panels_ids_changed,
-    );
-    return rowTotal !== 0;
-  });
-  const totalPrice = filteredSummaryData.reduce((sum, currentInvoice) => {
-    const d = currentInvoice.invoice_data;
-    return (
-      sum +
-      getTotalPrice(
-        d.patient_insurance_company_rate,
-        d.list_of_tests,
-        d.list_of_lab_panels,
-        d.list_of_lab_tests_ids_changed,
-        d.list_of_lab_panels_ids_changed,
-      )
-    );
-  }, 0);
+    return { currentInvoice, rowTotal: getTotalPrice(d.patient_insurance_company_rate,
+      d.list_of_tests, d.list_of_lab_panels, d.list_of_lab_tests_ids_changed, d.list_of_lab_panels_ids_changed) };
+  }).filter(row => row.rowTotal !== 0);
+  const totalPrice = rows.reduce((sum, row) => sum + row.rowTotal, 0);
 
   return (
     <View>
@@ -53,16 +35,9 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             </View>
           ))}
         </View>
-        {filteredSummaryData.map((currentInvoice, rowIdx) => {
+        {rows.map(({ currentInvoice, rowTotal }, rowIdx) => {
           const current_invoice_data = currentInvoice.invoice_data;
           const cuurent_patient = currentInvoice.patient;
-          const rowTotal = getTotalPrice(
-            current_invoice_data.patient_insurance_company_rate,
-            current_invoice_data.list_of_tests,
-            current_invoice_data.list_of_lab_panels,
-            current_invoice_data.list_of_lab_tests_ids_changed,
-            current_invoice_data.list_of_lab_panels_ids_changed,
-          );
           return (
             <View
               style={[
@@ -92,7 +67,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
               <View style={[styles.tableColLast, { textAlign: "right" }]}>
                 <Text style={styles.tableCellText}>
                   {currency === "USD"
-                    ? rowTotal.toFixed(3)
+                    ? rowTotal.toFixed(2)
                     : rowTotal.toLocaleString("en-US")}{" "}
                   {currency === "USD" ? "$" : "LBP"}
                 </Text>
@@ -117,7 +92,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
               ]}
             >
               {currency === "USD"
-                ? totalPrice.toFixed(3)
+                ? totalPrice.toFixed(2)
                 : totalPrice.toLocaleString("en-US")}{" "}
               {currency === "USD" ? "$" : "LBP"}
             </Text>

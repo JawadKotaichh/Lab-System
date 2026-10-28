@@ -79,28 +79,6 @@ export const styles = StyleSheet.create({
     height: 90,
     objectFit: "contain",
   },
-  lab_signature: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 110,
-    height: 110,
-    objectFit: "contain",
-  },
-  signatureBlock: {
-    position: "relative",
-    alignItems: "flex-end",
-    height: 125,
-  },
-  signatureLabel: {
-    position: "absolute",
-    top: 49,
-    right: 0,
-    width: 110,
-    fontSize: 12,
-    lineHeight: 12,
-    textAlign: "center",
-  },
   logo: {
     position: 'absolute',
     right: 0,

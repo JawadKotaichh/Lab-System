@@ -1,3 +1,5 @@
+import ActionButton from "../ActionButton";
+import { Plus as AddActionIcon, Trash2 as RemoveActionIcon } from "lucide-react";
 import SaveButton from "../SaveButton";
 import { useFormValidation, ValidationSummary, FieldError, required, numberError } from "../FormValidation";
 import { useEffect, useState } from "react";
@@ -300,14 +302,9 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
             <option value="normal_value_by_gender">By Gender</option>
             <option value="description_only">Description Only</option>
           </select>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 rounded px-3 py-1 border"
-            onClick={addNV}
-            title="Add normal value"
-          >
+          <ActionButton type="button" onClick={addNV} title="Add normal value" variant="secondary" icon={AddActionIcon}>
             <Plus size={16} /> Add
-          </button>
+          </ActionButton>
         </div>
 
         <div className="space-y-4">
@@ -345,14 +342,7 @@ const EditLabTest: React.FC<EditLabTestProps> = ({ title }) => {
                     </select>
                   </div>
 
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 rounded px-2 py-1 border text-red-600"
-                    onClick={() => removeNV(idx)}
-                    title="Remove"
-                  >
-                    <Trash2 size={16} /> Remove
-                  </button>
+                  <ActionButton type="button" onClick={() => removeNV(idx)} title="Remove" aria-label="Remove" variant="remove" icon={RemoveActionIcon}></ActionButton>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm w-28">Description</label>

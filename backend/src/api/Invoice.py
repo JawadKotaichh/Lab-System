@@ -34,7 +34,13 @@ from ..models import lab_test_category as DBLab_test_category
 from ..models import lab_test_type as DBLab_test_type
 from .deps import require_admin, require_visit_access
 from ..schemas.financial_types import round_money
-from ..visit_read import VisitReadContext
+from ..visit_read import VisitReadContext, load_catalog
+
+
+def _missing_invoice_orders(orders, saved_tests, saved_panels):
+    return [row for row in orders
+            if (str(row.lab_panel_id) not in saved_panels if row.lab_panel_id
+                else str(row.lab_test_type_id) not in saved_tests)]
 
 
 async def get_next_sequence(name: str) -> int:
@@ -133,6 +139,15 @@ async def get_monthly_summary_invoice(
     for order in orders:
         orders_by_visit[order.visit_id].append(order)
 
+    missing_orders = []
+    for invoice in invoices:
+        saved_tests = {str(test.lab_test_id) for test in invoice.list_of_tests}
+        saved_panels = {str(panel.id) for panel in invoice.list_of_lab_panels}
+        missing_orders.extend(_missing_invoice_orders(
+            orders_by_visit[invoice.visit_id], saved_tests, saved_panels,
+        ))
+    tests, panels, categories = await load_catalog(missing_orders)
+
     listOfInvoices: List[invoiceData] = []
     for invoice in invoices:
         db_visit = visits_by_id.get(invoice.visit_id)
@@ -151,6 +166,8 @@ async def get_monthly_summary_invoice(
             str(db_visit.id), db_visit, invoice, preserve_snapshot=True,
             orders=orders_by_visit[invoice.visit_id], db_patient=db_patient,
             db_insurance_company=insurance_company,
+            context=VisitReadContext(patient=db_patient, insurance=insurance_company,
+                results=orders_by_visit[invoice.visit_id], tests=tests, panels=panels, categories=categories),
         ))
     return listOfInvoices
 
@@ -380,9 +397,9 @@ async def _invoice_from_results(
     if preserve_snapshot:
         # Existing invoice snapshots remain usable even if catalog items changed
         # or were removed. Only missing invoice items need catalog lookups.
-        db_list_of_lab_tests_results = [row for row in db_list_of_lab_tests_results
-            if (str(row.lab_panel_id) not in saved_panels if row.lab_panel_id
-                else str(row.lab_test_type_id) not in saved_tests)]
+        db_list_of_lab_tests_results = _missing_invoice_orders(
+            db_list_of_lab_tests_results, saved_tests, saved_panels,
+        )
 
     if db_patient is None:
         db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
