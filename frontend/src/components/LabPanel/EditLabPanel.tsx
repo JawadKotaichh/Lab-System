@@ -1,3 +1,5 @@
+import ActionButton from "../ActionButton";
+import { Plus as AddActionIcon, Pencil as EditActionIcon, Trash2 as RemoveActionIcon } from "lucide-react";
 import SaveButton from "../SaveButton";
 import { useFormValidation, ValidationSummary, FieldError, required, numberError } from "../FormValidation";
 import React, { useEffect, useRef, useState } from "react";
@@ -251,9 +253,9 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
           setCurrentPage={setCurrentPage}
         />
 
-        <button {...validation.field("tests")} className={tableHandleButton} onClick={handleAddButton}>
+        <ActionButton {...validation.field("tests")} onClick={handleAddButton} variant="secondary" icon={AddActionIcon}>
           Add Test
-        </button>
+        </ActionButton>
       </div>
 
       <FieldError validation={validation} name="tests" />
@@ -290,20 +292,12 @@ const EditLabPanel: React.FC<EditLabPanelProps> = ({ title }) => {
                     )}
                   </td>
                   <td className={tableItem}>
-                    <button
-                      className={tableHandleButton}
-                      onClick={() => handleEditTest(t.lab_test_id)}
-                    >
+                    <ActionButton onClick={() => handleEditTest(t.lab_test_id)} variant="primary" icon={EditActionIcon}>
                       Edit
-                    </button>
+                    </ActionButton>
                   </td>
                   <td className={tableItem}>
-                    <button
-                      className={tableDeleteButton}
-                      onClick={() => handleRemoveLabTest(t.lab_test_id)}
-                    >
-                      Remove
-                    </button>
+                    <ActionButton onClick={() => handleRemoveLabTest(t.lab_test_id)} aria-label={`Remove ${t.name} from panel`} variant="remove" icon={RemoveActionIcon}></ActionButton>
                   </td>
                 </tr>
               );

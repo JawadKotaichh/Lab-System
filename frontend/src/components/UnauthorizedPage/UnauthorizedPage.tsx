@@ -8,7 +8,7 @@ const UnauthorizedPage = ({homePath}: {homePath: string}) => {
              <p className="text-gray-600 mb-8">You do not have permission to view this page.</p>
             <button
                 onClick={() => navigate(homePath)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
             >
                 Go Back Home
             </button>

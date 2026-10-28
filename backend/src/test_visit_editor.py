@@ -49,6 +49,9 @@ class VisitEditorTests(unittest.IsolatedAsyncioTestCase):
         for module in ["src.api.Invoice", "src.api.lab_test_results"]:
             for alias, name in aliases.items():
                 self.stack.enter_context(patch(f"{module}.{alias}", self.models[name]))
+        self.previous_visit_id = PydanticObjectId()
+        self.previous_visit_query = MagicMock(return_value=NS(project=lambda _: NS(to_list=AsyncMock(return_value=[NS(id=self.previous_visit_id)]))))
+        self.stack.enter_context(patch("src.api.lab_test_results.DBVisit", NS(find=self.previous_visit_query)))
         self.invoice_model = NS(visit_id=0, find_one=AsyncMock(return_value=self.invoice))
         self.stack.enter_context(patch("src.api.visit_editor.DBInvoice", self.invoice_model))
         self.stack.enter_context(patch("src.api.Invoice.DBInvoice", self.invoice_model))
@@ -76,6 +79,18 @@ class VisitEditorTests(unittest.IsolatedAsyncioTestCase):
         self.invoice_model.find_one.assert_awaited_once()
         self.invoice.replace.assert_not_awaited()
         self.visit.replace.assert_not_awaited()
+
+    async def test_history_restricts_results_to_this_patients_earlier_visits_before_join(self):
+        pipelines = []
+        async def previous(pipeline):
+            pipelines.append(pipeline)
+            yield {"_id": self.orders[0].lab_test_type_id, "prev_result": "Latest", "prev_date": datetime(2026, 1, 1)}
+        with patch.object(self.models["lab_test_result"], "aggregate", previous):
+            output = await get_visit_editor(str(self.visit_id), self.visit)
+        self.previous_visit_query.assert_called_once_with({"patient_id": self.patient.id, "visit_date": {"$lt": self.visit.visit_date}})
+        self.assertEqual(pipelines[0][0]["$match"]["visit_id"], {"$in": [self.previous_visit_id]})
+        self.assertEqual(pipelines[0][-2], {"$sort": {"visit.visit_date": -1}})
+        self.assertEqual(output.results.list_of_standalone_test_results[0].prev_result, "Latest")
 
     async def test_missing_invoice_is_reported_without_writes(self):
         from fastapi import HTTPException

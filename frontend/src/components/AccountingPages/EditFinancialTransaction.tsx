@@ -13,7 +13,7 @@ import {
   inputFormTitle,
   stateStyle,
 } from "../../style";
-import type { PageTitle, financialTransaction } from "../types";
+import type { PageTitle, financialTransaction, transactionCategory } from "../types";
 import {
   BadgeDollarSign,
   CalendarDays,
@@ -23,7 +23,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import {
-  fetchAllFinancialTransactions,
+  fetchAllfinancialTransactionsCategories,
   fetchFinancialTransaction,
 } from "../utils";
 import {
@@ -61,11 +61,11 @@ const EditFinancialTransaction = ({ title }: PageTitle) => {
     currency: "USD",
   });
   const [allTransactionsCategories, setAllTransactionsCategories] = useState<
-    financialTransaction[]
+    transactionCategory[]
   >([]);
   useEffect(() => {
     setLoading(true);
-    fetchAllFinancialTransactions()
+    fetchAllfinancialTransactionsCategories()
       .then((data) => {
         setAllTransactionsCategories(data);
         setLoading(false);

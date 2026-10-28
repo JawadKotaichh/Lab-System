@@ -15,17 +15,6 @@ type FinancialTransactionOptions = {
   typeOptions: Option[];
 };
 
-const labTestCategoryCache: { options: Option[] | null } = { options: null };
-const financialTransactionCache: {
-  categoryOptions: Option[] | null;
-  currencyOptions: Option[] | null;
-  typeOptions: Option[] | null;
-} = {
-  categoryOptions: null,
-  currencyOptions: null,
-  typeOptions: null,
-};
-
 const buildOptions = (items: unknown[], key: string): Option[] => {
   const values: string[] = [];
   for (const item of items) {
@@ -45,16 +34,15 @@ const buildOptions = (items: unknown[], key: string): Option[] => {
 };
 
 export const useLabTestCategoryOptions = () => {
-  const [options, setOptions] = useState<Option[]>(
-    labTestCategoryCache.options ?? []
-  );
+  const [options, setOptions] = useState<Option[]>([]);
 
+  const [version, setVersion] = useState(0);
   useEffect(() => {
-    if (labTestCategoryCache.options) {
-      setOptions(labTestCategoryCache.options);
-      return;
-    }
-
+    const changed = () => setVersion(value => value + 1);
+    window.addEventListener("reference-data-changed", changed);
+    return () => window.removeEventListener("reference-data-changed", changed);
+  }, []);
+  useEffect(() => {
     let cancelled = false;
 
     const loadCategories = async () => {
@@ -64,7 +52,6 @@ export const useLabTestCategoryOptions = () => {
           value: category.lab_test_category_id,
           label: category.lab_test_category_name,
         }));
-        labTestCategoryCache.options = nextOptions;
         if (!cancelled) {
           setOptions(nextOptions);
         }
@@ -78,7 +65,7 @@ export const useLabTestCategoryOptions = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [version]);
 
   return options;
 };
@@ -99,25 +86,18 @@ export const buildLabTestFilters = (
   
 export const useFinancialTransactionsOptions = () => {
   const [options, setOptions] = useState<FinancialTransactionOptions>({
-    categoryOptions: financialTransactionCache.categoryOptions ?? [],
-    currencyOptions: financialTransactionCache.currencyOptions ?? [],
-    typeOptions: financialTransactionCache.typeOptions ?? [],
+    categoryOptions: [],
+    currencyOptions: [],
+    typeOptions: [],
   });
 
+  const [version, setVersion] = useState(0);
   useEffect(() => {
-    if (
-      financialTransactionCache.categoryOptions &&
-      financialTransactionCache.currencyOptions &&
-      financialTransactionCache.typeOptions
-    ) {
-      setOptions({
-        categoryOptions: financialTransactionCache.categoryOptions,
-        currencyOptions: financialTransactionCache.currencyOptions,
-        typeOptions: financialTransactionCache.typeOptions,
-      });
-      return;
-    }
-
+    const changed = () => setVersion(value => value + 1);
+    window.addEventListener("reference-data-changed", changed);
+    return () => window.removeEventListener("reference-data-changed", changed);
+  }, []);
+  useEffect(() => {
     let cancelled = false;
 
     const loadOptions = async () => {
@@ -136,9 +116,6 @@ export const useFinancialTransactionsOptions = () => {
           "currency"
         );
         const nextTypeOptions = buildOptions(types as unknown[], "type");
-        financialTransactionCache.categoryOptions = nextCategoryOptions;
-        financialTransactionCache.currencyOptions = nextCurrencyOptions;
-        financialTransactionCache.typeOptions = nextTypeOptions;
         if (!cancelled) {
           setOptions({
             categoryOptions: nextCategoryOptions,
@@ -156,7 +133,7 @@ export const useFinancialTransactionsOptions = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [version]);
 
   return options;
 };

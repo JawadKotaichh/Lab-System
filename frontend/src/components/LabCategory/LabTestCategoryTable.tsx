@@ -1,3 +1,4 @@
+import ActionButton from "../ActionButton";
 import { getApiErrorMessage } from "../../api";
 import {
   useReactTable,
@@ -134,22 +135,10 @@ const LabTestCategoryTable = () => {
       <div className="flex items-center justify-between gap-4 mb-4">
         <h1 className={pageListTitle}>Lab Test Categories</h1>
 
-        <button
-          type="button"
-          onClick={() => handleCreateLabTestCategory(navigate)}
-          className="
-            h-10 inline-flex items-center gap-2
-            w-fit shrink-0 rounded-lg bg-blue-600 px-4
-            text-sm font-medium text-white
-            shadow-sm
-            hover:bg-blue-700
-            active:scale-95 transition
-            focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer
-          "
-        >
+        <ActionButton type="button" onClick={() => handleCreateLabTestCategory(navigate)} variant="primary">
           <Tag className="h-4 w-4" />
           Create Lab Test Category
-        </button>
+        </ActionButton>
       </div>
       {error && <div role="alert" className="my-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</div>}
 

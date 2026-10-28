@@ -1,4 +1,3 @@
-"""Invoice regressions with an in-memory database boundary; no live records."""
 import unittest
 from contextlib import ExitStack
 from datetime import datetime
@@ -27,6 +26,7 @@ class InvoiceReadTests(unittest.IsolatedAsyncioTestCase):
         panel = NS(id=self.panel_id, panel_name="Panel", nssf_id=2, lab_panel_price=Decimal("50"), lab_panel_category_id=category_id)
         patient = NS(id=patient_id, insurance_company_id=insurance_id, name="Sample Patient", gender="Female", DOB=datetime(2000, 1, 1), phone_number="00000000")
         insurance = NS(rate=Decimal("0.1"), currency="USD", insurance_company_name="Private")
+        self.catalog = ({test.id: test, panel_test.id: panel_test}, {panel.id: panel}, {category_id: NS(id=category_id, lab_test_category_name="Category")})
         self.patient, self.insurance = patient, insurance
         self.invoice.visit_id = self.visit_id
         self.invoice.insurance_company_id = insurance_id
@@ -142,6 +142,7 @@ class InvoiceReadTests(unittest.IsolatedAsyncioTestCase):
     async def test_monthly_summary_also_resolves_empty_invoice_snapshots_without_writes(self):
         query = lambda values: MagicMock(return_value=NS(to_list=AsyncMock(return_value=values)))
         with (
+            patch("src.api.Invoice.load_catalog", AsyncMock(return_value=self.catalog)),
             patch("src.api.Invoice.DBInvoice", NS(find=query([self.invoice]))),
             patch("src.api.Invoice.DBVisit", NS(find=query([self.visit]))),
             patch("src.api.Invoice.DBPatient", NS(find=query([self.patient]))),
@@ -151,6 +152,31 @@ class InvoiceReadTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(invoices), 1)
         self.assertEqual(len(invoices[0].invoice_data.list_of_tests), 1)
         self.assertEqual(len(invoices[0].invoice_data.list_of_lab_panels), 1)
+        self.invoice.replace.assert_not_awaited()
+
+    async def test_monthly_catalog_is_shared_and_saved_prices_and_overrides_survive(self):
+        first = (await get_invoice(str(self.visit_id), self.visit)).invoice_data
+        self.invoice.list_of_tests = [first.list_of_tests[0].model_copy(update={"price": Decimal("7")})]
+        self.invoice.list_of_lab_tests_ids_changed = [LabTestChanged(lab_test_id=str(self.test_id), new_price=Decimal("0"))]
+        second_visit = NS(**{**vars(self.visit), "id": PydanticObjectId()})
+        second_invoice = NS(**{**vars(self.invoice), "visit_id": second_visit.id, "list_of_tests": []})
+        second_orders = [NS(**{**vars(order), "visit_id": second_visit.id}) for order in self.orders]
+        query = lambda rows: MagicMock(return_value=NS(to_list=AsyncMock(return_value=rows)))
+        loader = AsyncMock(return_value=self.catalog)
+        with (patch("src.api.Invoice.load_catalog", loader),
+              patch("src.api.Invoice.DBInvoice", NS(find=query([self.invoice, second_invoice]))),
+              patch("src.api.Invoice.DBVisit", NS(find=query([self.visit, second_visit]))),
+              patch("src.api.Invoice.DBPatient", NS(find=query([self.patient]))),
+              patch("src.api.Invoice.DBInsurance_company", NS(get=AsyncMock(return_value=self.insurance))),
+              patch("src.api.Invoice.DBLab_test_result", NS(find=query(self.orders + second_orders)))):
+            output = await get_monthly_summary_invoice(str(self.patient.insurance_company_id), datetime(2026, 10, 1), datetime(2026, 10, 31))
+        loader.assert_awaited_once()
+        # First invoice needs only its panel; second needs both blank-result orders.
+        self.assertEqual(len(loader.call_args.args[0]), 3)
+        self.assertEqual(output[0].invoice_data.list_of_tests[0].price, Decimal("7"))
+        self.assertEqual(output[0].invoice_data.list_of_lab_tests_ids_changed[0].new_price, 0)
+        self.assertEqual(output[1].invoice_data.list_of_tests[0].price, Decimal("20"))
+        self.assertTrue(all(len(invoice.invoice_data.list_of_lab_panels) == 1 for invoice in output))
         self.invoice.replace.assert_not_awaited()
 
 

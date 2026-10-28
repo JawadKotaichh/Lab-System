@@ -40,7 +40,7 @@ function editValues(source) {
 function server(initial = fixture()) {
   const state = copy(initial);
   const writes = [];
-  let failResults = false;
+  let failResults = false, failAfter = 0;
   const api = {
     async delete(url) {
       writes.push(['delete', url]);
@@ -52,12 +52,16 @@ function server(initial = fixture()) {
       if (body) state.results.list_of_standalone_test_results.push(result(body.lab_test_type_id, body.result));
       else state.results.list_of_panel_results.push({ lab_panel_id: 'panel-a', lab_panel_name: 'Panel A', lab_panel_price: 30, lab_panel_category_id: 'category', list_of_test_results: [result('test-p')] });
     },
-    async put(url, body, config) {
+    async put(url, body) {
       writes.push(['put', url, copy(body)]);
-      if (url.startsWith('/lab_tests_results/')) {
+      if (url.endsWith('/results')) {
         if (failResults) { failResults = false; throw new Error('Connection interrupted'); }
         const rows = [...state.results.list_of_standalone_test_results, ...state.results.list_of_panel_results.flatMap(p => p.list_of_test_results)];
-        rows.find(r => r.lab_test_result_id === url.split('/').at(-1)).result = config.params.result;
+        let applied = 0;
+        for (const item of body.updates) {
+          rows.find(row => row.lab_test_result_id === item.result_id).result = item.value;
+          if (++applied === failAfter) { failAfter = 0; throw new Error('Connection interrupted after partial save'); }
+        }
       } else if (url.startsWith('/visits/')) Object.assign(state.results, body);
       else Object.assign(state.invoice.invoice_data, copy(body));
     },
@@ -71,7 +75,7 @@ function server(initial = fixture()) {
     '../../api': { __esModule: true, default: api }, '../utils': utils,
     './Prices': prices, '../FormValidation': validation,
   });
-  return { state, writes, edits, failNextResult() { failResults = true; } };
+  return { state, writes, edits, failNextResult() { failResults = true; }, failAfterResults(count) { failAfter = count; } };
 }
 
 test('blank results remain on the invoice when only billing/dates change', async () => {
@@ -170,7 +174,7 @@ test('invoice PDF uses the same test, panel, zero overrides and adjustment total
   const text = node => node == null || typeof node === 'boolean' ? '' : Array.isArray(node)
     ? node.map(text).join(' ') : React.isValidElement(node) ? text(node.props.children) : String(node);
   const rendered = text(tree);
-  for (const expected of ['test-a', 'Panel A', '0.000 $', '3.500 $', 'Adjustment', '-1.250 $', 'Net Total', '2.250 $', 'Words: 2.25']) {
+  for (const expected of ['test-a', 'Panel A', '0.00 $', '3.50 $', 'Adjustment', '-1.25 $', 'Net Total', '2.25 $', 'Words: 2.25']) {
     assert.ok(rendered.includes(expected), `PDF must include ${expected}`);
   }
 });
@@ -255,9 +259,10 @@ test('saving a panel result writes only its own server result record', async () 
   const baseline = panelFixture(), s = server(baseline);
   const edited = s.edits.updateVisitResult(editValues(baseline), { panelId: 'panel-b', testId: 'panel-1-test-2' }, '12.5');
   await s.edits.saveVisitEdits('visit', baseline, edited);
-  const resultWrites = s.writes.filter(([method, url]) => method === 'put' && url.startsWith('/lab_tests_results/'));
+  const resultWrites = s.writes.filter(([method, url]) => method === 'put' && url.endsWith('/results'));
   assert.equal(resultWrites.length, 1);
-  assert.equal(resultWrites[0][1], '/lab_tests_results/result-panel-1-test-2');
+  assert.equal(resultWrites[0][1], '/visits/visit/results');
+  assert.deepEqual(resultWrites[0][2].updates, [{result_id: 'result-panel-1-test-2', test_id: 'panel-1-test-2', panel_id: 'panel-b', expected: '', value: '12.5'}]);
   assert.equal(s.state.results.list_of_panel_results[0].list_of_test_results[0].result, '');
   assert.equal(s.state.results.list_of_panel_results[1].list_of_test_results[1].result, '12.5');
 });
@@ -417,4 +422,109 @@ test('Add Test Result keeps one dialog and its close button visible while loadin
   assert.match(loaded, /Available test/);
   assert.doesNotMatch(loaded, /role="status"/);
   cleanup();
+});
+
+
+test('many changed results use a single bulk request with separate scoped records', async () => {
+  const baseline = panelFixture(), s = server(baseline), edited = editValues(baseline);
+  edited.tests[0].result = '1';
+  for (const panel of edited.panels) for (const row of panel.list_of_test_results) row.result = '2';
+  await s.edits.saveVisitEdits('visit', baseline, edited);
+  const requests = s.writes.filter(([method, url]) => method === 'put' && url.endsWith('/results'));
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0][2].updates.length, 5);
+  assert.equal(new Set(requests[0][2].updates.map(row => row.result_id)).size, 5);
+});
+
+test('reference requests share pending loads but never share mutable returned arrays', async () => {
+  const cache = loadSource('referenceCache.ts');
+  let calls = 0, release;
+  const loader = () => { calls++; return new Promise(resolve => { release = resolve; }); };
+  const first = cache.referenceData('categories', loader), second = cache.referenceData('categories', loader);
+  await Promise.resolve();
+  assert.equal(calls, 1);
+  release([{name:'Original'}]);
+  const [a,b] = await Promise.all([first,second]);
+  a[0].name = 'Changed';
+  assert.equal(b[0].name, 'Original');
+  assert.equal((await cache.referenceData('categories', loader))[0].name, 'Original');
+  assert.equal(calls, 1);
+});
+
+test('reference cache expires, retries failures, and invalidates on edits and account changes', async () => {
+  const oldStorage = global.localStorage, oldNow = Date.now;
+  let account = 'first', now = 0, calls = 0;
+  global.localStorage = {getItem: () => account}; Date.now = () => now;
+  try {
+    const cache = loadSource('referenceCache.ts'), loader = async () => ++calls;
+    assert.equal(await cache.referenceData('options', loader),1);
+    now = 60001;
+    assert.equal(await cache.referenceData('options', loader),2);
+    cache.invalidateReferenceData();
+    assert.equal(await cache.referenceData('options', loader),3);
+    account = 'second';
+    assert.equal(await cache.referenceData('options', loader),4);
+    account = '';
+    assert.equal(await cache.referenceData('options', loader),5);
+    await assert.rejects(cache.referenceData('failed', async () => {throw new Error('offline');}));
+    assert.equal(await cache.referenceData('failed', loader),6);
+  } finally { global.localStorage = oldStorage; Date.now = oldNow; }
+});
+
+test('invalidating a pending reference load does not repopulate stale cached data', async () => {
+  const cache = loadSource('referenceCache.ts'); let release;
+  const pending = cache.referenceData('options', () => new Promise(resolve => {release = resolve;}));
+  await Promise.resolve(); cache.invalidateReferenceData();
+  assert.equal(await cache.referenceData('options', async () => 'new'), 'new');
+  release('old'); await pending;
+  assert.equal(await cache.referenceData('options', async () => 'wrong'), 'new');
+});
+
+test('monthly PDF computes every invoice total once, including hidden zero rows', () => {
+  let calls = 0, written;
+  const Table = loadSource('components/MonthlySummary/InvoiceSummaryTable.tsx', {
+    '@react-pdf/renderer': {View:'View', Text:'Text'},
+    './InvoiceSummaryStyle': {styles:{}},
+    './getTotalPrice': {__esModule:true, default: rate => {calls++; return rate;}},
+    '../Invoice/amountToWords': {__esModule:true, default: total => {written = total; return String(total);}},
+  }).default;
+  const data = [0,2,3].map(rate => ({invoice_data:{patient_insurance_company_rate:rate, visit_date:'2026-10-28'}, patient:{name:'Sample'}}));
+  Table({summaryData:data,currency:'USD'});
+  assert.equal(calls,3);
+  assert.equal(written,5);
+});
+
+
+test('partly completed bulk saves reconcile server progress and retry only remaining results', async () => {
+  const baseline = panelFixture(), s = server(baseline), edited = editValues(baseline);
+  edited.tests[0].result = '1';
+  edited.panels[0].list_of_test_results[0].result = '2';
+  edited.panels[1].list_of_test_results[0].result = '3';
+  edited.paid = '5'; s.failAfterResults(2);
+  await assert.rejects(s.edits.saveVisitEdits('visit', baseline, edited), /partial save/);
+  assert.equal(s.state.invoice.invoice_data.total_paid, 0);
+  assert.equal(s.state.results.list_of_standalone_test_results[0].result, '1');
+  await s.edits.saveVisitEdits('visit', copy(s.state), edited);
+  const requests = s.writes.filter(([method,url]) => method === 'put' && url.endsWith('/results'));
+  assert.equal(requests[1][2].updates.length,1);
+  assert.equal(s.state.results.list_of_panel_results[1].list_of_test_results[0].result,'3');
+  assert.equal(s.state.invoice.invoice_data.total_paid,5);
+});
+
+
+test('PDF signatures layer the new signature above the stamp and omit both when disabled', () => {
+  const Signature = loadSource('components/PdfSignature.tsx', {
+    '@react-pdf/renderer': {Image:'Image',View:'View',Text:'Text',StyleSheet:{create:styles=>styles}},
+    '../api':{baseURLL:'https://example.test'},
+  }).default;
+  const signed = Signature({show:true});
+  const images = signed.props.children[0].props.children;
+  assert.deepEqual(images.map(image=>image.props.src),['https://example.test/branding/lab_signature','https://example.test/branding/signature']);
+  assert.equal(signed.props.wrap,false);
+  assert.equal(Signature({show:false}).props.children[0],false);
+  for(const file of ['Invoice/Invoice.tsx','ResultPDF/Result.tsx','MonthlySummary/InvoiceSummaryList.tsx','AccountingPages/FinancialTransactionsSummaryList.tsx']) {
+    const source=fs.readFileSync(path.join(__dirname,'..','src','components',file),'utf8');
+    assert.match(source,/<PdfSignature show=\{showSignature\} \/>/);
+    assert.doesNotMatch(source,/branding\/lab_signature/);
+  }
 });

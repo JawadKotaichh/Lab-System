@@ -1,3 +1,5 @@
+import ActionButton from "../ActionButton";
+import { FileDown as GetActionIcon } from "lucide-react";
 import { useFormValidation, ValidationSummary, FieldError, required, dateError } from "../FormValidation";
 import { Calendar, DollarSign, User } from "lucide-react";
 import {
@@ -139,7 +141,7 @@ const MonthSummary = () => {
     <div className={inputForm}>
       <h1 className={inputFormTitle}>Month Summary</h1>
       <ValidationSummary validation={validation} />
-      <div className={inputFormAttributeCategoryList}>
+      <div className="w-full max-w-2xl rounded-xl border border-blue-100 bg-white p-4 shadow-sm sm:p-8">
         {listOfAttributesInvoice.map((i) => (
           <div key={i.attributeName} className={inputFormAttributeListItem}>
             <label htmlFor={validation.id(i.attributeName)} className={inputFormAttributeListItemLabel}>
@@ -149,7 +151,7 @@ const MonthSummary = () => {
             {i.typeOfInput === "Selection" ? (
               <select
                 {...validation.field(i.attributeName)}
-                className={inputFormAttributeListItemInput}
+                className="w-full min-h-12 rounded-lg border border-blue-200 px-4 py-3 text-center focus:outline-blue-600"
                 value={
                   data[
                     i.attributeName as keyof monthlySummaryInvoicesParams
@@ -177,7 +179,7 @@ const MonthSummary = () => {
             ) : (
               <input
                 {...validation.field(i.attributeName)}
-                className={inputFormAttributeListItemInput}
+                className="w-full min-h-12 rounded-lg border border-blue-200 px-4 py-3 text-center focus:outline-blue-600"
                 type={i.typeOfInput}
                 value={
                   (data[
@@ -201,9 +203,9 @@ const MonthSummary = () => {
         ))}
       </div>
 
-      <button className={inputFormSave} onClick={() => handleSave()}>
+      <ActionButton onClick={() => handleSave()} className="mt-5" variant="primary" icon={GetActionIcon}>
         Get
-      </button>
+      </ActionButton>
       {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );

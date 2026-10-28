@@ -1,3 +1,4 @@
+from ..catalog_read import expand_tests
 import re
 from beanie import PydanticObjectId
 from fastapi import APIRouter, Depends, HTTPException, Path, status, Query
@@ -97,29 +98,7 @@ async def get_Lab_test_type_with_page_size(
 
     total_number_of_lab_test_type = await DBLab_test_type.find(mongo_filter).count()
     cursor = DBLab_test_type.find(mongo_filter).skip(offset).limit(page_size)
-    lab_tests: List[Lab_test_type] = []
-
-    async for test in cursor:
-        db_category = await DBlab_test_category.find_one(
-            DBlab_test_category.id == test.lab_test_category_id
-        )
-        if db_category is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Lab Test category {test.lab_test_category_id} not found",
-            )
-
-        lab_test = Lab_test_type(
-            normal_value_list=test.normal_value_list,
-            lab_test_id=str(test.id),
-            lab_test_category_name=db_category.lab_test_category_name,
-            nssf_id=test.nssf_id,
-            lab_test_category_id=str(test.lab_test_category_id),
-            name=test.name,
-            unit=test.unit,
-            price=test.price,
-        )
-        lab_tests.append(lab_test)
+    lab_tests = await expand_tests(await cursor.to_list(), DBlab_test_category)
 
     total_pages = ceil(total_number_of_lab_test_type / page_size)
     result = {
@@ -136,26 +115,8 @@ async def getAllTestTypes(
     offset: int = Query(default=0, ge=0),
 ) -> List[Lab_test_type]:
     cursor = DBLab_test_type.find().sort("_id").skip(offset).limit(limit)
-    lab_tests: List[Lab_test_type] = []
-    async for test in cursor:
-        db_category = await DBlab_test_category.find_one(
-            DBlab_test_category.id == test.lab_test_category_id
-        )
-        if db_category is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Lab Test Type {test.lab_test_category_id} not found",
-            )
-        lab_test = Lab_test_type(
-            normal_value_list=test.normal_value_list,
-            lab_test_category_name=db_category.lab_test_category_name,
-            nssf_id=test.nssf_id,
-            lab_test_category_id=str(test.lab_test_category_id),
-            name=test.name,
-            unit=test.unit,
-            price=test.price,
-        )
-        lab_tests.append(lab_test)
+    lab_tests = await expand_tests(await cursor.to_list(), DBlab_test_category)
+
     return lab_tests
 
 

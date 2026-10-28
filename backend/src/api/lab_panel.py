@@ -1,3 +1,5 @@
+import re
+from ..catalog_read import panel_tests
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from ..models import lab_test_type as DBLab_test_type
 from ..models import lab_panel as DBLab_panel
@@ -74,11 +76,25 @@ async def get_Lab_panel_with_page_size(
     page_size: int = Path(..., ge=1, le=100),
     page_number: int = Path(..., ge=1),
     panel_name: str | None = Query(None),
+    nssf_id: str | None = None,
+    lab_panel_price: str | None = None,
+    lab_panel_category_id: str | None = None,
 ):
     offset = (page_number - 1) * page_size
     mongo_filter = {}
     if panel_name:
         mongo_filter["panel_name"] = {"$regex": panel_name, "$options": "i"}
+
+    if lab_panel_category_id:
+        if not PydanticObjectId.is_valid(lab_panel_category_id):
+            raise HTTPException(400, "Invalid lab panel category ID")
+        mongo_filter["lab_panel_category_id"] = {"$in": [PydanticObjectId(lab_panel_category_id), lab_panel_category_id]}
+    numeric_filters = [
+        {"$regexMatch": {"input": {"$toString": f"${field}"}, "regex": re.escape(value)}}
+        for field, value in [("nssf_id", nssf_id), ("lab_panel_price", lab_panel_price)] if value
+    ]
+    if numeric_filters:
+        mongo_filter["$expr"] = {"$and": numeric_filters}
 
     total_number_of_lab_panel = await DBLab_panel.find(mongo_filter).count()
 
@@ -196,35 +212,7 @@ async def getLabPanel(lab_panel_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Panel {lab_panel_id} not found",
         )
-    listOfLabTest: List[Lab_test_type] = []
-    for test_id in db_lab_panel.list_of_test_type_ids:
-        db_lab_test = await DBLab_test_type.find_one(
-            DBLab_test_type.id == PydanticObjectId(test_id)
-        )
-        if db_lab_test is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"lab test {test_id} not found!",
-            )
-        db_category = await DBLab_test_category.find_one(
-            DBLab_test_category.id == db_lab_test.lab_test_category_id
-        )
-        if db_category is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Lab Test category with id {db_lab_test.lab_test_category_id} not found",
-            )
-        lab_test = Lab_test_type(
-            lab_test_id=str(db_lab_test.id),
-            lab_test_category_name=db_category.lab_test_category_name,
-            nssf_id=db_lab_test.nssf_id,
-            lab_test_category_id=str(db_lab_test.lab_test_category_id),
-            name=db_lab_test.name,
-            unit=db_lab_test.unit,
-            price=db_lab_test.price,
-            normal_value_list=db_lab_test.normal_value_list,
-        )
-        listOfLabTest.append(lab_test)
+    listOfLabTest = await panel_tests(db_lab_panel.list_of_test_type_ids, DBLab_test_type, DBLab_test_category, missing_status=400)
     labPanelData = LabPanelResponse(
         nssf_id=db_lab_panel.nssf_id,
         lab_panel_price=db_lab_panel.lab_panel_price,
@@ -278,36 +266,8 @@ async def getLabPanelWithListOfTests(lab_panel_id: str):
             detail=f"Panel with id: {lab_panel_id} not found",
         )
 
-    testsList: List[Lab_test_type] = []
-    testsIdsList: List[str] = []
-    for test_type_id in db_lab_panel.list_of_test_type_ids:
-        testsIdsList.append(str(test_type_id))
-    for test_type_id in db_lab_panel.list_of_test_type_ids:
-        db_lab_test = await DBLab_test_type.find_one(DBLab_test_type.id == test_type_id)
-        if not db_lab_test:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Test type with id: {test_type_id} not found",
-            )
-        db_category = await DBLab_test_category.find_one(
-            DBLab_test_category.id == db_lab_test.lab_test_category_id
-        )
-        if db_category is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Lab Test category with id {db_lab_test.lab_test_category_id} not found",
-            )
-        lab_test = Lab_test_type(
-            lab_test_id=str(db_lab_test.id),
-            lab_test_category_name=db_category.lab_test_category_name,
-            nssf_id=db_lab_test.nssf_id,
-            lab_test_category_id=str(db_lab_test.lab_test_category_id),
-            name=db_lab_test.name,
-            unit=db_lab_test.unit,
-            price=db_lab_test.price,
-            normal_value_list=db_lab_test.normal_value_list,
-        )
-        testsList.append(lab_test)
+    testsIdsList = [str(item) for item in db_lab_panel.list_of_test_type_ids]
+    testsList = await panel_tests(db_lab_panel.list_of_test_type_ids, DBLab_test_type, DBLab_test_category)
     lab_panel_response: LabPanelResponse = LabPanelResponse(
         id=str(db_lab_panel.id),
         nssf_id=db_lab_panel.nssf_id,

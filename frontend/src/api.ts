@@ -1,3 +1,4 @@
+import { invalidateReferenceData } from "./referenceCache";
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
 export const isSessionExpired = (error: unknown): boolean =>
@@ -76,7 +77,12 @@ api.interceptors.request.use(config => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (!["get", "head", "options"].includes(response.config.method ?? "get") &&
+        /\/(insurance_company|lab_test_category|financial_transaction|auth|users)(\/|$)/.test(response.config.url ?? "") &&
+        !(response.config.url ?? "").includes("/auth/refresh")) invalidateReferenceData();
+    return response;
+  },
   async (error) => {
     const response = error?.response;
     const originalRequest = error?.config as SessionRequestConfig | undefined;

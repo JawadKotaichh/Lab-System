@@ -1,3 +1,4 @@
+import { secondaryButtonStyle } from "./ActionButton";
 import type { PaginationParams } from "./types";
 
 const Pagination = ({
@@ -15,9 +16,9 @@ const Pagination = ({
     }
   };
   return (
-    <div className="bottom-0 right-0 mt-5 mb-5 flex gap-4 items-center">
+    <div className="my-5 flex flex-wrap gap-3 items-center">
       <button
-        className="border rounded-sm w-20 px-2 py-1 hover:bg-green-500"
+        type="button" className={secondaryButtonStyle}
         disabled={currentPage <= 1}
         onClick={() => setCurrentPage(currentPage - 1)}
       >
@@ -27,7 +28,7 @@ const Pagination = ({
         Page {currentPage} of {Math.max(1, totalPages)}
       </span>
       <button
-        className="border rounded-sm w-20 px-2 py-1 hover:bg-green-500"
+        type="button" className={secondaryButtonStyle}
         disabled={currentPage >= Math.max(1, totalPages)}
         onClick={() => setCurrentPage(currentPage + 1)}
       >
@@ -41,7 +42,7 @@ const Pagination = ({
         max="100"
         step="1"
         value={pageSize}
-        className="w-20 px-2 py-1 border rounded text-center"
+        aria-label="Page size" className="h-10 w-20 rounded-lg border border-blue-200 px-2 text-center focus:outline-blue-600"
         placeholder="Page Size"
         onChange={(e) => handlePageSizeChange(e)}
       />

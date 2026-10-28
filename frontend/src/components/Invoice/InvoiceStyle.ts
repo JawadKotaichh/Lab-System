@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
   lab_header: {
     width: "100%",
     height: 70,
-    objectFit: "cover",
+    objectFit: "contain",
   },
   // lab_header:{
   //   width:"100%",
@@ -43,28 +43,6 @@ export const styles = StyleSheet.create({
     marginBottom:20,
   },
   
-  signatureBlock: {
-    position: "relative",
-    alignItems: "flex-end",
-    height: 125,
-  },
-  lab_signature:{
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 110,
-    height: 110,
-    objectFit: "contain",
-  },
-  signatureLabel: {
-    position: "absolute",
-    top: 49,
-    right: 0,
-    width: 110,
-    fontSize: 12,
-    lineHeight: 12,
-    textAlign: "center",
-  },
   logo: {
     position: 'absolute',
     right: 0, 

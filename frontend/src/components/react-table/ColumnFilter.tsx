@@ -112,6 +112,8 @@ export function ColumnFilter<TData, TValue>({
         <div className="mt-2 flex items-center p-2">
           {options ? (
             <select
+              autoFocus
+              aria-label={`${label} filter`}
               className="border rounded p-1 flex-1 text-center h-9"
               value={(column.getFilterValue() as string) ?? ""}
               onChange={(e) => {
@@ -128,6 +130,8 @@ export function ColumnFilter<TData, TValue>({
             </select>
           ) : (
             <input
+              autoFocus
+              aria-label={`${label} filter`}
               type={inputType}
               className="border rounded p-1 h-9 flex-1 text-center"
               value={draft}

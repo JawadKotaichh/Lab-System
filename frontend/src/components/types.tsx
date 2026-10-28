@@ -281,6 +281,9 @@ export interface InsuranceFilters {
 }
 export interface labPanelFilter {
   panel_name?: string;
+  nssf_id?: string;
+  lab_panel_price?: string;
+  lab_panel_category_id?: string;
 }
 export interface labTestFilters {
   nssf_id?: number;

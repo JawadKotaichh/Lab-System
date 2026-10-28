@@ -137,6 +137,7 @@ export function DateRangeFilter<TData>({
           </label>
           <input
             id={fromId}
+            autoFocus
             type="date"
             className="border rounded p-1 h-9 w-full text-center"
             value={draft.start ?? ""}

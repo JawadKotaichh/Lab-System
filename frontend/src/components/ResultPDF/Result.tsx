@@ -1,3 +1,4 @@
+import PdfSignature from "../PdfSignature";
 import { baseURLL } from "../../api";
 import { Document, Page, Image, View, Text } from "@react-pdf/renderer";
 import type { visitResultData } from "../types";
@@ -115,15 +116,7 @@ const ResultPdf: React.FC<visitResultData> = ({
         }}
       />
 
-      <View style={styles.signatureBlock}>
-        {showSignature && (
-          <Image
-            src={`${baseURLL}/branding/lab_signature`}
-            style={styles.lab_signature}
-          />
-        )}
-        <Text style={styles.signatureLabel}>Signature</Text>
-      </View>
+      <PdfSignature show={showSignature} />
 
       <View style={styles.footer} fixed>
         <Image

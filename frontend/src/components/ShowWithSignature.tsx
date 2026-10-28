@@ -1,3 +1,5 @@
+import ActionButton from "./ActionButton";
+import { PenLine, FileText } from "lucide-react";
 import { type Dispatch, type SetStateAction } from "react";
 
 interface ParamsSign {
@@ -25,24 +27,24 @@ const ShowWithSignature: React.FC<ParamsSign> = ({
             Choose how you want the report to appear.
           </p>
           <div className="flex gap-3 justify-end">
-            <button
+            <ActionButton
               onClick={() => {
                 choose(false);
                 setShowSignatureOption(false);
               }}
-              className="px-3 py-2 rounded-lg border"
+              variant="secondary" icon={FileText}
             >
               Without Signature
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               onClick={() => {
                 choose(true);
                 setShowSignatureOption(false);
               }}
-              className="px-3 py-2 rounded-lg bg-blue-600 text-white"
+              icon={PenLine}
             >
               With Signature
-            </button>
+            </ActionButton>
           </div>
         </div>
       </div>

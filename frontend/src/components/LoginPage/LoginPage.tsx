@@ -1,3 +1,5 @@
+import ActionButton from "../ActionButton";
+import { LogIn as LoginActionIcon } from "lucide-react";
 import SaveButton from "../SaveButton";
 import { useFormValidation, ValidationSummary, FieldError, required } from "../FormValidation";
 import { FormEvent, useEffect, useState } from "react";
@@ -128,18 +130,14 @@ const LoginPage = ({
             </div>
             <FieldError validation={validation} name="password" />
             {buttonText === "Sign in" ? (
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-5 w-full rounded-md text-white bg-indigo-600 px-4 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
+              <ActionButton type="submit" disabled={loading} className="mt-5 w-full" variant="primary" icon={LoginActionIcon}>
                 {loading ? (
                   <span className="inline-flex items-center justify-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                     Signing in…
                   </span>
                 ) : buttonText}
-              </button>
+              </ActionButton>
             ) : (
               <SaveButton type="submit" saving={loading} savingLabel="Updating…" className="mt-5 w-full">
                 {buttonText}

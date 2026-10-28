@@ -1,3 +1,6 @@
+import { isAxiosError } from "axios";
+import ActionButton from "../ActionButton";
+import { Plus as AddActionIcon } from "lucide-react";
 import SaveButton from "../SaveButton";
 import CloseButton from "../CloseButton";
 import { useFormValidation, ValidationSummary, dateError, moneyError } from "../FormValidation";
@@ -163,12 +166,26 @@ export async function saveVisitEdits(visitId: string, baseline: Source, edits: V
     ...edits.tests.map(test => ({ test, panelId: null as string | null })),
     ...edits.panels.flatMap(panel => panel.list_of_test_results.map(test => ({ test, panelId: panel.lab_panel_id }))),
   ];
+  const updates = [];
   for (const { test, panelId } of scopedRows) {
     const savedRows = panelId === null ? live.list_of_standalone_test_results
       : live.list_of_panel_results.find(panel => panel.lab_panel_id === panelId)?.list_of_test_results ?? [];
     const saved = savedRows.find(row => row.lab_test_type_id === test.lab_test_type_id);
     if (!saved) throw new Error("A test could not be added. Retry saving to finish.");
-    if (saved.result !== test.result) await api.put(`/lab_tests_results/${saved.lab_test_result_id}`, null, { params: { result: test.result } });
+    const previousRows = panelId === null ? current.results.list_of_standalone_test_results
+      : current.results.list_of_panel_results.find(panel => panel.lab_panel_id === panelId)?.list_of_test_results ?? [];
+    const previous = previousRows.find(row => row.lab_test_type_id === test.lab_test_type_id);
+    if (previous && saved.result !== previous.result) throw new VisitChangedError("A result changed while saving. Your edits are kept; reload and review before saving.");
+    if (saved.result !== test.result) updates.push({ result_id: saved.lab_test_result_id, test_id: test.lab_test_type_id, panel_id: panelId, expected: saved.result, value: test.result });
+  }
+  if (updates.length) {
+    try { await api.put(`/visits/${visitId}/results`, { updates }); }
+    catch (error) {
+      if (isAxiosError(error) && error.response?.status === 409) {
+        throw new VisitChangedError(getApiErrorMessage(error, "Results changed while saving. Reload and review before saving."));
+      }
+      throw error;
+    }
   }
   await api.put(`/visits/${visitId}`, { visit_date: `${edits.visitDate}T00:00:00`, report_date: `${edits.reportDate}T00:00:00` });
   await api.put(`/invoices/${visitId}/update_invoice`, { ...invoiceFor(current, edits), visit_date: `${edits.visitDate}T00:00:00` });
@@ -278,7 +295,7 @@ export default function EditVisitPage() {
     <fieldset disabled={saving} className="min-w-0 border-0 p-0">
       <PatientInfo validation={validation} patientData={patient} visitDate={edits.visitDate} reportDate={edits.reportDate} onVisitDateChange={value => change(p => ({ ...p, visitDate: value }))} onReportDateChange={value => change(p => ({ ...p, reportDate: value }))} />
       <Prices validation={validation} updatedInvoiceData={invoice} currency={source.invoice.currency} adjustment={edits.adjustment} paid={edits.paid} onAdjustmentChange={value => change(p => ({ ...p, adjustment: value }))} onPaidChange={value => change(p => ({ ...p, paid: value }))} />
-      <div className="mt-6 flex gap-3"><button type="button" className="rounded-lg border border-blue-200 px-4 py-2 text-blue-700 hover:bg-blue-50 cursor-pointer" onClick={() => setShowTests(true)}>Add test result</button><button type="button" className="rounded-lg border border-blue-200 px-4 py-2 text-blue-700 hover:bg-blue-50 cursor-pointer" onClick={() => setShowPanels(true)}>Add lab panel</button></div>
+      <div className="mt-6 flex gap-3"><ActionButton type="button" onClick={() => setShowTests(true)} variant="secondary" icon={AddActionIcon}>Add test result</ActionButton><ActionButton type="button" onClick={() => setShowPanels(true)} variant="secondary" icon={AddActionIcon}>Add lab panel</ActionButton></div>
       <TestResultsList validation={validation} panelResults={pagePanels} standAloneTestResults={pageTests} updatedInvoiceData={invoice} priceDrafts={edits.prices}
         onPriceChange={(id, value) => change(p => ({ ...p, prices: { ...p.prices, [id]: value } }))}
         onRemoveTest={id => change(p => { const prices = { ...p.prices }; delete prices[id]; return { ...p, prices, tests: p.tests.filter(test => test.lab_test_type_id !== id) }; })}

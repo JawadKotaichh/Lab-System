@@ -1,3 +1,4 @@
+import PdfSignature from "../PdfSignature";
 import { baseURLL } from "../../api";
 import {
   Document,
@@ -120,15 +121,7 @@ const FinancialTransactionSummaryPDF: React.FC<
         showSignature={showSignature}
       />
 
-      <View style={styles.signatureBlock}>
-        {showSignature && (
-          <Image
-            src={`${baseURLL}/branding/lab_signature`}
-            style={styles.lab_signature}
-          />
-        )}
-        <Text style={styles.signatureLabel}>Signature</Text>
-      </View>
+      <PdfSignature show={showSignature} />
 
       <View style={styles.footer} fixed>
         <Image

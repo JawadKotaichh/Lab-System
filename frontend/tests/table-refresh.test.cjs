@@ -148,7 +148,7 @@ test('panel picker recovers missing list identifiers from the detail endpoint wi
   host.render(() => Picker({ showPanelsTable: true, visit_id: 'visit', panelResults: [], onSelectPanel: panel => selected.push(panel) }));
   for (let i = 0; i < 5; i++) await Promise.resolve();
   const tree = host.flush();
-  const add = findElement(tree, node => node.type === 'button' && node.props.children === 'Add');
+  const add = findElement(tree, node => node.props.children?.trim?.() === 'Add' && typeof node.props.onClick === 'function');
   await add.props.onClick();
   assert.deepEqual(detailCalls, ['urine']);
   assert.equal(selected[0].lab_tests[0].lab_test_id, 'urine-test');
@@ -348,4 +348,84 @@ test('Patients keeps its header mounted and ignores superseded request failures'
   assert.match(html, /Current result/);
   assert.doesNotMatch(html, /Old request failed/);
   assert.equal(requests.length, 2);
+});
+
+
+test('Lab Panels uses shared columns with server filters and preserves scoped actions', () => {
+  const action = loadSource('components/ActionButton.tsx', {}).default;
+  const {getLabPanelColumns, buildLabPanelFilters} = loadSource('components/LabPanel/LabPanelColumns.tsx', {
+    '../ActionButton': {__esModule:true, default:action},
+  });
+  const edits = [], deletes = [];
+  const columns = getLabPanelColumns({}, () => {}, [{value:'cat',label:'Chemistry'}], id => edits.push(id), id => deletes.push(id));
+  const panel = {id:'panel-a',panel_name:'Panel A',lab_panel_category_id:'cat',lab_tests:[]};
+  const tree = columns.find(column => column.id === 'actions').cell({row:{original:panel}});
+  const buttons = React.Children.toArray(tree.props.children);
+  buttons[0].props.onClick(); buttons[1].props.onClick();
+  assert.deepEqual(edits,['panel-a']); assert.deepEqual(deletes,['panel-a']);
+  assert.deepEqual(buildLabPanelFilters([{id:'panel_name',value:' Urine '},{id:'nssf_id',value:'12'},
+    {id:'lab_panel_category_id',value:'cat'},{id:'lab_panel_price',value:'1.5'},{id:'unknown',value:'ignored'}]),
+    {panel_name:'Urine',nssf_id:'12',lab_panel_category_id:'cat',lab_panel_price:'1.5'});
+  assert.equal(columns.find(column => column.accessorKey === 'lab_panel_category_id').cell({row:{original:panel}}),'Chemistry');
+});
+
+test('expanded panel details show only the selected panel and do not change other tables', () => {
+  const tanstack = require('@tanstack/react-table');
+  const GenericTable = loadSource('components/react-table/GeneralTable.tsx', {}).default;
+  const {getLabPanelColumns, PanelTestDetails} = loadSource('components/LabPanel/LabPanelColumns.tsx', {
+    '../ActionButton':{__esModule:true,default:loadSource('components/ActionButton.tsx',{}).default},
+    '../react-table/ColumnFilter':{ColumnFilter:({label})=>React.createElement('span',null,label)},
+  });
+  const panels = ['A','B'].map(name => ({id:name,panel_name:`Panel ${name}`,lab_tests:[{lab_test_id:`test-${name}`,name:`Unique test ${name}`,normal_value_list:[]}]}));
+  const table = tanstack.createTable({data:panels, columns:getLabPanelColumns({},()=>{},[],()=>{},()=>{}),
+    getCoreRowModel:tanstack.getCoreRowModel(), getRowId:row=>row.id,getRowCanExpand:()=>true,
+    state:{}, onStateChange() {},renderFallbackValue:null});
+  table.setOptions(previous => ({...previous,state:{...table.initialState,expanded:{}}}));
+  const render = details => renderToStaticMarkup(React.createElement(GenericTable,{table,renderExpandedRow:details}));
+  const details = row => React.createElement(PanelTestDetails,{panel:row.original});
+  assert.doesNotMatch(render(details),/Unique test/);
+  table.setOptions(previous=>({...previous,state:{...previous.state,expanded:{A:true}}}));
+  const html = render(details);
+  assert.match(html,/Unique test A/); assert.doesNotMatch(html,/Unique test B/);
+  assert.match(html,/aria-expanded="true"/);
+  // Existing callers without an expansion renderer keep their original flat table.
+  assert.doesNotMatch(render(undefined),/Unique test/);
+  table.setOptions(previous=>({...previous,state:{...previous.state,expanded:{}}}));
+  assert.doesNotMatch(render(details),/Unique test/);
+});
+
+test('Lab Panels ignores stale searches and refetches a valid page after deletion', async () => {
+  const host=hookHost(), route=router(host,'page=2&pageSize=10');
+  const {usePersistedTableState}=loadSource('hooks/usePersistedTableState.ts',{react:host.hooks,'react-router-dom':route.hooks});
+  const requests=[], deleted=[]; let remove;
+  const Page=loadSource('components/LabPanel/LabPanelsList.tsx',{
+    react:host.hooks,'react-router-dom':route.hooks,
+    '../../api':{__esModule:true,default:{delete:async url=>{deleted.push(url);}},getApiErrorMessage:()=> 'Request failed'},
+    '../../hooks/usePersistedTableState':{usePersistedTableState},
+    '../../hooks/useLabTestCategoryOptions':{useLabTestCategoryOptions:()=>[]},
+    '../data':{labPanelApiURL:'/lab_panel'},
+    '../utils':{fetchLabPanelsPaginated:(page,size,filters,signal)=>new Promise((resolve,reject)=>requests.push({page,size,filters,signal,resolve,reject}))},
+    './LabPanelColumns':{getLabPanelColumns:(shown,toggle,categories,edit,handler)=>{remove=handler;return [];},buildLabPanelFilters:filters=>Object.fromEntries(filters.map(f=>[f.id,f.value]))},
+    '@tanstack/react-table':{useReactTable:options=>options,getCoreRowModel:()=>null,getSortedRowModel:()=>null},
+    '../react-table/GeneralTable':{__esModule:true,default:({table})=>React.createElement('div',null,table.data.map(row=>row.panel_name).join(','))},
+  }).default;
+  let tree=host.render(Page);
+  assert.equal(requests.length,1);
+  route.navigate('page=2&pageSize=10&f.panel_name=Urine');tree=host.flush();
+  assert.equal(requests[0].signal.aborted,true);
+  requests[1].resolve({lab_panels:[{id:'selected',panel_name:'Current panel'}],total_pages:2,TotalNumberOfLabPanels:11});
+  await Promise.resolve();tree=host.flush();
+  requests[0].reject(new Error('Old failure'));await Promise.resolve();tree=host.flush();
+  assert.doesNotMatch(renderToStaticMarkup(tree),/Request failed/);
+  const originalWindow=global.window;global.window={confirm:()=>true};
+  try {await remove('selected');} finally {global.window=originalWindow;}
+  host.flush();
+  assert.deepEqual(deleted,['/lab_panel/selected']);
+  requests[2].resolve({lab_panels:[],total_pages:1,TotalNumberOfLabPanels:10});
+  await Promise.resolve();host.flush();
+  assert.equal(requests[3].page,1);
+  requests[3].resolve({lab_panels:[{id:'remaining',panel_name:'Remaining panel'}],total_pages:1,TotalNumberOfLabPanels:10});
+  await Promise.resolve();tree=host.flush();
+  assert.match(renderToStaticMarkup(tree),/Remaining panel/);
+  assert.equal(requests.length,4);
 });

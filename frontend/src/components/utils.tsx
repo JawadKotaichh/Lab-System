@@ -1,3 +1,4 @@
+import { referenceData } from "../referenceCache";
 import type {
   CreateLabPanelParams,
   CreateLabTestParams,
@@ -128,7 +129,7 @@ const getInsuranceCompanyRate = async (patient_id: string): Promise<number> => {
 };
 const fetchCurrencies = async (): Promise<string[]> => {
   const url = `${InsuranceApiURL}get_currencies`;
-  return fetchAllBoundedPages<string>(url);
+  return referenceData(url, () => fetchAllBoundedPages<string>(url));
 };
 
 export async function fetchResultSuggestions(
@@ -232,7 +233,7 @@ const fetchAllInsuranceCompanies = async (): Promise<
   insuranceCompanyParams[]
 > => {
   const url = "/insurance_company/all";
-  return fetchAllBoundedPages<insuranceCompanyParams>(url);
+  return referenceData(url, () => fetchAllBoundedPages<insuranceCompanyParams>(url));
 };
 const fetchPatient = async (patient_id: string): Promise<patientInfo> => {
   const response = await api.get(`/patients/${patient_id}`);
@@ -271,26 +272,26 @@ const fetchAllLabTestTypeCategories = async (): Promise<
   labTestCategoryParams[]
 > => {
   const url = "/lab_test_category/all";
-  return fetchAllBoundedPages<labTestCategoryParams>(url);
+  return referenceData(url, () => fetchAllBoundedPages<labTestCategoryParams>(url));
 };
 
 const fetchAllfinancialTransactionsCategories = async (): Promise<
   transactionCategory[]
 > => {
   const url = "/financial_transaction/get_all_categories";
-  return fetchAllBoundedPages<transactionCategory>(url);
+  return referenceData(url, () => fetchAllBoundedPages<transactionCategory>(url));
 };
 const fetchAllfinancialTransactionsCurrencies = async (): Promise<
   transactionCurrency[]
 > => {
   const url = "/financial_transaction/get_all_currencies";
-  return fetchAllBoundedPages<transactionCurrency>(url);
+  return referenceData(url, () => fetchAllBoundedPages<transactionCurrency>(url));
 };
 const fetchAllfinancialTransactionsTypes = async (): Promise<
   transactionType[]
 > => {
   const url = "/financial_transaction/get_all_types";
-  return fetchAllBoundedPages<transactionType>(url);
+  return referenceData(url, () => fetchAllBoundedPages<transactionType>(url));
 };
 
 const fetchPatientsPaginated = async (
@@ -400,12 +401,6 @@ const fetchFinancialTransaction = async (
   const response = await api.get(`/financial_transaction/${transaction_id}`);
   return response.data;
 };
-const fetchAllFinancialTransactions = async (): Promise<
-  financialTransaction[]
-> => {
-  const url = "/financial_transaction/all";
-  return fetchAllBoundedPages<financialTransaction>(url);
-};
 const getFinancialTransactionsSummary = async (
   searchData: financialTransactionsSummaryParams,
 ): Promise<financial_transaction_summary> => {
@@ -417,7 +412,6 @@ const getFinancialTransactionsSummary = async (
 export { getFinancialTransactionsSummary };
 export { fetchFinancialTransaction };
 export { fetchFinancialTransactionsPaginated };
-export { fetchAllFinancialTransactions };
 export { fetchAllfinancialTransactionsCategories };
 export { fetchAllfinancialTransactionsCurrencies };
 export { fetchAllfinancialTransactionsTypes };

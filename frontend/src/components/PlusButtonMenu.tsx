@@ -38,11 +38,11 @@ export default function PlusButtonMenu({
 
   const btnToolbar =
     "h-10 px-4 gap-2 rounded-xl text-white shadow-sm hover:shadow-md " +
-    "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700";
+    "bg-blue-600 hover:bg-blue-700";
 
   const btnFab =
     "h-14 w-14 rounded-2xl text-white shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 " +
-    "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700";
+    "bg-blue-600 hover:bg-blue-700";
 
   const menuPos = isFab
     ? "absolute bottom-16 right-0 origin-bottom-right"
@@ -93,8 +93,8 @@ export default function PlusButtonMenu({
                   onClick={a.onClick}
                   className={[
                     "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium",
-                    active ? "bg-slate-100 text-slate-900" : "text-slate-700",
-                    "hover:bg-slate-50",
+                    active ? "bg-blue-600 text-white" : "text-blue-700",
+                    "hover:bg-blue-600 hover:text-white",
                     a.className ?? "",
                   ].join(" ")}
                 >

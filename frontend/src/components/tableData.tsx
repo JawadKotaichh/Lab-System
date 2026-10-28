@@ -1,3 +1,5 @@
+import ActionButton from "./ActionButton";
+import { Pencil as EditActionIcon, Trash2 as RemoveActionIcon } from "lucide-react";
 import React from "react";
 import { tableHandleButton } from "../style";
 import type { NavigateFunction } from "react-router-dom";
@@ -98,16 +100,11 @@ export function getInsuranceCompanyColumns(
         const insuranceCompanyId = row.original.insurance_company_id;
         const insuranceCompanyName = row.original.insurance_company_name;
         return (
-          <button
-            type="button"
-            onClick={() =>
+          <ActionButton type="button" onClick={() =>
               navigate(`${InsuranceEditPageURL}${insuranceCompanyId}`)
-            }
-            className="text-blue-600 hover:underline cursor-pointer"
-            title="Edit insurance company"
-          >
+            } title="Edit insurance company" variant="primary" icon={EditActionIcon}>
             {insuranceCompanyName}
-          </button>
+          </ActionButton>
         );
       },
       header: ({ column }) => (
@@ -171,19 +168,12 @@ export function getInsuranceCompanyColumns(
         const company = row.original;
         return (
           <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={() =>
+            <ActionButton type="button" onClick={() =>
                 handleDeleteInsuranceCompany({
                   elementID: company.insurance_company_id,
                   setError,
                 })
-              }
-              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-              title="Delete insurance company"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              } title="Delete insurance company" aria-label="Delete insurance company" variant="remove" icon={RemoveActionIcon}></ActionButton>
             {/* <MeatballsMenu
               items={[
                 {
@@ -217,14 +207,9 @@ export function getPatientsColumns(
         const patientId = row.original.patient_id;
         const patient_name = row.original.name;
         return (
-          <button
-            type="button"
-            onClick={() => navigate(`/patients/edit-patient/${patientId}`)}
-            className="text-blue-600 hover:underline cursor-pointer"
-            title="Edit patient"
-          >
+          <ActionButton type="button" onClick={() => navigate(`/patients/edit-patient/${patientId}`)} title="Edit patient" variant="primary" icon={EditActionIcon}>
             {patient_name}
-          </button>
+          </ActionButton>
         );
       },
       header: ({ column }) => (
@@ -376,19 +361,12 @@ export function getPatientsColumns(
             >
               <ClipboardPlus className="h-5 w-5" />
             </button>
-            <button
-              type="button"
-              onClick={() =>
+            <ActionButton type="button" onClick={() =>
                 handleDeletePatient({
                   elementID: patient_id,
                   setError,
                 })
-              }
-              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-              title="Delete patient"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              } title="Delete patient" aria-label="Delete patient" variant="remove" icon={RemoveActionIcon}></ActionButton>
             {/* <MeatballsMenu
               items={[
                 // {
@@ -512,14 +490,9 @@ export function getLabTestColumns(
         const labTestId = row.original.lab_test_id;
         const labTestName = row.original.name;
         return (
-          <button
-            type="button"
-            onClick={() => navigate(`${labTestEditPageURL}${labTestId}`)}
-            className="text-blue-600 hover:underline cursor-pointer"
-            title="Edit lab test"
-          >
+          <ActionButton type="button" onClick={() => navigate(`${labTestEditPageURL}${labTestId}`)} title="Edit lab test" variant="primary" icon={EditActionIcon}>
             {labTestName}
-          </button>
+          </ActionButton>
         );
       },
       sortingFn: (rowA, rowB, columnId) => {
@@ -748,19 +721,12 @@ export function getLabTestColumns(
                 </button>
               ))} */}
               {!showAddForLabPanels && !showAdd && (
-                <button
-                  type="button"
-                  onClick={() =>
+                <ActionButton type="button" onClick={() =>
                     handleDeleteLabTest({
                       elementID: lab_test_id,
                       setError,
                     })
-                  }
-                  className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-                  title="Delete lab test"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
+                  } title="Delete lab test" aria-label="Delete lab test" variant="remove" icon={RemoveActionIcon}></ActionButton>
               )}
             </div>
           );
@@ -799,16 +765,11 @@ export function getLabTestCategoryColumns(
         const labTestCategoryId = row.original.lab_test_category_id;
         const labTestCategoryName = row.original.lab_test_category_name;
         return (
-          <button
-            type="button"
-            onClick={() =>
+          <ActionButton type="button" onClick={() =>
               navigate(`${labTestCategoryEditPageURL}${labTestCategoryId}`)
-            }
-            className="text-blue-800 hover:underline cursor-pointer"
-            title="Edit lab test category"
-          >
+            } title="Edit lab test category" variant="primary" icon={EditActionIcon}>
             {labTestCategoryName}
-          </button>
+          </ActionButton>
         );
       },
       sortingFn: (rowA, rowB, columnId) => {
@@ -826,19 +787,12 @@ export function getLabTestCategoryColumns(
         const { lab_test_category_id } = row.original;
         return (
           <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={() =>
+            <ActionButton type="button" onClick={() =>
                 handleDeleteLabTestCategory({
                   elementID: lab_test_category_id,
                   setError,
                 })
-              }
-              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-              title="Delete lab test category"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              } title="Delete lab test category" aria-label="Delete lab test category" variant="remove" icon={RemoveActionIcon}></ActionButton>
             {/* <MeatballsMenu
               items={[
                 {
@@ -968,7 +922,7 @@ export function getVisitsColumns(
         const raw = row.original.total_price_with_insurance ?? 0;
         const value =
           currency === "USD"
-            ? `${raw.toFixed(3)} $`
+            ? `${raw.toFixed(2)} $`
             : `${raw.toLocaleString("en-US")} LBP`;
         return (
           <button
@@ -1002,7 +956,7 @@ export function getVisitsColumns(
       cell: ({ row }) => {
         const currency = row.original.currency ?? "$";
         if (currency === "USD")
-          return `${row.original.total_paid.toFixed(3)} $`;
+          return `${row.original.total_paid.toFixed(2)} $`;
         else return `${row.original.total_paid.toLocaleString("en-US")} LBP`;
       },
       header: ({ column }) => (
@@ -1042,7 +996,7 @@ export function getVisitsColumns(
         const remaining = Math.max(0, net - paid);
         const value =
           currency === "USD"
-            ? `${remaining.toFixed(3)} $`
+            ? `${remaining.toFixed(2)} $`
             : `${remaining.toLocaleString("en-US")} LBP`;
 
         return (
@@ -1068,9 +1022,7 @@ export function getVisitsColumns(
           total_tests_results,
         } = row.original;
         return (
-          <button
-            type="button"
-            onClick={() =>
+          <ActionButton type="button" onClick={() =>
               navigate(`${visitEditPageURL}${visit_id}`, {
                 state: {
                   patientData: {
@@ -1079,12 +1031,9 @@ export function getVisitsColumns(
                   },
                 },
               })
-            }
-            className="font-semibold hover:underline cursor-pointer"
-            title="Edit Visit"
-          >
+            } title="Edit Visit" variant="primary" icon={EditActionIcon}>
             {completed_tests_results} / {total_tests_results}
-          </button>
+          </ActionButton>
         );
       },
       sortingFn: (rowA, rowB) => {
@@ -1121,19 +1070,12 @@ export function getVisitsColumns(
               initialPosted={posted}
               setError={setError}
             />
-            <button
-              type="button"
-              onClick={() =>
+            <ActionButton type="button" onClick={() =>
                 handleDeleteVisit({
                   elementID: visit_id,
                   setError,
                 })
-              }
-              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-              title="Delete visit"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              } title="Delete visit" aria-label="Delete visit" variant="remove" icon={RemoveActionIcon}></ActionButton>
           </div>
         );
       },
@@ -1206,15 +1148,9 @@ export function getFinancialTransactionColumns(
         const category = row.original.category;
 
         return (
-          <button
-            type="button"
-            onClick={() => navigate(`/financial-transactions/${transactionId}`)}
-            className="text-blue-800 hover:underline cursor-pointer"
-            title="Edit Transaction"
-            disabled={category === "Visit By System"}
-          >
+          <ActionButton type="button" onClick={() => navigate(`/financial-transactions/${transactionId}`)} title="Edit Transaction" disabled={category === "Visit By System"} variant="primary" icon={EditActionIcon}>
             {dateOnly}
-          </button>
+          </ActionButton>
         );
       },
       header: ({ column }) => (
@@ -1278,7 +1214,7 @@ export function getFinancialTransactionColumns(
 
         const amountText =
           currency === "USD"
-            ? `${row.original.amount.toFixed(3)} $`
+            ? `${row.original.amount.toFixed(2)} $`
             : `${row.original.amount.toLocaleString("en-US")} LBP`;
 
         const amountClass =
@@ -1351,20 +1287,12 @@ export function getFinancialTransactionColumns(
         const { id, category } = row.original;
         return (
           <div className="flex justify-center gap-4">
-            <button
-              type="button"
-              disabled={category === "Visit By System"}
-              onClick={() =>
+            <ActionButton type="button" disabled={category === "Visit By System"} onClick={() =>
                 handleDeleteTransaction({
                   elementID: id!,
                   setError,
                 })
-              }
-              className="p-2 rounded-full hover:bg-red-50 text-red-600 cursor-pointer"
-              title="Delete transaction"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              } title="Delete transaction" aria-label="Delete transaction" variant="remove" icon={RemoveActionIcon}></ActionButton>
           </div>
         );
       },
@@ -1462,7 +1390,7 @@ export function getVisitsColumnsUser(
       cell: ({ row }) => {
         const currency = row.original.currency ?? "$";
         if (currency === "USD")
-          return `${row.original.total_price_with_insurance.toFixed(3)} $`;
+          return `${row.original.total_price_with_insurance.toFixed(2)} $`;
         else
           return `${row.original.total_price_with_insurance.toLocaleString(
             "en-US"

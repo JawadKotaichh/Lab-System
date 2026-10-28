@@ -20,7 +20,7 @@ const TestsTableInvoice = ({
 
   const formatPrice = (currency: string, value: number = 0) => {
     return currency === "USD"
-      ? `${value.toFixed(3)} $`
+      ? `${value.toFixed(2)} $`
       : `${value.toLocaleString("en-US")} LBP`;
   };
 
@@ -132,7 +132,7 @@ const TestsTableInvoice = ({
               ]}
             >
               {currency === "USD"
-                ? `${total_price.toFixed(3)} $`
+                ? `${total_price.toFixed(2)} $`
                 : `${total_price.toLocaleString("en-US")} LBP`}
             </Text>
           </View>

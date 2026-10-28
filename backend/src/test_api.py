@@ -146,6 +146,7 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         for include_incomplete, expected_count in ((False, 0), (True, 1)):
             with (
                 self.subTest(include_incomplete=include_incomplete),
+                patch("src.api.lab_test_results.DBVisit", SimpleNamespace(find=MagicMock(return_value=SimpleNamespace(project=lambda _: SimpleNamespace(to_list=AsyncMock(return_value=[])))))),
                 patch("src.api.lab_test_results.DBPatient", SimpleNamespace(id=0, find_one=AsyncMock(return_value=patient))),
                 patch("src.api.lab_test_results.DBLab_test_result", result_model),
                 patch("src.api.lab_test_results.DBLab_test_type", SimpleNamespace(find=MagicMock(return_value=SimpleNamespace(to_list=AsyncMock(return_value=[test_type]))))),
