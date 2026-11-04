@@ -164,6 +164,10 @@ export type fetchedInvoiceData = {
   invoice_data: InvoiceData;
   currency: string;
 };
+export type MonthlyInvoiceSummary = {
+  invoices: fetchedInvoiceData[];
+  unavailable_invoice_numbers: number[];
+};
 export type VisitEditorData = {
   results: resultListData;
   invoice: fetchedInvoiceData;

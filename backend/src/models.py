@@ -211,6 +211,8 @@ class Invoice(Document):
     visit_date: datetime = Field(...)
     adjustment_minor: SignedMoney = Field(default=0)
     insurance_company_id: PydanticObjectId = Field(...)
+    billing_rate: Optional[Rate] = None
+    billing_currency: Optional[str] = None
     total_paid: Money = Field(default=0)
     list_of_lab_tests_ids_changed: List[LabTestChanged] = Field(default=[])
     list_of_lab_panels_ids_changed: List[LabPanelChanged] = Field(default=[])

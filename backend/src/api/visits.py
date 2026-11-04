@@ -30,15 +30,10 @@ from ..schemas.schema_Patient import Patient
 from ..models import lab_test_type as DBLab_test_type
 from ..models import insurance_company as DBInsurance_company
 from ..schemas.financial_types import round_money
-from ..schemas.financial_types import Money, SignedMoney
+from ..schemas.financial_types import Money
+from .Invoice import _invoice_from_results, invoice_subtotal, saved_invoice_prices
 from pydantic import BaseModel, Field
 from asyncio import gather
-
-
-class _InvoiceSummary(BaseModel):
-    visit_id: PydanticObjectId
-    adjustment_minor: SignedMoney
-    total_paid: Money
 
 
 class _TestPrice(BaseModel):
@@ -339,7 +334,7 @@ async def get_visits_with_page_size(
     patients, result_groups, invoices = await gather(
         _find_by_ids(DBPatient, patient_ids),
         DBLab_test_result.aggregate(pipeline).to_list(),
-        DBInvoice.find({"visit_id": {"$in": visit_ids}}).project(_InvoiceSummary).to_list(),
+        DBInvoice.find({"visit_id": {"$in": visit_ids}}).to_list(),
     )
     patients_by_id = {patient.id: patient for patient in patients}
     invoices_by_visit_id = {invoice.visit_id: invoice for invoice in invoices}
@@ -353,7 +348,10 @@ async def get_visits_with_page_size(
         else:
             individual_test_ids.add(key["lab_test_type_id"])
 
-    insurance_ids = list(dict.fromkeys(patient.insurance_company_id for patient in patients))
+    insurance_ids = list(
+        {patient.insurance_company_id for patient in patients}
+        | {invoice.insurance_company_id for invoice in invoices if invoice.billing_rate is not None}
+    )
     insurance_companies, lab_test_types, lab_panels = await gather(
         _find_by_ids(DBInsurance_company, insurance_ids),
         _find_by_ids(DBLab_test_type, list(individual_test_ids), _TestPrice),
@@ -387,6 +385,11 @@ async def get_visits_with_page_size(
         )
 
         visit_result_groups = groups_by_visit_id.get(visit_id, [])
+        db_invoice = invoices_by_visit_id.get(visit_id)
+        if not db_invoice:
+            raise HTTPException(404, f"Invoice with visit id: {visit_id} not found")
+        saved_tests, saved_panels = saved_invoice_prices(db_invoice)
+        tests, panels = {}, {}
         total_tests_results = 0
         completed_tests_results = 0
         total_price = 0
@@ -399,34 +402,38 @@ async def get_visits_with_page_size(
                 panel_ids_for_visit.add(key["lab_panel_id"])
                 continue
             lab_test = lab_test_types_by_id.get(key["lab_test_type_id"])
+            test_id = str(key["lab_test_type_id"])
             if lab_test:
                 total_price += lab_test.price * group["total"]
+            if test_id in saved_tests:
+                tests[test_id] = saved_tests[test_id]
+            elif lab_test:
+                tests[test_id] = lab_test.price
 
         for panel_id in panel_ids_for_visit:
             db_lab_panel = lab_panels_by_id.get(panel_id)
-            if not db_lab_panel:
+            if db_lab_panel:
+                total_price += db_lab_panel.lab_panel_price
+            if str(panel_id) in saved_panels:
+                panels[str(panel_id)] = saved_panels[str(panel_id)]
+            elif db_lab_panel:
+                panels[str(panel_id)] = db_lab_panel.lab_panel_price
+            elif db_invoice.billing_rate is None:
                 raise HTTPException(
                     status_code=400, detail=f"Invalid lab panel id: {panel_id}"
                 )
-            total_price += db_lab_panel.lab_panel_price
 
-        insurance_company = insurance_companies_by_id.get(
-            db_patient.insurance_company_id
-        )
+        has_saved_billing = db_invoice.billing_rate is not None
+        insurer_id = db_invoice.insurance_company_id if has_saved_billing else db_patient.insurance_company_id
+        insurance_company = insurance_companies_by_id.get(insurer_id)
         if not insurance_company:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Insurance Company {db_patient.insurance_company_id} not found",
-            )
-        db_invoice = invoices_by_visit_id.get(visit_id)
-        if not db_invoice:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Invoice with visit id: {visit_id} not found",
-            )
-        total_price_with_insurance = round_money(
-            total_price * insurance_company.rate + db_invoice.adjustment_minor
-        )
+            raise HTTPException(404, f"Insurance company {insurer_id} not found")
+
+        if has_saved_billing:
+            tests, panels = saved_tests, saved_panels
+        rate = db_invoice.billing_rate if has_saved_billing else insurance_company.rate
+        subtotal = invoice_subtotal(tests, panels, db_invoice, rate)
+        total_price_with_insurance = round_money(subtotal + db_invoice.adjustment_minor)
         visits.append(
             VisitData(
                 posted=db_visit.posted,
@@ -438,8 +445,10 @@ async def get_visits_with_page_size(
                 visit_date=db_visit.visit_date,
                 completed_tests_results=completed_tests_results,
                 total_tests_results=total_tests_results,
-                insurance_company_name=insurance_company.insurance_company_name,
-                currency=insurance_company.currency,
+                insurance_company_name=insurance_companies_by_id.get(
+                    db_patient.insurance_company_id, insurance_company
+                ).insurance_company_name,
+                currency=db_invoice.billing_currency or insurance_company.currency,
                 total_paid=db_invoice.total_paid,
             )
         )
@@ -589,19 +598,15 @@ async def get_visit(visit_id: PydanticObjectId):
         insurance_company_id=str(db_patient.insurance_company_id),
         patient_id=str(db_patient.id),
     )
-    all_lab_test_results = DBLab_test_result.find(
+    all_lab_test_results = await DBLab_test_result.find(
         DBLab_test_result.visit_id == PydanticObjectId(visit_id)
-    )
-    if not all_lab_test_results:
-        raise HTTPException(
-            404, f"Lab result of patient with id: {db_visit.patient_id} not found"
-        )
+    ).to_list()
 
     total_tests_results = 0
     completed_tests_results = 0
     total_price = 0
 
-    async for test_result in all_lab_test_results:
+    for test_result in all_lab_test_results:
         total_tests_results += 1
         lab_test = await DBLab_test_type.find_one(
             DBLab_test_type.id == PydanticObjectId(test_result.lab_test_type_id)
@@ -610,23 +615,21 @@ async def get_visit(visit_id: PydanticObjectId):
             total_price += lab_test.price
         if test_result.result != "":
             completed_tests_results += 1
-    insurance_company = await DBInsurance_company.find_one(
-        DBInsurance_company.id == db_patient.insurance_company_id
-    )
-    if not insurance_company:
-        raise HTTPException(
-            404, f"Insurance Company of patient {db_patient.id} not found"
-        )
     db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not db_invoice:
         raise HTTPException(
             status_code=404,
             detail=f"Invoice with visit id: {db_visit.id} not found",
         )
-    total_price_with_insurance = round_money(
-        total_price * insurance_company.rate + db_invoice.adjustment_minor
+    invoice_data = await _invoice_from_results(
+        str(visit_id), db_visit, db_invoice, preserve_snapshot=True,
+        orders=all_lab_test_results, db_patient=db_patient,
     )
-    insurance_company_name = insurance_company.insurance_company_name
+    priced_invoice = invoice_data.invoice_data
+    tests, panels = saved_invoice_prices(priced_invoice)
+    subtotal = invoice_subtotal(tests, panels, priced_invoice, priced_invoice.patient_insurance_company_rate)
+    total_price_with_insurance = round_money(subtotal + priced_invoice.adjustment_minor)
+    insurance_company_name = invoice_data.patient.insurance_company_name
     visit_data = VisitData(
         posted=db_visit.posted,
         report_date=db_visit.report_date,
@@ -638,7 +641,7 @@ async def get_visit(visit_id: PydanticObjectId):
         completed_tests_results=completed_tests_results,
         total_tests_results=total_tests_results,
         insurance_company_name=insurance_company_name,
-        currency=insurance_company.currency,
+        currency=invoice_data.currency,
         total_paid=db_invoice.total_paid,
     )
     return visit_data

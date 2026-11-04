@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from ..models import insurance_company as DBInsurance_company
+from ..models import Invoice as DBInvoice, Patient as DBPatient
 from ..schemas.schema_Insurance_Company import (
     Insurance_company,
     update_insurance_company,
@@ -170,5 +171,9 @@ async def delete_insurance_company(insurance_company_id: str):
     )
     if insurance_company_to_be_deleted is None:
         raise HTTPException(404, f"insurance_company {insurance_company_id} not found")
+    insurer_id = insurance_company_to_be_deleted.id
+    has_invoices = await DBInvoice.find_one({"insurance_company_id": {"$in": [insurer_id, str(insurer_id)]}})
+    if has_invoices or await DBPatient.find_one({"insurance_company_id": insurer_id}):
+        raise HTTPException(409, "This insurance company is linked to invoices or patients")
     await insurance_company_to_be_deleted.delete()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

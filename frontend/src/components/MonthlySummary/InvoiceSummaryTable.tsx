@@ -2,17 +2,16 @@ import { Text, View } from "@react-pdf/renderer";
 import type { SummaryInvoice } from "./InvoiceSummaryList";
 import { invoiceNet } from "../Invoice/invoicePricing";
 import { styles } from "./InvoiceSummaryStyle";
-import amountToWords from "../Invoice/amountToWords";
+import amountToWords, { displayMoneyUnits } from "../Invoice/amountToWords";
 
 const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
   const headers = ["Date", "Patient Name", "Insurance Company", "Total Price"];
   const rows = summaryData.map(currentInvoice => ({
     currentInvoice,
-    rowTotal: invoiceNet(currentInvoice.invoice_data),
-  })).filter(({ currentInvoice, rowTotal }) =>
-    rowTotal !== 0 || Boolean(currentInvoice.invoice_data.adjustment_minor)
-  );
-  const totalPrice = rows.reduce((sum, row) => sum + row.rowTotal, 0);
+    rowUnits: displayMoneyUnits(invoiceNet(currentInvoice.invoice_data), currency),
+  }));
+  const scale = currency === "USD" ? 100 : 1;
+  const totalPrice = rows.reduce((sum, row) => sum + row.rowUnits, 0) / scale;
 
   return (
     <View>
@@ -36,7 +35,8 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
             </View>
           ))}
         </View>
-        {rows.map(({ currentInvoice, rowTotal }, rowIdx) => {
+        {rows.map(({ currentInvoice, rowUnits }) => {
+          const rowTotal = rowUnits / scale;
           const current_invoice_data = currentInvoice.invoice_data;
           const cuurent_patient = currentInvoice.patient;
           return (
@@ -46,7 +46,7 @@ const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
                 { borderBottomWidth: 0.5, borderBottomColor: "#000000" },
               ]}
               wrap={false}
-              key={rowIdx}
+              key={current_invoice_data.visit_id}
             >
               <View style={styles.tableCol}>
                 <Text style={styles.tableCellText}>

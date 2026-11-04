@@ -37,6 +37,11 @@ class invoiceData(BaseModel):
     currency: str
 
 
+class MonthlyInvoiceSummary(BaseModel):
+    invoices: List[invoiceData]
+    unavailable_invoice_numbers: List[int]
+
+
 class PaginatedInvoices(BaseModel):
     TotalNumberOfInvoices: int
     total_pages: int

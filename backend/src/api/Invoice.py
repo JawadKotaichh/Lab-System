@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from ..schemas.schema_Lab_Test_Type import Lab_test_type
@@ -8,6 +8,7 @@ from ..models import Financial_transaction as DBFinancial_transaction
 from ..schemas.schema_Invoice import (
     Invoice,
     LabTestChanged,
+    MonthlyInvoiceSummary,
     PaginatedInvoices,
     invoiceData,
     update_invoice,
@@ -57,35 +58,39 @@ async def get_next_sequence(name: str) -> int:
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
 
+def invoice_subtotal(tests, panels, invoice, rate: Decimal) -> Decimal:
+    changed_tests = {str(item.lab_test_id): item.new_price for item in invoice.list_of_lab_tests_ids_changed}
+    changed_panels = {str(item.panel_id): item.new_price for item in invoice.list_of_lab_panels_ids_changed}
+    return sum(
+        (changed_tests.get(str(test_id), price * rate) for test_id, price in tests.items()), Decimal("0")
+    ) + sum(
+        (changed_panels.get(str(panel_id), price * rate) for panel_id, price in panels.items()), Decimal("0")
+    )
+
+
+def saved_invoice_prices(invoice):
+    return (
+        {str(test.lab_test_id): test.price for test in invoice.list_of_tests},
+        {str(panel.id): panel.lab_panel_price or Decimal("0") for panel in invoice.list_of_lab_panels},
+    )
+
+
 async def _calculate_invoice_total(invoice: DBInvoice, visit: DBVisit) -> Decimal:
     patient = await DBPatient.find_one(DBPatient.id == visit.patient_id)
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient for visit not found")
 
-    insurance_company = await DBInsurance_company.find_one(
-        DBInsurance_company.id == patient.insurance_company_id
-    )
+    insurer_id = invoice.insurance_company_id if invoice.billing_rate is not None else patient.insurance_company_id
+    insurance_company = await DBInsurance_company.get(insurer_id)
     if insurance_company is None:
         raise HTTPException(status_code=404, detail="Insurance company not found")
 
-    changed_tests = {
-        str(item.lab_test_id): item.new_price
-        for item in invoice.list_of_lab_tests_ids_changed
-    }
-    changed_panels = {
-        str(item.panel_id): item.new_price
-        for item in invoice.list_of_lab_panels_ids_changed
-    }
-
-    total = Decimal("0")
-    for test in invoice.list_of_tests:
-        total += changed_tests.get(
-            str(test.lab_test_id), test.price * insurance_company.rate
-        )
-    for panel in invoice.list_of_lab_panels:
-        total += changed_panels.get(
-            str(panel.id), panel.lab_panel_price * insurance_company.rate
-        )
+    if invoice.billing_rate is None:
+        invoice.insurance_company_id = insurance_company.id
+        invoice.billing_rate = insurance_company.rate
+        invoice.billing_currency = insurance_company.currency
+    tests, panels = saved_invoice_prices(invoice)
+    total = invoice_subtotal(tests, panels, invoice, invoice.billing_rate)
     return round_money(total + invoice.adjustment_minor)
 
 
@@ -97,40 +102,50 @@ async def _validate_invoice_total(invoice: DBInvoice, visit: DBVisit) -> None:
 
 @router.get(
     "/{insurance_company_id}/get_monthly_summary",
-    response_model=List[invoiceData],
+    response_model=MonthlyInvoiceSummary | List[invoiceData],
     dependencies=[Depends(require_admin)],
 )
 async def get_monthly_summary_invoice(
     insurance_company_id: str,
-    start_date: datetime = Query(...),
-    end_date: datetime = Query(...),
+    start_date: date | datetime = Query(...),
+    end_date: date | datetime = Query(...),
+    include_issues: bool = False,
 ):
     if not PydanticObjectId.is_valid(insurance_company_id):
         raise HTTPException(
             status_code=400,
             detail=f"Invalid insurance company ID: {insurance_company_id}",
         )
-    if end_date < start_date:
+    start_day = start_date.date() if isinstance(start_date, datetime) else start_date
+    end_day = end_date.date() if isinstance(end_date, datetime) else end_date
+    if end_day < start_day:
         raise HTTPException(status_code=400, detail="end_date must be >= start_date")
+    date_range = {"$gte": datetime.combine(start_day, time.min)}
+    if end_day < date.max:
+        date_range["$lt"] = datetime.combine(end_day + timedelta(days=1), time.min)
+    insurer_id = PydanticObjectId(insurance_company_id)
+    visits = await DBVisit.find({"visit_date": date_range}).to_list()
+    visits_by_id = {visit.id: visit for visit in visits}
     filters = {
-        "insurance_company_id": PydanticObjectId(insurance_company_id),
-        "visit_date": {"$gte": start_date, "$lte": end_date},
+        "insurance_company_id": {"$in": [insurer_id, str(insurer_id)]},
+        "$or": [{"visit_id": {"$in": list(visits_by_id)}}, {"visit_date": date_range}],
     }
     invoices = await DBInvoice.find(filters).to_list()
+    summary = MonthlyInvoiceSummary(invoices=[], unavailable_invoice_numbers=[])
     if not invoices:
-        return []
+        return summary if include_issues else summary.invoices
 
-    insurance_company = await DBInsurance_company.get(
-        PydanticObjectId(insurance_company_id)
-    )
+    insurance_company = await DBInsurance_company.get(insurer_id)
     if insurance_company is None:
         raise HTTPException(status_code=404, detail="Insurance company not found")
 
-    visit_ids = list(dict.fromkeys(invoice.visit_id for invoice in invoices))
-    visits = await DBVisit.find({"_id": {"$in": visit_ids}}).to_list()
-    visits_by_id = {visit.id: visit for visit in visits}
+    # A stale invoice date may match even though the linked visit moved outside the range.
+    unmatched_ids = {invoice.visit_id for invoice in invoices if invoice.visit_id not in visits_by_id}
+    existing_unmatched = await DBVisit.find({"_id": {"$in": list(unmatched_ids)}}).to_list() if unmatched_ids else []
+    moved_visit_ids = {visit.id for visit in existing_unmatched}
+    visit_ids = [invoice.visit_id for invoice in invoices if invoice.visit_id in visits_by_id and invoice.billing_rate is None]
 
-    patient_ids = list(dict.fromkeys(visit.patient_id for visit in visits))
+    patient_ids = list({visits_by_id[invoice.visit_id].patient_id for invoice in invoices if invoice.visit_id in visits_by_id})
     patients = await DBPatient.find({"_id": {"$in": patient_ids}}).to_list()
     patients_by_id = {patient.id: patient for patient in patients}
 
@@ -141,35 +156,40 @@ async def get_monthly_summary_invoice(
 
     missing_orders = []
     for invoice in invoices:
-        saved_tests = {str(test.lab_test_id) for test in invoice.list_of_tests}
-        saved_panels = {str(panel.id) for panel in invoice.list_of_lab_panels}
+        if invoice.billing_rate is not None or invoice.visit_id not in visits_by_id:
+            continue
+        saved_tests, saved_panels = saved_invoice_prices(invoice)
         missing_orders.extend(_missing_invoice_orders(
             orders_by_visit[invoice.visit_id], saved_tests, saved_panels,
         ))
     tests, panels, categories = await load_catalog(missing_orders)
 
-    listOfInvoices: List[invoiceData] = []
     for invoice in invoices:
+        if invoice.visit_id in moved_visit_ids:
+            continue
         db_visit = visits_by_id.get(invoice.visit_id)
-        if not db_visit:
-            raise HTTPException(
-                status_code=400, detail=f"Visit Id:{invoice.visit_id} not found!"
+        db_patient = patients_by_id.get(db_visit.patient_id) if db_visit else None
+        if db_patient is None:
+            summary.unavailable_invoice_numbers.append(invoice.invoice_number)
+            continue
+        try:
+            row = await _invoice_from_results(
+                str(db_visit.id), db_visit, invoice, preserve_snapshot=True,
+                orders=orders_by_visit[invoice.visit_id], db_patient=db_patient,
+                db_insurance_company=insurance_company,
+                context=VisitReadContext(patient=db_patient, insurance=insurance_company,
+                    results=orders_by_visit[invoice.visit_id], tests=tests, panels=panels, categories=categories),
             )
-        db_patient = patients_by_id.get(db_visit.patient_id)
-        if not db_patient:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Patient of ID: {db_visit.patient_id} not found!",
-            )
-
-        listOfInvoices.append(await _invoice_from_results(
-            str(db_visit.id), db_visit, invoice, preserve_snapshot=True,
-            orders=orders_by_visit[invoice.visit_id], db_patient=db_patient,
-            db_insurance_company=insurance_company,
-            context=VisitReadContext(patient=db_patient, insurance=insurance_company,
-                results=orders_by_visit[invoice.visit_id], tests=tests, panels=panels, categories=categories),
-        ))
-    return listOfInvoices
+            summary.invoices.append(row)
+        except HTTPException as exc:
+            if exc.status_code not in (400, 404):
+                raise
+            summary.unavailable_invoice_numbers.append(invoice.invoice_number)
+    summary.invoices.sort(key=lambda row: (row.invoice_data.visit_date, row.invoice_data.invoice_number))
+    summary.unavailable_invoice_numbers.sort()
+    if summary.unavailable_invoice_numbers and not include_issues:
+        raise HTTPException(409, "Some invoices could not be priced for this report")
+    return summary if include_issues else summary.invoices
 
 
 @router.put(
@@ -191,6 +211,14 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
     existing_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not existing_invoice:
         raise HTTPException(404, f"Invoice with visit id: {db_visit.id} not found")
+    if existing_invoice.billing_rate is None and (
+        update_data.list_of_tests is None or update_data.list_of_lab_panels is None
+    ):
+        billing = await _invoice_from_results(
+            visit_id, db_visit, existing_invoice, preserve_snapshot=True
+        )
+        existing_invoice.list_of_tests = billing.invoice_data.list_of_tests
+        existing_invoice.list_of_lab_panels = billing.invoice_data.list_of_lab_panels
     if update_data.list_of_tests is not None or update_data.list_of_lab_panels is not None:
         orders = await DBLab_test_result.find(DBLab_test_result.visit_id == db_visit.id).to_list()
         test_ids = {str(order.lab_test_type_id) for order in orders if not order.lab_panel_id}
@@ -242,46 +270,26 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
 
     if update_data.list_of_lab_panels is not None:
         existing_invoice.list_of_lab_panels = update_data.list_of_lab_panels
-    if update_data.insurance_company_id is not None:
-        existing_invoice.insurance_company_id = update_data.insurance_company_id
-    db_patient = await DBPatient.find_one(DBPatient.id == db_visit.patient_id)
+    db_patient = await DBPatient.get(db_visit.patient_id)
     if db_patient is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Patient with visit id: {db_visit.id} not found",
-        )
+        raise HTTPException(404, "Patient for visit not found")
 
-    db_insurance_company = await DBInsurance_company.find_one(
-        DBInsurance_company.id == db_patient.insurance_company_id
-    )
+    insurer_id = existing_invoice.insurance_company_id if existing_invoice.billing_rate is not None else db_patient.insurance_company_id
+    if update_data.insurance_company_id is not None:
+        if not PydanticObjectId.is_valid(update_data.insurance_company_id):
+            raise HTTPException(422, "Invalid insurance company ID")
+        insurer_id = PydanticObjectId(update_data.insurance_company_id)
+
+    db_insurance_company = await DBInsurance_company.get(insurer_id)
     if db_insurance_company is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Insurance company with id: {db_patient.insurance_company_id} not found",
-        )
-    changed_lab_tests = {}
-    for changed_test in existing_invoice.list_of_lab_tests_ids_changed:
-        changed_lab_tests[str(changed_test.lab_test_id)] = changed_test.new_price
+        raise HTTPException(404, "Insurance company not found")
+    if existing_invoice.billing_rate is None or insurer_id != existing_invoice.insurance_company_id:
+        existing_invoice.billing_rate = db_insurance_company.rate
+        existing_invoice.billing_currency = db_insurance_company.currency
+    existing_invoice.insurance_company_id = insurer_id
 
-    changed_lab_panels = {}
-    for changed_panel in existing_invoice.list_of_lab_panels_ids_changed:
-        changed_lab_panels[str(changed_panel.panel_id)] = changed_panel.new_price
-
-    total_price = Decimal("0")
-    insurance_rate = db_insurance_company.rate
-    for test in existing_invoice.list_of_tests:
-        test_id = str(test.lab_test_id)
-        if test_id in changed_lab_tests:
-            total_price += changed_lab_tests[test_id]
-        else:
-            total_price += test.price * insurance_rate
-
-    for panel in existing_invoice.list_of_lab_panels:
-        panel_id = str(panel.id)
-        if panel_id in changed_lab_panels:
-            total_price += changed_lab_panels[panel_id]
-        else:
-            total_price += (panel.lab_panel_price or 0) * insurance_rate
+    tests, panels = saved_invoice_prices(existing_invoice)
+    total_price = invoice_subtotal(tests, panels, existing_invoice, existing_invoice.billing_rate)
 
     if update_data.final_total is not None:
         existing_invoice.adjustment_minor = update_data.final_total - round_money(total_price)
@@ -328,19 +336,14 @@ async def override_test_price(visit_id: str, body: LabTestChanged):
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
 
-    found = False
-    for i, item in enumerate(invoice.list_of_lab_tests_ids_changed):
-        if str(item.lab_test_id) == str(body.lab_test_id):
-            invoice.list_of_lab_tests_ids_changed[i].new_price = body.new_price
-            found = True
-            break
-    if not found:
-        invoice.list_of_lab_tests_ids_changed.append(
-            LabTestChanged(
-                lab_test_id=body.lab_test_id,
-                new_price=body.new_price,
-            )
-        )
+    if invoice.billing_rate is None:
+        billing = await _invoice_from_results(visit_id, db_visit, invoice, preserve_snapshot=True)
+        invoice.list_of_tests = billing.invoice_data.list_of_tests
+        invoice.list_of_lab_panels = billing.invoice_data.list_of_lab_panels
+    invoice.list_of_lab_tests_ids_changed = [
+        item for item in invoice.list_of_lab_tests_ids_changed
+        if str(item.lab_test_id) != str(body.lab_test_id)
+    ] + [body]
 
     await _validate_invoice_total(invoice, db_visit)
     await invoice.replace()
@@ -362,7 +365,11 @@ async def rebuild_invoice(visit_id: str):
     db_invoice = await DBInvoice.find_one(DBInvoice.visit_id == db_visit.id)
     if not db_invoice:
         raise HTTPException(404, detail="Invoice not found")
-    output = await _invoice_from_results(visit_id, db_visit, db_invoice)
+    output = await _invoice_from_results(
+        visit_id, db_visit, db_invoice,
+        preserve_snapshot=db_invoice.billing_rate is not None,
+        refresh_orders=True,
+    )
     db_invoice.list_of_tests = output.invoice_data.list_of_tests
     db_invoice.list_of_lab_panels = output.invoice_data.list_of_lab_panels
     await _validate_invoice_total(db_invoice, db_visit)
@@ -373,7 +380,7 @@ async def rebuild_invoice(visit_id: str):
 async def _invoice_from_results(
     visit_id: str, db_visit: DBVisit, db_invoice: DBInvoice,
     preserve_snapshot: bool = False,
-    *, orders: list | None = None,
+    *, orders: list | None = None, refresh_orders: bool = False,
     db_patient: DBPatient | None = None,
     db_insurance_company: DBInsurance_company | None = None,
     context: VisitReadContext | None = None,
@@ -381,10 +388,11 @@ async def _invoice_from_results(
     """Build billable membership from saved orders, including blank results.
 
     Invoice reads preserve existing price snapshots and overrides and never write.
-    The explicit rebuild operation can still refresh catalog snapshots.
+    A rebuild refreshes membership and keeps saved prices for confirmed lines.
     """
 
-    db_list_of_lab_tests_results = orders
+    use_saved_billing = preserve_snapshot and db_invoice.billing_rate is not None and not refresh_orders
+    db_list_of_lab_tests_results = [] if use_saved_billing else orders
     if db_list_of_lab_tests_results is None:
         db_list_of_lab_tests_results = await DBLab_test_result.find(
             DBLab_test_result.visit_id == PydanticObjectId(visit_id)
@@ -415,16 +423,12 @@ async def _invoice_from_results(
             detail=f"Patient of ID: {db_visit.patient_id} not found!",
         )
 
+    insurer_id = db_invoice.insurance_company_id if db_invoice.billing_rate is not None else db_patient.insurance_company_id
+    if db_insurance_company is None or (use_saved_billing and db_insurance_company.id != insurer_id):
+        db_insurance_company = await DBInsurance_company.get(insurer_id)
     if db_insurance_company is None:
-        db_insurance_company = await DBInsurance_company.find_one(
-            DBInsurance_company.id == db_patient.insurance_company_id
-        )
-    if not db_insurance_company:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Insurance Company of ID: {db_patient.insurance_company_id} not found!",
-        )
-    patient_insurance_company_rate = db_insurance_company.rate
+        raise HTTPException(404, f"Insurance company {insurer_id} not found")
+    patient_insurance_company_rate = db_invoice.billing_rate if db_invoice.billing_rate is not None else db_insurance_company.rate
     currentPatient = Patient(
         insurance_company_name=db_insurance_company.insurance_company_name,
         DOB=db_patient.DOB,
@@ -558,13 +562,16 @@ async def _invoice_from_results(
         listOfPanels.append(lab_panel)
         # totalPrice += db_lab_panel.lab_panel_price
 
-    if preserve_snapshot:
+    if use_saved_billing:
+        listOfTests = list(saved_tests.values())
+        listOfPanels = list(saved_panels.values())
+    elif preserve_snapshot:
         resolved_tests = {str(test.lab_test_id): test for test in listOfTests} | saved_tests
         resolved_panels = {str(panel.id): panel for panel in listOfPanels} | saved_panels
         listOfTests = [resolved_tests[test_id] for test_id in test_ids]
         listOfPanels = [resolved_panels[panel_id] for panel_id in panel_ids]
     current_invoice_data = Invoice(
-        insurance_company_id=str(db_patient.insurance_company_id),
+        insurance_company_id=str(db_insurance_company.id),
         list_of_tests=listOfTests,
         list_of_lab_panels=listOfPanels,
         visit_id=visit_id,
@@ -580,7 +587,7 @@ async def _invoice_from_results(
     output = invoiceData(
         patient=currentPatient,
         invoice_data=current_invoice_data,
-        currency=db_insurance_company.currency,
+        currency=db_invoice.billing_currency or db_insurance_company.currency,
     )
     return output
 
@@ -717,22 +724,21 @@ async def get_invoices_with_page_size(
                 detail=f"Patient of ID: {db_visit.patient_id} not found!",
             )
 
-        db_insurance_company = await DBInsurance_company.find_one(
-            DBInsurance_company.id == db_patient.insurance_company_id
-        )
+        insurer_id = invoice.insurance_company_id if invoice.billing_rate is not None else db_patient.insurance_company_id
+        db_insurance_company = await DBInsurance_company.get(insurer_id)
         if not db_insurance_company:
             raise HTTPException(
                 status_code=400,
                 detail=f"Insurance Company of ID: {db_patient.insurance_company_id} not found!",
             )
-        patient_insurance_company_rate = db_insurance_company.rate
+        patient_insurance_company_rate = invoice.billing_rate if invoice.billing_rate is not None else db_insurance_company.rate
         currentInvoice = Invoice(
             adjustment_minor=invoice.adjustment_minor,
             list_of_lab_panels=invoice.list_of_lab_panels,
             list_of_tests=invoice.list_of_tests,
             visit_id=invoice.visit_id,
             visit_date=invoice.visit_date,
-            insurance_company_id=str(db_patient.insurance_company_id),
+            insurance_company_id=str(insurer_id),
             patient_insurance_company_rate=patient_insurance_company_rate,
             invoice_number=invoice.invoice_number,
             total_paid=invoice.total_paid,

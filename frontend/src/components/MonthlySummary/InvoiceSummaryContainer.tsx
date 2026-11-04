@@ -1,135 +1,111 @@
 import { getApiErrorMessage } from "../../api";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import ShowWithSignature from "../ShowWithSignature";
 import InvoiceSummaryList from "./InvoiceSummaryList";
 import { getMonthlyInvoiceSummary } from "../utils";
-import type { fetchedInvoiceData } from "../types";
+import type { MonthlyInvoiceSummary } from "../types";
 import LoadingPage from "../LoadingPage/LoadingPage";
-
-type SummaryState = {
-  summaryData?: fetchedInvoiceData[];
-  currency?: string;
-  start_date?: Date | string;
-  end_date?: Date | string;
-};
-
-const toDate = (value: Date | string | undefined): Date | undefined => {
-  if (!value) return undefined;
-  const parsed = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
-};
+import { invoiceNet } from "../Invoice/invoicePricing";
+import { displayMoneyUnits } from "../Invoice/amountToWords";
 
 export default function InvoiceSummaryContainer() {
-  const location = useLocation();
-  const { insurance_company_id } = useParams<{
-    insurance_company_id: string;
-  }>();
-  const state = useMemo(
-    () => (location.state || {}) as SummaryState,
-    [location.state],
-  );
+  const { search } = useLocation();
+  const { insurance_company_id } = useParams<{ insurance_company_id: string }>();
+  const filters = new URLSearchParams(search);
+  const startDate = filters.get("start_date");
+  const endDate = filters.get("end_date");
 
-  const stateSummary = useMemo(
-    () => (Array.isArray(state.summaryData) ? state.summaryData : []),
-    [state.summaryData],
-  );
-  const [summaryData, setSummaryData] =
-    useState<fetchedInvoiceData[]>(stateSummary);
-  const [currency, setCurrency] = useState<string>(
-    state.currency ?? stateSummary[0]?.currency ?? "",
-  );
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    toDate(state.start_date),
-  );
-  const [endDate, setEndDate] = useState<Date | undefined>(
-    toDate(state.end_date),
-  );
-  const [loading, setLoading] = useState<boolean>(stateSummary.length === 0);
-  const [error, setError] = useState<string>("");
-  const [showSignature, setShowSignature] = useState<boolean>(true);
-  const [showSignatureOption, setShowSignatureOption] = useState<boolean>(true);
-
-  useEffect(() => {
-    if (stateSummary.length > 0) {
-      setSummaryData(stateSummary);
-      setCurrency(state.currency ?? stateSummary[0]?.currency ?? "");
-      setStartDate(toDate(state.start_date));
-      setEndDate(toDate(state.end_date));
-      setLoading(false);
-      setError("");
-      return;
-    }
-    if (summaryData.length > 0) return;
-
-    const params = new URLSearchParams(location.search);
-    const startParam = params.get("start_date");
-    const endParam = params.get("end_date");
-    if (!insurance_company_id || !startParam || !endParam) {
-      setError("Missing summary filters. Please run the report again.");
-      setLoading(false);
-      return;
-    }
-    const parsedStart = toDate(startParam);
-    const parsedEnd = toDate(endParam);
-    if (!parsedStart || !parsedEnd) {
-      setError("Invalid date range.");
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    getMonthlyInvoiceSummary({
-      insurance_company_id,
-      start_date: parsedStart,
-      end_date: parsedEnd,
-    })
-      .then((data) => {
-        setSummaryData(data);
-        setCurrency(data[0]?.currency ?? "");
-        setStartDate(parsedStart);
-        setEndDate(parsedEnd);
-      })
-      .catch((err) => {
-        setError(getApiErrorMessage(err, "Failed to load summary"));
-      })
-      .finally(() => setLoading(false));
-  }, [
-    insurance_company_id,
-    location.search,
-    state.currency,
-    state.end_date,
-    state.start_date,
-    stateSummary,
-    stateSummary.length,
-    summaryData.length,
-  ]);
-
-  if (loading) return <LoadingPage title="Loading summary invoice ..." />;
-  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
-  if (!summaryData.length || !startDate || !endDate) {
-    return <div className="p-4">No summary data found.</div>;
+  if (!insurance_company_id || !startDate || !endDate) {
+    return <p className="p-4">Missing summary filters. Please run the report again.</p>;
+  }
+  if (!Number.isFinite(Date.parse(startDate)) || !Number.isFinite(Date.parse(endDate))) {
+    return <p className="p-4">Invalid date range.</p>;
   }
 
-  const resolvedCurrency = currency || summaryData[0]?.currency || "";
+  return <InvoiceSummaryReport
+    key={JSON.stringify([insurance_company_id, startDate, endDate])}
+    insurerId={insurance_company_id}
+    startDate={startDate}
+    endDate={endDate}
+  />;
+}
+
+function InvoiceSummaryReport({ insurerId, startDate, endDate }: {
+  insurerId: string;
+  startDate: string;
+  endDate: string;
+}) {
+  const [report, setReport] = useState<MonthlyInvoiceSummary>();
+  const [error, setError] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("");
+  const [showSignature, setShowSignature] = useState(true);
+  const [showSignatureOption, setShowSignatureOption] = useState(true);
+
+  useEffect(() => {
+    const request = new AbortController();
+    getMonthlyInvoiceSummary({
+      insurance_company_id: insurerId,
+      start_date: startDate,
+      end_date: endDate,
+    }, request.signal).then(data => {
+      if (!request.signal.aborted) setReport(data);
+    }).catch(err => {
+      if (!request.signal.aborted) setError(getApiErrorMessage(err, "Failed to load summary"));
+    });
+    return () => request.abort();
+  }, [insurerId, startDate, endDate]);
+
+  if (error) return <div role="alert" className="m-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>;
+  if (!report) return <LoadingPage title="Loading summary invoice ..." />;
+  if (report.unavailable_invoice_numbers.length) {
+    return (
+      <p role="alert" className="m-4 rounded border border-red-300 bg-red-50 p-3">
+        Could not generate the summary for invoices {report.unavailable_invoice_numbers.join(", ")}.
+      </p>
+    );
+  }
+
+  const billableInvoices = report.invoices.filter(invoice =>
+    displayMoneyUnits(invoiceNet(invoice.invoice_data), invoice.currency) !== 0 ||
+    Boolean(invoice.invoice_data.adjustment_minor)
+  );
+  const currencies = [...new Set(billableInvoices.map(invoice => invoice.currency))];
+  const currency = selectedCurrency || currencies[0];
+  const rows = billableInvoices.filter(invoice => invoice.currency === currency);
 
   return (
-    <div style={{ width: "100%", height: "800px" }}>
-      {showSignatureOption && (
-        <ShowWithSignature
-          setShowSignature={setShowSignature}
-          setShowSignatureOption={setShowSignatureOption}
-        />
-      )}
-      {!showSignatureOption && (
-        <InvoiceSummaryList
-          currency={resolvedCurrency}
-          end_date={endDate}
-          start_date={startDate}
-          summaryData={summaryData}
-          showSignature={showSignature}
-        />
+    <div>
+      {!rows.length ? (
+        <p className="p-4">{report.invoices.length
+          ? "Invoices found, but none have a billable amount."
+          : "No invoices found for this date range."}</p>
+      ) : (
+        <>
+          {currencies.length > 1 && (
+            <label className="m-4 block">Report currency{" "}
+              <select value={currency} onChange={event => setSelectedCurrency(event.target.value)}>
+                {currencies.map(value => <option key={value}>{value}</option>)}
+              </select>
+            </label>
+          )}
+          {showSignatureOption ? (
+            <ShowWithSignature
+              setShowSignature={setShowSignature}
+              setShowSignatureOption={setShowSignatureOption}
+            />
+          ) : (
+            <div style={{ width: "100%", height: "800px" }}>
+              <InvoiceSummaryList
+                currency={currency}
+                start_date={new Date(startDate)}
+                end_date={new Date(endDate)}
+                summaryData={rows}
+                showSignature={showSignature}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

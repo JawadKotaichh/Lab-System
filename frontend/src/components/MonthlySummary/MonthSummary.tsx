@@ -11,7 +11,6 @@ import {
   inputFormAttributeListItemLabel,
   inputFormSave,
   inputFormTitle,
-  stateStyle,
 } from "../../style";
 import { listOfAttributesInvoice } from "../data";
 import { useEffect, useState } from "react";
@@ -19,7 +18,7 @@ import type {
   insuranceCompanyParams,
   monthlySummaryInvoicesParams,
 } from "../types";
-import { fetchAllInsuranceCompanies, getMonthlyInvoiceSummary } from "../utils";
+import { fetchAllInsuranceCompanies } from "../utils";
 import { useNavigate } from "react-router-dom";
 import LoadingPage from "../LoadingPage/LoadingPage";
 import { getApiErrorMessage } from "../../api";
@@ -30,7 +29,6 @@ const localToday = () => {
 };
 
 const MonthSummary = () => {
-  const [state, setState] = useState<string>("");
   const [data, setData] = useState<monthlySummaryInvoicesParams>({
     insurance_company_id: "",
     start_date: localToday(),
@@ -87,40 +85,13 @@ const MonthSummary = () => {
     { name: "start_date", label: "Start date", error: dateError(data.start_date, "Start date") },
     { name: "end_date", label: "End date", error: dateError(data.end_date, "End date") || (new Date(String(data.start_date)) > new Date(String(data.end_date)) ? "End date must be on or after start date." : null) },
   ]);
-  const handleSave = async () => {
-    if (!validation.validate()) { setState(""); return; }
-    setState("");
-    try {
-      const response = await getMonthlyInvoiceSummary({
-        insurance_company_id: data.insurance_company_id,
-        start_date: data.start_date,
-        end_date: data.end_date,
-      });
-
-      const startParam =
-        data.start_date instanceof Date
-          ? data.start_date.toISOString()
-          : String(data.start_date);
-      const endParam =
-        data.end_date instanceof Date
-          ? data.end_date.toISOString()
-          : String(data.end_date);
-      const query = new URLSearchParams({
-        start_date: startParam,
-        end_date: endParam,
-      }).toString();
-
-      navigate(`/summary-invoice/${data.insurance_company_id}?${query}`, {
-        state: {
-          summaryData: response,
-          start_date: data.start_date,
-          end_date: data.end_date,
-          currency: data.currency,
-        },
-      });
-    } catch (err: unknown) {
-      setState(getApiErrorMessage(err, "Failed to generate monthly summary"));
-    }
+  const handleSave = () => {
+    if (!validation.validate()) return;
+    const query = new URLSearchParams({
+      start_date: String(data.start_date),
+      end_date: String(data.end_date),
+    });
+    navigate(`/summary-invoice/${data.insurance_company_id}?${query}`);
   };
   const renderIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {
@@ -206,7 +177,6 @@ const MonthSummary = () => {
       <ActionButton onClick={() => handleSave()} className="mt-5" variant="primary" icon={GetActionIcon}>
         Get
       </ActionButton>
-      {state && <p role="alert" className={stateStyle}>{state}</p>}
     </div>
   );
 };

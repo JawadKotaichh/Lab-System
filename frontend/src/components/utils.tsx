@@ -19,6 +19,7 @@ import type {
   labTestFilters,
   LoginResponse,
   monthlySummaryInvoicesParams,
+  MonthlyInvoiceSummary,
   paginatedFinancialTransactionsData,
   paginatedlabPanel,
   paginatedlabTest,
@@ -102,12 +103,15 @@ const updateInvoice = async (
 };
 const getMonthlyInvoiceSummary = async (
   searchData: monthlySummaryInvoicesParams,
-): Promise<fetchedInvoiceData[]> => {
-  const res = await api.get(
+  signal?: AbortSignal,
+): Promise<MonthlyInvoiceSummary> => {
+  const res = await api.get<MonthlyInvoiceSummary | fetchedInvoiceData[]>(
     `${invoicesApiURL}/${searchData.insurance_company_id}/get_monthly_summary`,
-    { params: searchData },
+    { params: { ...searchData, include_issues: true }, signal },
   );
-  return res.data;
+  return Array.isArray(res.data)
+    ? { invoices: res.data, unavailable_invoice_numbers: [] }
+    : res.data;
 };
 export async function overrideTestPrice(
   visit_id: string,
