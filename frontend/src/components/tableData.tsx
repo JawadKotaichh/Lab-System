@@ -1320,61 +1320,6 @@ export function getVisitsColumnsUser(
       },
     },
     {
-      accessorKey: "patient.name",
-      header: ({ column }) => (
-        <ColumnFilter
-          withFilter={false}
-          column={column}
-          placeholder="Search patient name..."
-          label=" Name"
-          showFilter={!!showFilters[column.id]}
-          toggleShowFilter={() => toggleFilter(column.id)}
-        />
-      ),
-      sortingFn: (rowA, rowB, columnId) => {
-        const a = (rowA.getValue(columnId) as string).toLowerCase();
-        const b = (rowB.getValue(columnId) as string).toLowerCase();
-        return a.localeCompare(b);
-      },
-    },
-    {
-      accessorKey: "insurance_company_name",
-      header: ({ column }) => (
-        <ColumnFilter
-          withFilter={false}
-          column={column}
-          placeholder="Search insurrance company"
-          label="Insurance Company"
-          showFilter={!!showFilters[column.id]}
-          toggleShowFilter={() => toggleFilter(column.id)}
-        />
-      ),
-      sortingFn: (rowA, rowB, columnId) => {
-        const a = (rowA.getValue(columnId) as string).toLowerCase();
-        const b = (rowB.getValue(columnId) as string).toLowerCase();
-        return a.localeCompare(b);
-      },
-    },
-    {
-      accessorKey: "patient.phone_number",
-      header: ({ column }) => (
-        <ColumnFilter
-          withFilter={false}
-          column={column}
-          inputType="tel"
-          placeholder="Search phone number..."
-          label="Phone Number"
-          showFilter={!!showFilters[column.id]}
-          toggleShowFilter={() => toggleFilter(column.id)}
-        />
-      ),
-      sortingFn: (rowA, rowB, columnId) => {
-        const a = (rowA.getValue(columnId) as string).toLowerCase();
-        const b = (rowB.getValue(columnId) as string).toLowerCase();
-        return a.localeCompare(b);
-      },
-    },
-    {
       accessorKey: "total_price_with_insurance",
       cell: ({ row }) => {
         const currency = row.original.currency ?? "$";
@@ -1390,7 +1335,7 @@ export function getVisitsColumnsUser(
           withFilter={false}
           column={column}
           placeholder="Search price..."
-          label="Price & Insurance"
+          label="Price"
           showFilter={!!showFilters[column.id]}
           toggleShowFilter={() => toggleFilter(column.id)}
         />
