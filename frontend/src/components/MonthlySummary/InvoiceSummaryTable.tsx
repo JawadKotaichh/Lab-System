@@ -1,16 +1,17 @@
 import { Text, View } from "@react-pdf/renderer";
 import type { SummaryInvoice } from "./InvoiceSummaryList";
-import getTotalPrice from "./getTotalPrice";
+import { invoiceNet } from "../Invoice/invoicePricing";
 import { styles } from "./InvoiceSummaryStyle";
 import amountToWords from "../Invoice/amountToWords";
 
 const InvoiceSummaryTable = ({ summaryData, currency }: SummaryInvoice) => {
   const headers = ["Date", "Patient Name", "Insurance Company", "Total Price"];
-  const rows = summaryData.map(currentInvoice => {
-    const d = currentInvoice.invoice_data;
-    return { currentInvoice, rowTotal: getTotalPrice(d.patient_insurance_company_rate,
-      d.list_of_tests, d.list_of_lab_panels, d.list_of_lab_tests_ids_changed, d.list_of_lab_panels_ids_changed) };
-  }).filter(row => row.rowTotal !== 0);
+  const rows = summaryData.map(currentInvoice => ({
+    currentInvoice,
+    rowTotal: invoiceNet(currentInvoice.invoice_data),
+  })).filter(({ currentInvoice, rowTotal }) =>
+    rowTotal !== 0 || Boolean(currentInvoice.invoice_data.adjustment_minor)
+  );
   const totalPrice = rows.reduce((sum, row) => sum + row.rowTotal, 0);
 
   return (

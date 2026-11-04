@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     fontFamily:'Helvetica',
     fontSize:12,
     padding:"30px 50px",
-    paddingTop: 230,        
+    paddingTop: 245,
     paddingBottom: 70,     
     paddingHorizontal: 50,
   },
@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
   },
   lab_header: {
     width: "100%",
-    height: 70,
+    height: 85,
     objectFit: "contain",
   },
   // lab_header:{

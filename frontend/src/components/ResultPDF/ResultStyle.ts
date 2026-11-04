@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'Times-Roman',
     fontSize: 12,
     padding: "30px 50px",
-    paddingTop: 240,
+    paddingTop: 248,
     paddingHorizontal: 25,
     paddingBottom: 80,
   },
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create({
   },
   lab_header: {
     width: "100%",
-    height: 90,
+    height: 98,
     objectFit: "contain",
   },
   logo: {

@@ -33,7 +33,7 @@ from ..schemas.schema_Lab_Test_Result import Lab_test_result
 from ..models import lab_test_category as DBLab_test_category
 from ..models import lab_test_type as DBLab_test_type
 from .deps import require_admin, require_visit_access
-from ..schemas.financial_types import round_money
+from ..schemas.financial_types import MAX_MONEY, round_money
 from ..visit_read import VisitReadContext, load_catalog
 
 
@@ -178,6 +178,8 @@ async def get_monthly_summary_invoice(
     dependencies=[Depends(require_admin)],
 )
 async def update_current_invoice(visit_id: str, update_data: update_invoice):
+    if update_data.final_total is not None and update_data.adjustment_minor is not None:
+        raise HTTPException(422, "Provide either a final invoice total or an adjustment")
     if not PydanticObjectId.is_valid(visit_id):
         raise HTTPException(status_code=400, detail="Invalid visit ID")
     db_visit = await DBVisit.get(PydanticObjectId(visit_id))
@@ -281,6 +283,10 @@ async def update_current_invoice(visit_id: str, update_data: update_invoice):
         else:
             total_price += (panel.lab_panel_price or 0) * insurance_rate
 
+    if update_data.final_total is not None:
+        existing_invoice.adjustment_minor = update_data.final_total - round_money(total_price)
+        if abs(existing_invoice.adjustment_minor) > MAX_MONEY:
+            raise HTTPException(422, "The calculated adjustment is too large")
     total_price = round_money(total_price + existing_invoice.adjustment_minor)
     if total_price < 0:
         raise HTTPException(422, "The adjustment makes the net total negative")

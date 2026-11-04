@@ -56,6 +56,7 @@ class update_invoice(BaseModel):
     visit_date: Optional[datetime] = None
     patient_insurance_company_rate: Optional[Rate] = None
     adjustment_minor: Optional[SignedMoney] = None
+    final_total: Optional[Money] = Field(default=None, gt=0)
     insurance_company_id: Optional[str] = None
     total_paid: Optional[Money] = None
     list_of_lab_tests_ids_changed: Optional[List[LabTestChanged]] = None

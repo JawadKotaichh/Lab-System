@@ -12,7 +12,7 @@ import api, { getApiErrorMessage } from "../../api";
 import type { fetchedInvoiceData, labPanel, labTest, patientPanelResult, patientTestResult, resultListData, updateInvoiceData } from "../types";
 import { fetchVisitEditor, fetchResultList } from "../utils";
 import PatientInfo from "./PatientInfo";
-import Prices, { invoiceGross } from "./Prices";
+import Prices, { invoiceNet } from "./Prices";
 import TestResultsList, { type ResultTarget } from "./TestResultsList";
 import AddTestResultTable from "./AddTestResultTable";
 import LabPanelsTable from "./LabPanelsTable";
@@ -27,6 +27,7 @@ export type VisitEdits = {
   visitDate: string;
   reportDate: string;
   adjustment: string;
+  finalTotal?: string;
   paid: string;
   prices: Record<string, string>;
 };
@@ -101,7 +102,7 @@ export function editsFrom(source: Source): VisitEdits {
 }
 export function editSignature(edits: VisitEdits): string {
   const numeric = (value: string) => value.trim() !== "" && Number.isFinite(Number(value)) ? Number(value) : value;
-  return JSON.stringify([edits.visitDate, edits.reportDate, numeric(edits.adjustment), numeric(edits.paid),
+  return JSON.stringify([edits.visitDate, edits.reportDate, numeric(edits.adjustment), edits.finalTotal === undefined ? null : numeric(edits.finalTotal), numeric(edits.paid),
     edits.tests.map(x => [x.lab_test_type_id, x.result]).sort(),
     edits.panels.map(p => [p.lab_panel_id, p.list_of_test_results.map(x => [x.lab_test_type_id, x.result]).sort()]).sort(),
     Object.entries(edits.prices).map(([id, price]) => [id, numeric(price)]).sort()]);
@@ -118,13 +119,20 @@ function invoiceFor(source: Source, edits: VisitEdits): updateInvoiceData {
     adjustment_minor: Number(edits.adjustment), total_paid: Number(edits.paid),
   };
 }
+function finalTotalError(invoice: updateInvoiceData, finalTotal?: string): string | null {
+  if (finalTotal !== undefined) {
+    return moneyError(finalTotal, "Final invoice total")
+      || (Number(finalTotal) <= 0 ? "Final invoice total must be greater than zero." : null);
+  }
+  return invoiceNet(invoice) < 0 ? "Enter a final invoice total greater than zero." : null;
+}
+
 export function validateVisitEdits(source: Source, edits: VisitEdits): string | null {
   const invalid = dateError(edits.visitDate, "Visit date") || dateError(edits.reportDate, "Report date")
-    || moneyError(edits.adjustment, "Adjustment", true) || moneyError(edits.paid, "Paid amount")
+    || moneyError(edits.paid, "Paid amount")
     || Object.values(edits.prices).map(price => moneyError(price, "Test price")).find(Boolean);
   if (invalid) return invalid;
-  if (Math.round((invoiceGross(invoiceFor(source, edits)) + Number(edits.adjustment)) * 1000) < 0) return "The adjustment makes the net total negative. Reduce the discount before saving.";
-  return null;
+  return finalTotalError(invoiceFor(source, edits), edits.finalTotal);
 }
 async function readVisit(visitId: string): Promise<Source> {
   const { results, invoice } = await fetchVisitEditor(visitId);
@@ -189,9 +197,18 @@ export async function saveVisitEdits(visitId: string, baseline: Source, edits: V
     }
   }
   await api.put(`/visits/${visitId}`, { visit_date: `${edits.visitDate}T00:00:00`, report_date: `${edits.reportDate}T00:00:00` });
-  await api.put(`/invoices/${visitId}/update_invoice`, { ...invoiceFor(current, edits), visit_date: `${edits.visitDate}T00:00:00` });
+  const invoiceUpdate = { ...invoiceFor(current, edits), visit_date: `${edits.visitDate}T00:00:00` };
+  await api.put(`/invoices/${visitId}/update_invoice`, edits.finalTotal === undefined
+    ? invoiceUpdate
+    : { ...invoiceUpdate, adjustment_minor: undefined, final_total: Number(edits.finalTotal) });
   const confirmed = await readVisit(visitId);
-  if (editSignature(editsFrom(confirmed)) !== editSignature(edits)) throw new Error("The server returned different values. Review the saved visit before retrying.");
+  const savedEdits = editsFrom(confirmed);
+  const expectedEdits = edits.finalTotal === undefined ? edits
+    : { ...edits, finalTotal: undefined, adjustment: savedEdits.adjustment };
+  if (editSignature(savedEdits) !== editSignature(expectedEdits) ||
+      (edits.finalTotal !== undefined && invoiceNet(confirmed.invoice.invoice_data) !== Number(edits.finalTotal))) {
+    throw new Error("The server returned different values. Review the saved visit before retrying.");
+  }
   return confirmed;
 }
 
@@ -253,7 +270,7 @@ export default function EditVisitPage() {
   const validation = useFormValidation(edits ? [
     { name: "visitDate", label: "Visit date", error: dateError(edits.visitDate, "Visit date") },
     { name: "reportDate", label: "Report date", error: dateError(edits.reportDate, "Report date") },
-    { name: "adjustment", label: "Adjustment", error: moneyError(edits.adjustment, "Adjustment", true) || (invoice && Math.round((invoiceGross(invoice) + Number(edits.adjustment)) * 1000) < 0 ? "The adjustment makes the net total negative. Reduce the discount." : null) },
+    { name: "finalTotal", label: "Final invoice total", error: invoice && finalTotalError(invoice, edits.finalTotal) },
     { name: "paid", label: "Paid amount", error: moneyError(edits.paid, "Paid amount") },
     ...Object.entries(edits.prices).map(([id, price]) => ({ name: `price-${id}`, label: "Test price", error: moneyError(price, `${edits.tests.find(test => test.lab_test_type_id === id)?.lab_test_type.name ?? "Test"} price`) })),
   ] : [], name => {
@@ -310,7 +327,11 @@ export default function EditVisitPage() {
     <ValidationSummary validation={validation} />
     <fieldset disabled={saving} className="min-w-0 border-0 p-0">
       <PatientInfo validation={validation} patientData={patient} visitDate={edits.visitDate} reportDate={edits.reportDate} onVisitDateChange={value => change(p => ({ ...p, visitDate: value }))} onReportDateChange={value => change(p => ({ ...p, reportDate: value }))} />
-      <Prices validation={validation} updatedInvoiceData={invoice} currency={source.invoice.currency} adjustment={edits.adjustment} paid={edits.paid} onAdjustmentChange={value => change(p => ({ ...p, adjustment: value }))} onPaidChange={value => change(p => ({ ...p, paid: value }))} />
+      <Prices validation={validation} updatedInvoiceData={invoice} currency={source.invoice.currency}
+        finalTotal={edits.finalTotal} paid={edits.paid}
+        onFinalTotalChange={finalTotal => change(p => ({ ...p, finalTotal }))}
+        onResetTotal={() => change(p => ({ ...p, finalTotal: undefined, adjustment: "0" }))}
+        onPaidChange={paid => change(p => ({ ...p, paid }))} />
       <div className="mt-6 flex gap-3"><ActionButton type="button" onClick={() => setShowTests(true)} variant="secondary" icon={AddActionIcon}>Add test result</ActionButton><ActionButton type="button" onClick={() => setShowPanels(true)} variant="secondary" icon={AddActionIcon}>Add lab panel</ActionButton></div>
       <TestResultsList panelResults={resultPage.panels} standAloneTestResults={resultPage.tests}
         onRemoveTest={id => change(p => { const prices = { ...p.prices }; delete prices[id]; return { ...p, prices, tests: p.tests.filter(test => test.lab_test_type_id !== id) }; })}
