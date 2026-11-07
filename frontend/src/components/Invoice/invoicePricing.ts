@@ -9,7 +9,7 @@ export function invoiceTestPrice(invoice: updateInvoiceData, test: labTest): num
   ) ?? basePrice;
 }
 
-export function invoicePanelPrice(invoice: updateInvoiceData, panel: labPanel): number {
+export function invoicePanelPrice(invoice: updateInvoiceData, panel: Pick<labPanel, "id" | "lab_panel_price">): number {
   const basePrice = (panel.lab_panel_price ?? 0) * (invoice.patient_insurance_company_rate ?? 1);
   return invoice.list_of_lab_panels_ids_changed?.reduce(
     (price, item) => String(item.panel_id) === String(panel.id) ? item.new_price : price,

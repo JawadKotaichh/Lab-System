@@ -30,6 +30,7 @@ export type VisitEdits = {
   finalTotal?: string;
   paid: string;
   prices: Record<string, string>;
+  panelPrices: Record<string, string>;
 };
 const clone = <T,>(value: T): T => structuredClone(value);
 const rows = (edits: VisitEdits) => [...edits.tests, ...edits.panels.flatMap(p => p.list_of_test_results)];
@@ -86,6 +87,8 @@ function validateResultIdentifiers(results: resultListData) {
 const dateOnly = (date: unknown) => String(date).split("T")[0];
 export function editsFrom(source: Source): VisitEdits {
   const invoice = source.invoice.invoice_data;
+  const testIds = new Set(source.results.list_of_standalone_test_results.map(test => test.lab_test_type_id));
+  const panelIds = new Set(source.results.list_of_panel_results.map(panel => panel.lab_panel_id));
   return {
     tests: source.results.list_of_standalone_test_results.map(t => ({ ...t,
       lab_test_type: { ...(invoice.list_of_tests.find(x => x.lab_test_id === t.lab_test_type_id) ?? t.lab_test_type),
@@ -97,7 +100,12 @@ export function editsFrom(source: Source): VisitEdits {
     }),
     visitDate: dateOnly(source.results.visit_date), reportDate: dateOnly(source.results.report_date),
     adjustment: String(invoice.adjustment_minor ?? 0), paid: String(invoice.total_paid ?? 0),
-    prices: Object.fromEntries(invoice.list_of_lab_tests_ids_changed.map(x => [x.lab_test_id, String(x.new_price)])),
+    prices: Object.fromEntries(invoice.list_of_lab_tests_ids_changed
+      .filter(item => testIds.has(item.lab_test_id))
+      .map(item => [item.lab_test_id, String(item.new_price)])),
+    panelPrices: Object.fromEntries(invoice.list_of_lab_panels_ids_changed
+      .filter(item => panelIds.has(item.panel_id))
+      .map(item => [item.panel_id, String(item.new_price)])),
   };
 }
 export function editSignature(edits: VisitEdits): string {
@@ -105,7 +113,8 @@ export function editSignature(edits: VisitEdits): string {
   return JSON.stringify([edits.visitDate, edits.reportDate, numeric(edits.adjustment), edits.finalTotal === undefined ? null : numeric(edits.finalTotal), numeric(edits.paid),
     edits.tests.map(x => [x.lab_test_type_id, x.result]).sort(),
     edits.panels.map(p => [p.lab_panel_id, p.list_of_test_results.map(x => [x.lab_test_type_id, x.result]).sort()]).sort(),
-    Object.entries(edits.prices).map(([id, price]) => [id, numeric(price)]).sort()]);
+    Object.entries(edits.prices).map(([id, price]) => [id, numeric(price)]).sort(),
+    Object.entries(edits.panelPrices).map(([id, price]) => [id, numeric(price)]).sort()]);
 }
 function invoiceFor(source: Source, edits: VisitEdits): updateInvoiceData {
   return { ...source.invoice.invoice_data,
@@ -115,7 +124,8 @@ function invoiceFor(source: Source, edits: VisitEdits): updateInvoiceData {
       lab_tests: p.list_of_test_results.map(t => t.lab_test_type) })),
     list_of_lab_tests_ids_changed: Object.entries(edits.prices).filter(([id]) => edits.tests.some(t => t.lab_test_type_id === id))
       .map(([lab_test_id, value]) => ({ lab_test_id, new_price: Number(value) })),
-    list_of_lab_panels_ids_changed: source.invoice.invoice_data.list_of_lab_panels_ids_changed.filter(x => edits.panels.some(p => p.lab_panel_id === x.panel_id)),
+    list_of_lab_panels_ids_changed: Object.entries(edits.panelPrices).filter(([id]) => edits.panels.some(p => p.lab_panel_id === id))
+      .map(([panel_id, value]) => ({ panel_id, new_price: Number(value) })),
     adjustment_minor: Number(edits.adjustment), total_paid: Number(edits.paid),
   };
 }
@@ -130,7 +140,8 @@ function finalTotalError(invoice: updateInvoiceData, finalTotal?: string): strin
 export function validateVisitEdits(source: Source, edits: VisitEdits): string | null {
   const invalid = dateError(edits.visitDate, "Visit date") || dateError(edits.reportDate, "Report date")
     || moneyError(edits.paid, "Paid amount")
-    || Object.values(edits.prices).map(price => moneyError(price, "Test price")).find(Boolean);
+    || Object.values(edits.prices).map(price => moneyError(price, "Test price")).find(Boolean)
+    || Object.values(edits.panelPrices).map(price => moneyError(price, "Panel price")).find(Boolean);
   if (invalid) return invalid;
   return finalTotalError(invoiceFor(source, edits), edits.finalTotal);
 }
@@ -273,8 +284,25 @@ export default function EditVisitPage() {
     { name: "finalTotal", label: "Final invoice total", error: invoice && finalTotalError(invoice, edits.finalTotal) },
     { name: "paid", label: "Paid amount", error: moneyError(edits.paid, "Paid amount") },
     ...Object.entries(edits.prices).map(([id, price]) => ({ name: `price-${id}`, label: "Test price", error: moneyError(price, `${edits.tests.find(test => test.lab_test_type_id === id)?.lab_test_type.name ?? "Test"} price`) })),
+    ...Object.entries(edits.panelPrices).map(([id, price]) => ({
+      name: `panel-price-${id}`,
+      label: "Panel price",
+      error: moneyError(price, `${edits.panels.find(panel => panel.lab_panel_id === id)?.lab_panel_name ?? "Panel"} price`),
+    })),
   ] : [], name => {
-    if (!edits || !name.startsWith("price-")) return;
+    if (!edits) return;
+    if (name.startsWith("panel-price-")) {
+      let index = edits.tests.length;
+      for (const panel of edits.panels) {
+        if (`panel-price-${panel.lab_panel_id}` === name) {
+          setPagination(previous => ({ ...previous, pageIndex: Math.floor(index / previous.pageSize) }));
+          return;
+        }
+        index += Math.max(1, panel.list_of_test_results.length);
+      }
+      return;
+    }
+    if (!name.startsWith("price-")) return;
     const index = edits.tests.findIndex(test => `price-${test.lab_test_type_id}` === name);
     if (index >= 0) setPagination(previous => ({ ...previous, pageIndex: Math.floor(index / previous.pageSize) }));
   });
@@ -333,9 +361,17 @@ export default function EditVisitPage() {
         onResetTotal={() => change(p => ({ ...p, finalTotal: undefined, adjustment: "0" }))}
         onPaidChange={paid => change(p => ({ ...p, paid }))} />
       <div className="mt-6 flex gap-3"><ActionButton type="button" onClick={() => setShowTests(true)} variant="secondary" icon={AddActionIcon}>Add test result</ActionButton><ActionButton type="button" onClick={() => setShowPanels(true)} variant="secondary" icon={AddActionIcon}>Add lab panel</ActionButton></div>
-      <TestResultsList panelResults={resultPage.panels} standAloneTestResults={resultPage.tests}
+      <TestResultsList validation={validation} panelResults={resultPage.panels} standAloneTestResults={resultPage.tests}
+        priceDrafts={edits.prices} updatedInvoiceData={invoice}
+        panelPriceDrafts={edits.panelPrices}
+        onPanelPriceChange={(id, value) => change(p => ({ ...p, panelPrices: { ...p.panelPrices, [id]: value } }))}
+        onPriceChange={(id, value) => change(p => ({ ...p, prices: { ...p.prices, [id]: value } }))}
         onRemoveTest={id => change(p => { const prices = { ...p.prices }; delete prices[id]; return { ...p, prices, tests: p.tests.filter(test => test.lab_test_type_id !== id) }; })}
-        onRemovePanel={id => change(p => ({ ...p, panels: p.panels.filter(x => x.lab_panel_id !== id) }))}
+        onRemovePanel={id => change(p => {
+          const panelPrices = { ...p.panelPrices };
+          delete panelPrices[id];
+          return { ...p, panelPrices, panels: p.panels.filter(panel => panel.lab_panel_id !== id) };
+        })}
         onResultChange={(target, value) => change(previous => updateVisitResult(previous, target, value))} />
       <Pagination currentPage={resultPage.pageIndex + 1} totalPages={resultPage.totalPages} pageSize={pagination.pageSize} TotalNumberOfPaginatedItems={resultPage.total} setCurrentPage={page => setPagination(p => ({ ...p, pageIndex: page - 1 }))} setPageSize={size => setPagination({ pageIndex: 0, pageSize: size })} />
     </fieldset>

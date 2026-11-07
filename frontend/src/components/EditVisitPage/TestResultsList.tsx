@@ -4,7 +4,10 @@ import type {
   patientPanelResult,
   patientTestResult,
   result_suggestions,
+  updateInvoiceData,
 } from "../types.js";
+import { FieldError, type FormValidation } from "../FormValidation";
+import { invoicePanelPrice, invoiceTestPrice } from "../Invoice/invoicePricing";
 import React, { useEffect, useRef, useState } from "react";
 import renderNormalValue from "../renderNormalValue.js";
 import {
@@ -15,9 +18,15 @@ export type ResultTarget = { testId: string; panelId: string | null };
 const rowKey = (target: ResultTarget) => JSON.stringify([target.panelId, target.testId]);
 
 interface ShowResultsListParams {
+  validation: FormValidation;
   panelResults: patientPanelResult[];
   standAloneTestResults: patientTestResult[];
   onResultChange: (target: ResultTarget, value: string) => void;
+  priceDrafts: Record<string, string>;
+  panelPriceDrafts: Record<string, string>;
+  updatedInvoiceData: updateInvoiceData;
+  onPriceChange: (id: string, value: string) => void;
+  onPanelPriceChange: (id: string, value: string) => void;
   onRemoveTest: (id: string) => void;
   onRemovePanel: (id: string) => void;
 }
@@ -38,9 +47,15 @@ const normalizeResult = (value: string) => {
   return toTitleCase(v);
 };
 const TestResultsList: React.FC<ShowResultsListParams> = ({
+  validation,
   panelResults,
   standAloneTestResults,
   onResultChange,
+  priceDrafts,
+  panelPriceDrafts,
+  updatedInvoiceData,
+  onPriceChange,
+  onPanelPriceChange,
   onRemoveTest,
   onRemovePanel,
 }: ShowResultsListParams) => {
@@ -113,13 +128,14 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
           <th className="h-8 px-0 py-2">Result</th>
           <th className="h-8 px-0 py-2">Unit</th>
           <th className="h-8 px-0 py-2">L</th>
+          <th className="h-8 px-0 py-2">Price</th>
           <th className="h-8 px-0 py-2">Normal Value</th>
           <th className="h-8 px-0 py-2">Remove</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td colSpan={7}>
+          <td colSpan={8}>
             <h1 className="font-bold rounded-b-sm px-4 py-2">Tests</h1>
           </td>
         </tr>
@@ -211,8 +227,21 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               <td className="border rounded-b-sm px-4 py-2">
                 {r.lab_test_type.unit}
               </td>
-              <td className="border rounded-b-sm  px-4 py-2">
+              <td className="border rounded-b-sm px-4 py-2">
                 {r.lab_test_type.price}
+              </td>
+              <td className="border rounded-b-sm px-4 py-2">
+                <input
+                  {...validation.field(`price-${r.lab_test_type_id}`)}
+                  aria-label={`${r.lab_test_type.name} price`}
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  className="h-8 w-24 rounded border border-gray-300 px-2 text-right"
+                  value={priceDrafts[r.lab_test_type_id] ?? invoiceTestPrice(updatedInvoiceData, r.lab_test_type).toFixed(3)}
+                  onChange={event => onPriceChange(r.lab_test_type_id, event.target.value)}
+                />
+                <FieldError validation={validation} name={`price-${r.lab_test_type_id}`} />
               </td>
               <td className="border rounded-b-sm  px-4 py-2">
                 {r.lab_test_type.normal_value_list?.length ? (
@@ -239,6 +268,22 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
               </td>
               <td className="border rounded-b-sm px-4 py-2">
                 {panel.lab_panel_price}
+              </td>
+              <td className="border rounded-b-sm px-4 py-2">
+                <input
+                  {...validation.field(`panel-price-${panel.lab_panel_id}`)}
+                  aria-label={`${panel.lab_panel_name} price`}
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  className="h-8 w-24 rounded border border-gray-300 px-2 text-right"
+                  value={panelPriceDrafts[panel.lab_panel_id] ?? invoicePanelPrice(updatedInvoiceData, {
+                    id: panel.lab_panel_id,
+                    lab_panel_price: panel.lab_panel_price,
+                  }).toFixed(3)}
+                  onChange={event => onPanelPriceChange(panel.lab_panel_id, event.target.value)}
+                />
+                <FieldError validation={validation} name={`panel-price-${panel.lab_panel_id}`} />
               </td>
               <td></td>
 
@@ -337,6 +382,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                   {r.lab_test_type.unit}
                 </td>
                 <td></td>
+                <td></td>
                 <td className="border rounded-b-sm  px-4 py-2">
                   {r.lab_test_type.normal_value_list?.length ? (
                     r.lab_test_type.normal_value_list.map((nv, i) => (
@@ -346,6 +392,7 @@ const TestResultsList: React.FC<ShowResultsListParams> = ({
                     <span className="text-gray-400">—</span>
                   )}
                 </td>
+                <td></td>
               </tr>
             ))}
           </React.Fragment>
